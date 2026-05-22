@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
     //dodati user not found ??
 
     @ExceptionHandler(NonManagerCreatingSupplierException.class)
@@ -23,4 +24,15 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleUserNotFound(SupplierEmailAlreadyExists ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
+
+    @ExceptionHandler(SupplierPhoneAlreadyExists.class)
+    public ResponseEntity<String> handleUserNotFound(SupplierPhoneAlreadyExists ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(SupplierNameAlreadyExists.class)
+    public ResponseEntity<String> handleUserNotFound(SupplierNameAlreadyExists ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
 }

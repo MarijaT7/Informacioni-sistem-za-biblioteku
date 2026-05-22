@@ -1,9 +1,7 @@
 package ftn.iis.service;
 
 import ftn.iis.dto.DobavljacDto;
-import ftn.iis.exception.NonManagerCreatingSupplierException;
-import ftn.iis.exception.SupplierEmailAlreadyExists;
-import ftn.iis.exception.SupplierPibAlreadyExists;
+import ftn.iis.exception.*;
 import ftn.iis.model.Dobavljac;
 import ftn.iis.repository.DobavljacRepository;
 import ftn.iis.utils.JwtService;
@@ -30,9 +28,19 @@ public class DobavljacService {
             throw new SupplierPibAlreadyExists();
         }
 
-        // 2. Provera preko Email-a (opciono, ako želiš i to da osiguraš)
+        // 2. Provera preko Email-a
         if (dobavljacRepository.existsByEmail(dto.getEmail())) {
             throw new SupplierEmailAlreadyExists();
+        }
+
+        // 3. Provera preko naziva
+        if (dobavljacRepository.existsByNaziv(dto.getNaziv())) {
+            throw new SupplierNameAlreadyExists();
+        }
+
+        // 4. Provera preko telefona
+        if (dobavljacRepository.existsByNaziv(dto.getNaziv())) {
+            throw new SupplierPhoneAlreadyExists();
         }
 
         // Ako je sve u redu, mapiram i čuvam dobavljaca

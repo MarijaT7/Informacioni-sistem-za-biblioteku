@@ -1,11 +1,15 @@
 package ftn.iis.service;
 
 import ftn.iis.dto.DobavljacDto;
+import ftn.iis.dto.OsnovniDobavljacDto;
 import ftn.iis.exception.*;
 import ftn.iis.model.Dobavljac;
 import ftn.iis.repository.DobavljacRepository;
 import ftn.iis.utils.JwtService;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class DobavljacService {
@@ -39,7 +43,7 @@ public class DobavljacService {
         }
 
         // 4. Provera preko telefona
-        if (dobavljacRepository.existsByNaziv(dto.getNaziv())) {
+        if (dobavljacRepository.existsByTel(dto.getNaziv())) {
             throw new SupplierPhoneAlreadyExists();
         }
 
@@ -52,5 +56,20 @@ public class DobavljacService {
         );
 
         return dobavljacRepository.save(dobavljac);
+    }
+
+    public List<OsnovniDobavljacDto> ispisiSve(String token){
+        String role = jwtService.extractRole(token);
+        if(!role.equalsIgnoreCase("MENADZER")){
+            throw new NonManagerViewingSupplierException();
+        }
+
+        // Ako je ulogovan menadzer, sledi ispis svih dobavljaca, osnovne info
+        List<Dobavljac> detaljni = dobavljacRepository.findAll();
+        List<OsnovniDobavljacDto> osnovni = new ArrayList<>();
+        for (Dobavljac d : detaljni){
+            osnovni.add( new OsnovniDobavljacDto(d.getNaziv(), d.getTel()));
+        }
+        return osnovni;
     }
 }

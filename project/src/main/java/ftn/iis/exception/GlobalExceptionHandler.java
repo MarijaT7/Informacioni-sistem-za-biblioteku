@@ -35,4 +35,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 
+    @ExceptionHandler(NonManagerViewingSupplierException.class)
+    public ResponseEntity<String> handleUserNotFound(NonManagerViewingSupplierException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+    }
+
 }

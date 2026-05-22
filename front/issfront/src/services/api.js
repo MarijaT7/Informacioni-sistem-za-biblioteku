@@ -23,8 +23,8 @@ export const authApi = {
 }
 export const publicApi = {
   getLibraries:  () => api.get('/biblioteka'),
-  getGenres:     () => api.get('/zanr'),
-  getKategorije: () => api.get('/kategorija_clana'),
+  getGenres:     () => api.get('/genres'),
+  getKategorije: () => api.get('/kategorije'),
 }
 
 export default api

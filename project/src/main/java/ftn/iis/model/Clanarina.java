@@ -35,6 +35,9 @@ public class Clanarina {
     @JoinColumn(name = "jmbg", nullable = false)
     private User user;
 
+    public Clanarina() {
+    }
+
     public Long getIdc() {
         return idc;
     }

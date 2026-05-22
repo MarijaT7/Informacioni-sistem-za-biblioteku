@@ -34,7 +34,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/auth/**",
-                                "/api/libraries",
+                                "/api/biblioteka",
                                 "/api/genres",
                                 "/api/kategorije"
                         ).permitAll()

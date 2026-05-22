@@ -68,6 +68,9 @@ public class User implements UserDetails {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Clanarina clanarina;
 
+    public User() {
+    }
+
     public String getJmbg() {
         return jmbg;
     }

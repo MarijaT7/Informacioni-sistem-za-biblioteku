@@ -1,5 +1,6 @@
 package ftn.iis.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.util.List;
 @Entity
@@ -17,6 +18,7 @@ public class Biblioteka {
     private String ziroRB;
 
     @OneToMany(mappedBy = "biblioteka", fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<User> members;
 
     public String getBid() {

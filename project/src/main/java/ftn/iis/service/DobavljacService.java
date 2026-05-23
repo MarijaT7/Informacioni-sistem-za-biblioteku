@@ -2,6 +2,7 @@ package ftn.iis.service;
 
 import ftn.iis.dto.DobavljacDetaljniDto;
 import ftn.iis.dto.DobavljacDto;
+import ftn.iis.dto.DobavljacIzmenaDto;
 import ftn.iis.dto.OsnovniDobavljacDto;
 import ftn.iis.exception.*;
 import ftn.iis.model.Dobavljac;
@@ -143,5 +144,66 @@ public class DobavljacService {
         dto.setUrlOnlineProdavnice(url);
 
         return dto;
+    }
+
+    @Transactional
+    public DobavljacDetaljniDto izmeni(String token, Long id, DobavljacIzmenaDto dto){
+        String role = jwtService.extractRole(token);
+        if(!role.equalsIgnoreCase("MENADZER")){
+            throw new NonManagerUpdatingSupplierException();
+        }
+
+        Dobavljac dobavljac = dobavljacRepository.findById(id).orElseThrow(() -> new NoSupplierFound());
+
+        // Ažuriram samo polja koja nisu null i koja su razlicita od trenutnih
+        // Obavezno unique constraint
+        if (dto.getNaziv() != null && !dto.getNaziv().equals(dobavljac.getNaziv())) {
+            if (dobavljacRepository.existsByNaziv(dto.getNaziv())) {
+                throw new SupplierNameAlreadyExists();
+            }
+            dobavljac.setNaziv(dto.getNaziv());
+        }
+        if (dto.getEmail() != null && !dto.getEmail().equals(dobavljac.getEmail())) {
+            if (dobavljacRepository.existsByEmail(dto.getEmail())) {
+                throw new SupplierEmailAlreadyExists();
+            }
+            dobavljac.setEmail(dto.getEmail());
+        }
+        if (dto.getTel() != null && !dto.getTel().equals(dobavljac.getTel())) {
+            if (dobavljacRepository.existsByTel(dto.getTel())) {
+                throw new SupplierPhoneAlreadyExists();
+            }
+            dobavljac.setTel(dto.getTel());
+        }
+        if (dto.getPib() != null && !dto.getPib().equals(dobavljac.getPib())) {
+            if (dobavljacRepository.existsByPib(dto.getPib())) {
+                throw new SupplierPibAlreadyExists();
+            }
+            dobavljac.setPib(dto.getPib());
+        }
+        dobavljacRepository.save(dobavljac);
+
+        // Ažuriram Url ako je on prosledjen a jeste u pitanju knjizara
+        if(dto.getUrlOnlineProdavnice() != null && dobavljac.getKnjizara() != null){
+            dobavljac.getKnjizara().setUrlOnlineProdavnice(dto.getUrlOnlineProdavnice());
+            knjizaraRepository.save(dobavljac.getKnjizara());
+        }
+
+        // Sklapam response DTO
+        boolean jeIzdavac = dobavljac.getIzdavac() != null;
+        boolean jeKnjizara = dobavljac.getKnjizara() != null;
+        String tip = (jeIzdavac ? "1" : "0") + (jeKnjizara ? "1" : "0");
+        String url = jeKnjizara ? dobavljac.getKnjizara().getUrlOnlineProdavnice() : null;
+
+        DobavljacDetaljniDto rezultat = new DobavljacDetaljniDto();
+        rezultat.setId(dobavljac.getId());
+        rezultat.setNaziv(dobavljac.getNaziv());
+        rezultat.setEmail(dobavljac.getEmail());
+        rezultat.setTel(dobavljac.getTel());
+        rezultat.setPib(dobavljac.getPib());
+        rezultat.setTipDobavljaca(tip);
+        rezultat.setUrlOnlineProdavnice(url);
+
+        return rezultat;
     }
 }

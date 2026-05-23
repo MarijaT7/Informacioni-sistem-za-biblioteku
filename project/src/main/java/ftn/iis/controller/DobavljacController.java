@@ -44,5 +44,12 @@ public class DobavljacController {
         return ResponseEntity.ok(dobavljacDetaljniDto);
     }
 
+    @PatchMapping("/izmena/{id}")
+    public ResponseEntity<?> izmeni(@RequestHeader ("Authorization")
+                                          String authHeader, @PathVariable Long id, @RequestBody DobavljacIzmenaDto dto){
+        String token = authHeader.substring(7);
+        DobavljacDetaljniDto dobavljacDetaljniDto = dobavljacService.izmeni(token, id, dto);
+        return ResponseEntity.ok(dobavljacDetaljniDto);
+    }
 
 }

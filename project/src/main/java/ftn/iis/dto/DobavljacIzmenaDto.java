@@ -13,14 +13,17 @@ public class DobavljacIzmenaDto {
 
     private String pib;
 
+    private String urlOnlineProdavnice;
+
     public DobavljacIzmenaDto() {
     }
 
-    public DobavljacIzmenaDto(String naziv, String email, String tel, String pib) {
+    public DobavljacIzmenaDto(String naziv, String email, String tel, String pib, String urlOnlineProdavnice) {
         this.naziv = naziv;
         this.email = email;
         this.tel = tel;
         this.pib = pib;
+        this.urlOnlineProdavnice = urlOnlineProdavnice;
     }
 
     public String getNaziv() {
@@ -53,5 +56,13 @@ public class DobavljacIzmenaDto {
 
     public void setPib(String pib) {
         this.pib = pib;
+    }
+
+    public String getUrlOnlineProdavnice() {
+        return urlOnlineProdavnice;
+    }
+
+    public void setUrlOnlineProdavnice(String urlOnlineProdavnice) {
+        this.urlOnlineProdavnice = urlOnlineProdavnice;
     }
 }

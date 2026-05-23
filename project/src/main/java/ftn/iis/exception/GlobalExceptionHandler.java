@@ -49,4 +49,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleNonMenagerUpdatingSupplierException(NonManagerUpdatingSupplierException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
     }
+
+    @ExceptionHandler(NonManagerDeletingSupplierException.class)
+    public ResponseEntity<String> handleNonMenagerDeletingSupplierException(NonManagerDeletingSupplierException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+    }
 }

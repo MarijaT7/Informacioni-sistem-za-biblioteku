@@ -1,5 +1,6 @@
 package ftn.iis.model;
 
+import ftn.iis.enums.StatusDobavljaca;
 import jakarta.persistence.*;
 
 @Entity
@@ -19,6 +20,10 @@ public class Dobavljac {
     @Column(name="pib")
     private String pib;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name= "status")
+    private StatusDobavljaca status;
+
     @OneToOne(mappedBy = "dobavljac", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Knjizara knjizara;
 
@@ -34,6 +39,7 @@ public class Dobavljac {
         this.email = email;
         this.tel = tel;
         this.pib = pib;
+        this.status = StatusDobavljaca.AKTIVAN; // pri kreiranju je aktivan
     }
 
     public Long getId() {
@@ -90,5 +96,13 @@ public class Dobavljac {
 
     public void setIzdavac(Izdavac izdavac) {
         this.izdavac = izdavac;
+    }
+
+    public void setStatus(StatusDobavljaca status) {
+        this.status = status;
+    }
+
+    public StatusDobavljaca getStatus() {
+        return status;
     }
 }

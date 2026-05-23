@@ -6,6 +6,7 @@ import ftn.iis.dto.DobavljacIzmenaDto;
 import ftn.iis.dto.OsnovniDobavljacDto;
 import ftn.iis.model.Dobavljac;
 import ftn.iis.service.DobavljacService;
+import org.aspectj.lang.annotation.DeclareError;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -52,4 +53,10 @@ public class DobavljacController {
         return ResponseEntity.ok(dobavljacDetaljniDto);
     }
 
+    @DeleteMapping("/brisanje/{id}")
+    public ResponseEntity<?> obrisi(@RequestHeader ("Authorization") String authHeader, @PathVariable Long id){
+        String token = authHeader.substring(7);
+        DobavljacDetaljniDto dobavljacDetaljniDto = dobavljacService.obrisi(token, id);
+        return ResponseEntity.ok(dobavljacDetaljniDto);
+    }
 }

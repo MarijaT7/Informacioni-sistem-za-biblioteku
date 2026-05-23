@@ -1,8 +1,11 @@
 package ftn.iis.dto;
 
+import ftn.iis.enums.StatusDobavljaca;
+
 public class DobavljacDetaljniDto {
     private Long id;
     private String naziv;
+    private StatusDobavljaca status;
     private String email;
     private String tel;
     private String pib;
@@ -12,7 +15,7 @@ public class DobavljacDetaljniDto {
     public DobavljacDetaljniDto() {
     }
 
-    public DobavljacDetaljniDto(Long id, String naziv, String email, String tel, String pib, String tipDobavljaca, String urlOnlineProdavnice) {
+    public DobavljacDetaljniDto(Long id, String naziv, String email, String tel, String pib, String tipDobavljaca, String urlOnlineProdavnice, StatusDobavljaca status) {
         this.id = id;
         this.naziv = naziv;
         this.email = email;
@@ -20,6 +23,7 @@ public class DobavljacDetaljniDto {
         this.pib = pib;
         this.tipDobavljaca = tipDobavljaca;
         this.urlOnlineProdavnice = urlOnlineProdavnice;
+        this.status = status;
     }
 
     public Long getId() {
@@ -76,5 +80,13 @@ public class DobavljacDetaljniDto {
 
     public void setUrlOnlineProdavnice(String urlOnlineProdavnice) {
         this.urlOnlineProdavnice = urlOnlineProdavnice;
+    }
+
+    public StatusDobavljaca getStatus() {
+        return status;
+    }
+
+    public void setStatus(StatusDobavljaca status) {
+        this.status = status;
     }
 }

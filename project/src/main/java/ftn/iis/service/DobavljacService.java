@@ -4,6 +4,7 @@ import ftn.iis.dto.DobavljacDetaljniDto;
 import ftn.iis.dto.DobavljacDto;
 import ftn.iis.dto.DobavljacIzmenaDto;
 import ftn.iis.dto.OsnovniDobavljacDto;
+import ftn.iis.enums.StatusDobavljaca;
 import ftn.iis.exception.*;
 import ftn.iis.model.Dobavljac;
 import ftn.iis.model.Izdavac;
@@ -99,6 +100,7 @@ public class DobavljacService {
         rezultat.setPib(dobavljac.getPib());
         rezultat.setTipDobavljaca(tip);
         rezultat.setUrlOnlineProdavnice(url);
+        rezultat.setStatus(dobavljac.getStatus());
 
         return rezultat;
     }
@@ -113,7 +115,7 @@ public class DobavljacService {
         List<Dobavljac> detaljni = dobavljacRepository.findAll();
         List<OsnovniDobavljacDto> osnovni = new ArrayList<>();
         for (Dobavljac d : detaljni){
-            osnovni.add( new OsnovniDobavljacDto(d.getNaziv(), d.getTel()));
+            osnovni.add( new OsnovniDobavljacDto(d.getNaziv(), d.getTel(),  d.getStatus()));
         }
         return osnovni;
     }
@@ -142,6 +144,7 @@ public class DobavljacService {
         dto.setPib(dobavljac.getPib());
         dto.setTipDobavljaca(tip);
         dto.setUrlOnlineProdavnice(url);
+        dto.setStatus(dobavljac.getStatus());
 
         return dto;
     }
@@ -203,6 +206,37 @@ public class DobavljacService {
         rezultat.setPib(dobavljac.getPib());
         rezultat.setTipDobavljaca(tip);
         rezultat.setUrlOnlineProdavnice(url);
+        rezultat.setStatus(dobavljac.getStatus());
+
+        return rezultat;
+    }
+
+    public DobavljacDetaljniDto obrisi(String token, Long id) {
+        String role = jwtService.extractRole(token);
+        if(!role.equalsIgnoreCase("MENADZER")){
+            throw new NonManagerDeletingSupplierException();
+        }
+
+        Dobavljac dobavljac = dobavljacRepository.findById(id).orElseThrow(() -> new NoSupplierFound());
+
+        dobavljac.setStatus(StatusDobavljaca.NEAKTIVAN);
+        dobavljacRepository.save(dobavljac);
+
+        // Sklapam response DTO
+        boolean jeIzdavac = dobavljac.getIzdavac() != null;
+        boolean jeKnjizara = dobavljac.getKnjizara() != null;
+        String tip = (jeIzdavac ? "1" : "0") + (jeKnjizara ? "1" : "0");
+        String url = jeKnjizara ? dobavljac.getKnjizara().getUrlOnlineProdavnice() : null;
+
+        DobavljacDetaljniDto rezultat = new DobavljacDetaljniDto();
+        rezultat.setId(dobavljac.getId());
+        rezultat.setNaziv(dobavljac.getNaziv());
+        rezultat.setEmail(dobavljac.getEmail());
+        rezultat.setTel(dobavljac.getTel());
+        rezultat.setPib(dobavljac.getPib());
+        rezultat.setTipDobavljaca(tip);
+        rezultat.setUrlOnlineProdavnice(url);
+        rezultat.setStatus(dobavljac.getStatus());
 
         return rezultat;
     }

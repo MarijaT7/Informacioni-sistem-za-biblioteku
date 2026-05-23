@@ -184,3 +184,7 @@ INSERT INTO korisnik (
              '0691234767',
              '1999-05-15'
          );
+
+--ugovori
+INSERT INTO ugovor (dobavljac_id, popust, datum_pocetka, datum_isteka, datum_potpisa, rok_isporuke, status)
+VALUES (2, 15.0, '2024-06-01', '2025-06-01', '2024-05-28', 14, 'ISTEKAO');

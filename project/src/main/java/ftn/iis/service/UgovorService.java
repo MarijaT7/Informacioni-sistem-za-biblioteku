@@ -13,6 +13,9 @@ import ftn.iis.utils.JwtService;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 public class UgovorService {
     private final UgovorRepository ugovorRepository;
@@ -79,5 +82,25 @@ public class UgovorService {
         dto.setRokIsporuke(ugovor.getRokIsporuke());
         dto.setStatus(ugovor.getStatus());
         return dto;
+    }
+
+    public List<UgovorDto> ispisiSveZaDobavljaca(String token, Long id) {
+        String role = jwtService.extractRole(token);
+        if (!role.equalsIgnoreCase("MENADZER")) {
+            throw new NonManagerCreatingContractException();
+        }
+
+        Dobavljac dobavljac = dobavljacRepository.findById(id)
+                .orElseThrow(() -> new NoSupplierFound());
+
+        List<Ugovor> osnovni = ugovorRepository.findAllByDobavljacId(id);
+        List<UgovorDto> rezultati = new ArrayList<>();
+
+        for(Ugovor u : osnovni){
+            UgovorDto ugovordto = new UgovorDto(u);
+            rezultati.add(ugovordto);
+        }
+
+        return rezultati;
     }
 }

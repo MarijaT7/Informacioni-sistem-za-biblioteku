@@ -1,5 +1,7 @@
 package ftn.iis.dto;
 
+import ftn.iis.enums.StatusUgovora;
+import ftn.iis.model.Ugovor;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
@@ -29,17 +31,30 @@ public class UgovorDto {
     @Min(value = 1, message = "Rok isporuke mora biti najmanje 1 dan.")
     private Integer rokIsporuke;
 
+    private StatusUgovora status;
+
     public UgovorDto() {
     }
 
+    public UgovorDto(Ugovor ugovor){
+        this.dobavljacId = ugovor.getDobavljac().getId();
+        this.popust = ugovor.getPopust();
+        this.datumPocetka = ugovor.getDatumPocetka();
+        this.datumIsteka = ugovor.getDatumIsteka();
+        this.datumPotpisa = ugovor.getDatumPotpisa();
+        this.rokIsporuke = ugovor.getRokIsporuke();
+        this.status = ugovor.getStatus();
+    }
+
     public UgovorDto(Long dobavljacId, Double popust, LocalDate datumPocetka,
-                  LocalDate datumIsteka, LocalDate datumPotpisa, Integer rokIsporuke) {
+                  LocalDate datumIsteka, LocalDate datumPotpisa, Integer rokIsporuke, StatusUgovora status) {
         this.dobavljacId = dobavljacId;
         this.popust = popust;
         this.datumPocetka = datumPocetka;
         this.datumIsteka = datumIsteka;
         this.datumPotpisa = datumPotpisa;
         this.rokIsporuke = rokIsporuke;
+        this.status =status;
     }
 
     public Long getDobavljacId() {
@@ -88,5 +103,13 @@ public class UgovorDto {
 
     public void setRokIsporuke(Integer rokIsporuke) {
         this.rokIsporuke = rokIsporuke;
+    }
+
+    public void setStatus(StatusUgovora status) {
+        this.status = status;
+    }
+
+    public StatusUgovora getStatus() {
+        return status;
     }
 }

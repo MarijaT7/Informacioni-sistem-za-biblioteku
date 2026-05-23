@@ -115,3 +115,27 @@ INSERT INTO biblioteka (bid, name, ziro_rb) VALUES
 ('BIB001', 'Gradska biblioteka Novi Sad', '840-123456-78'),
 ('BIB002', 'Biblioteka Matica srpska','840-234567-89'),
 ('BIB003', 'Biblioteka Zmaj','840-345678-90');
+
+
+-- dobavljaci
+INSERT INTO dobavljac (naziv, email, telefon, pib)
+VALUES ('Delfi Knjižare', 'kontakt@delfi.rs', '011/123-456', '102345678');
+
+INSERT INTO dobavljac (naziv, email, telefon, pib)
+VALUES ('Laguna Izdavaštvo', 'podrska@laguna.rs', '011/987-654', '109876543');
+
+INSERT INTO dobavljac (naziv, email, telefon, pib)
+VALUES ('Vulkan Izdavaštvo', 'info@vulkani.rs', '011/555-666', '105556661');
+
+
+-- 2. knjizare
+INSERT INTO knjizara (id, "url_sajta")
+VALUES (1, 'https://www.delfi.rs');
+
+
+-- 3. iydavaci
+INSERT INTO izdavac (id)
+VALUES (2);
+
+INSERT INTO izdavac (id)
+VALUES (3);

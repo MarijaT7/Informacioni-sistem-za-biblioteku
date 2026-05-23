@@ -72,4 +72,14 @@ public class DobavljacService {
         }
         return osnovni;
     }
+
+    public Dobavljac ispisiJednog(String token, Long id){
+        String role = jwtService.extractRole(token);
+        if(!role.equalsIgnoreCase("MENADZER")){
+            throw new NonManagerViewingSupplierException();
+        }
+
+        Dobavljac dobavljac = dobavljacRepository.findById(id).orElseThrow(() -> new NoSupplierFound());
+        return dobavljac;
+    }
 }

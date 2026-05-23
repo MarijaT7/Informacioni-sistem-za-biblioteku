@@ -34,5 +34,13 @@ public class DobavljacController {
         return ResponseEntity.ok(dobavljaci);
     }
 
+    @GetMapping("/detaljan-prikaz/{id}")
+    public ResponseEntity<?> ispisiJednog(@RequestHeader ("Authorization")
+                                       String authHeader, @PathVariable Long id){
+        String token = authHeader.substring(7);
+        Dobavljac dobavljac = dobavljacService.ispisiJednog(token, id);
+        return ResponseEntity.ok(dobavljac);
+    }
+
 
 }

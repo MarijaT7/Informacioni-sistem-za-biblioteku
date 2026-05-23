@@ -93,3 +93,49 @@ VALUES ('9788617150010', 'Nečista krv', '/naslovne/krv.jpg', 'Tragična priča 
 
 INSERT INTO fizicka_knjiga (isbn)
 VALUES ('9788617150010');
+
+--zanrovi
+INSERT INTO zanr (id, name) VALUES
+(1, 'Autobiografije'), (2, 'Avanturistički'), (3, 'Biografije'),
+(4, 'Domaći pisci'), (5, 'Drama'), (6, 'Epska fantastika'),
+(7, 'Film'), (8, 'Horor'), (9, 'Istorijski romani'),
+(10, 'Klasici'), (11, 'Komedija'), (12, 'Naučna fantastika'),
+(13, 'Poezija'), (14, 'Popularna psihologija'), (15, 'Trileri');
+
+--kategorija clana
+INSERT INTO kategorija_clana (idkc, tip_kc, cena_kc) VALUES
+(1, 'REGULARNA', 600.00),
+(2, 'DECIJA',    300.00),
+(3, 'STUDENTSKA',400.00),
+(4, 'PENZIONERSKA', 350.00),
+(5, 'PORODICNA', 900.00);
+
+--biblioteke
+INSERT INTO biblioteka (bid, name, ziro_rb) VALUES
+('BIB001', 'Gradska biblioteka Novi Sad', '840-123456-78'),
+('BIB002', 'Biblioteka Matica srpska','840-234567-89'),
+('BIB003', 'Biblioteka Zmaj','840-345678-90');
+
+
+-- dobavljaci
+INSERT INTO dobavljac (naziv, email, telefon, pib)
+VALUES ('Delfi Knjižare', 'kontakt@delfi.rs', '011/123-456', '102345678');
+
+INSERT INTO dobavljac (naziv, email, telefon, pib)
+VALUES ('Laguna Izdavaštvo', 'podrska@laguna.rs', '011/987-654', '109876543');
+
+INSERT INTO dobavljac (naziv, email, telefon, pib)
+VALUES ('Vulkan Izdavaštvo', 'info@vulkani.rs', '011/555-666', '105556661');
+
+
+-- 2. knjizare
+INSERT INTO knjizara (id, "url_sajta")
+VALUES (1, 'https://www.delfi.rs');
+
+
+-- 3. iydavaci
+INSERT INTO izdavac (id)
+VALUES (2);
+
+INSERT INTO izdavac (id)
+VALUES (3);

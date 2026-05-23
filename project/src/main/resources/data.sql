@@ -139,3 +139,48 @@ VALUES (2);
 
 INSERT INTO izdavac (id)
 VALUES (3);
+
+-- menadzeri
+INSERT INTO korisnik (
+    jmbg,
+    imeK,
+    przK,
+    sifraK,
+    email,
+    tipk,
+    bid,
+    brojt,
+    dat_rodj
+) VALUES (
+             '1505995800012',
+             'Marko',
+             'Marković',
+             '$2b$12$JFMqeH4J/vrU8rYlH1h7n.Vs0evx4iNNrKzPAltuFhDzQH30.QcbS',  --marko123
+             'marko@gmail.com',
+             'MENADZER',
+             'BIB002',
+             '0641234567',
+             '1995-05-15'
+         );
+
+INSERT INTO korisnik (
+    jmbg,
+    imeK,
+    przK,
+    sifraK,
+    email,
+    tipk,
+    bid,
+    brojt,
+    dat_rodj
+) VALUES (
+             '2309991800045',
+             'Jelena',
+             'Jovanović',
+             '$2b$12$cr9.vJ0xBLPil79AbvqhSOqWA4/fcKsDH44ktVsCuMYvC.wnq8As6', --jelena123
+             'jelena@gmail.com',
+             'MENADZER',
+             'BIB002',
+             '0691234767',
+             '1999-05-15'
+         );

@@ -1,6 +1,8 @@
 package ftn.iis.controller;
 
+import ftn.iis.dto.DobavljacDetaljniDto;
 import ftn.iis.dto.DobavljacDto;
+import ftn.iis.dto.DobavljacIzmenaDto;
 import ftn.iis.dto.OsnovniDobavljacDto;
 import ftn.iis.model.Dobavljac;
 import ftn.iis.service.DobavljacService;
@@ -22,8 +24,8 @@ public class DobavljacController {
     public ResponseEntity<?> kreirajDobavljaca(@RequestHeader ("Authorization")
                                                    String authHeader, @RequestBody DobavljacDto dobavljacDto){
         String token = authHeader.substring(7);
-        Dobavljac dobavljac = dobavljacService.kreirajDobavljaca(token, dobavljacDto);
-        return ResponseEntity.ok(dobavljac);
+        DobavljacDetaljniDto dobavljacDetaljni = dobavljacService.kreirajDobavljaca(token, dobavljacDto);
+        return ResponseEntity.ok(dobavljacDetaljni);
     }
 
     @GetMapping("/prikaz-svih")
@@ -38,8 +40,8 @@ public class DobavljacController {
     public ResponseEntity<?> ispisiJednog(@RequestHeader ("Authorization")
                                        String authHeader, @PathVariable Long id){
         String token = authHeader.substring(7);
-        Dobavljac dobavljac = dobavljacService.ispisiJednog(token, id);
-        return ResponseEntity.ok(dobavljac);
+        DobavljacDetaljniDto dobavljacDetaljniDto = dobavljacService.ispisiJednog(token, id);
+        return ResponseEntity.ok(dobavljacDetaljniDto);
     }
 
 

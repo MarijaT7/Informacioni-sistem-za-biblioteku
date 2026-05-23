@@ -22,6 +22,11 @@ public class DobavljacDto {
     @Pattern(regexp = "\\d+", message = "PIB mora sadržati samo cifre.")
     private String pib;
 
+    @NotBlank(message = "Tip je obavezan.")
+    private String tipDobavljaca;    // 00, 01, 10, 11
+
+    private String urlOnlineProdavnice;
+
     public DobavljacDto() {
     }
 
@@ -62,5 +67,21 @@ public class DobavljacDto {
 
     public void setPib(String pib) {
         this.pib = pib;
+    }
+
+    public String getUrlOnlineProdavnice(){
+        return urlOnlineProdavnice;
+    }
+
+    public void setUrlOnlineProdavnice(String urlOnlineProdavnice){
+        this.urlOnlineProdavnice = urlOnlineProdavnice;
+    }
+
+    public String getTipDobavljaca() {
+        return tipDobavljaca;
+    }
+
+    public void setTipDobavljaca(String tipDobavljaca) {
+        this.tipDobavljaca = tipDobavljaca;
     }
 }

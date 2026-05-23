@@ -76,4 +76,19 @@ public class Dobavljac {
         this.pib = pib;
     }
 
+    public Knjizara getKnjizara() {
+        return knjizara;
+    }
+
+    public void setKnjizara(Knjizara knjizara) {
+        this.knjizara = knjizara;
+    }
+
+    public Izdavac getIzdavac() {
+        return izdavac;
+    }
+
+    public void setIzdavac(Izdavac izdavac) {
+        this.izdavac = izdavac;
+    }
 }

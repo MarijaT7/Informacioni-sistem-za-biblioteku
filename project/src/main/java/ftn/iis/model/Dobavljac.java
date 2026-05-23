@@ -3,6 +3,9 @@ package ftn.iis.model;
 import ftn.iis.enums.StatusDobavljaca;
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name="dobavljac")
 public class Dobavljac {
@@ -29,6 +32,9 @@ public class Dobavljac {
 
     @OneToOne(mappedBy = "dobavljac", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Izdavac izdavac;
+
+    @OneToMany(mappedBy = "dobavljac", cascade = CascadeType.ALL)
+    private List<Ugovor> ugovori = new ArrayList<>();
 
     public Dobavljac(){
 

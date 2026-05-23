@@ -54,4 +54,25 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleNonMenagerDeletingSupplierException(NonManagerDeletingSupplierException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
     }
+
+    @ExceptionHandler(NonManagerCreatingContractException.class)
+    public ResponseEntity<String> handleNonManagerCreatingContractException(NonManagerCreatingContractException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(SupplierNotActiveException.class)
+    public ResponseEntity<String> handleSupplierNotActiveException(SupplierNotActiveException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(ActiveContractAlreadyExistsException.class)
+    public ResponseEntity<String> handleActiveContractAlreadyExistsException(ActiveContractAlreadyExistsException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(InvalidContractDateException.class)
+    public ResponseEntity<String> handleInvalidContractDateException(InvalidContractDateException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
 }

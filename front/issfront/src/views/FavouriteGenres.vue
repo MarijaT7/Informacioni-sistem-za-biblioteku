@@ -46,7 +46,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '../store/auth.js'
+import { useAuthStore } from '../stroage/auth.js'
 import { authApi, publicApi } from '../services/api.js'
 
 const router    = useRouter()

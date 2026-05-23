@@ -23,6 +23,16 @@
           <div class="doc-box">
             <span class="doc-text">{{ docText }}</span>
           </div>
+          <div class="upload-section">
+              <label class="upload-btn">
+                Dodaj dokument
+                <input type="file" @change="handleFile" hidden />
+              </label>
+
+              <p v-if="fileName" class="file-name">
+                {{ fileName }}
+              </p>
+          </div>
         </div>
       </div>
 
@@ -31,12 +41,6 @@
       <button class="btn-primary" @click="handleNext" :disabled="loading || !selected">
         {{ loading ? 'Učitavanje…' : 'Nastavite' }}
       </button>
-
-      <!-- Step navigation -->
-      <div class="step-nav">
-        <button class="step-btn" @click="router.push('/register')">‹</button>
-        <button class="step-btn active">›</button>
-      </div>
     </div>
   </div>
 </template>
@@ -54,6 +58,7 @@ const kategorije = ref([])
 const selected   = ref(null)
 const error      = ref('')
 const loading    = ref(false)
+const fileName = ref('')
 
 onMounted(async () => {
   const res = await publicApi.getKategorije()
@@ -71,6 +76,13 @@ const DOCS = {
   STUDENTSKA:   'Potrebno je priložiti važeću studentsku legitimaciju',
   PENZIONERSKA: 'Potrebno je priložiti kopiju penzionerske kartice',
   PORODICNA:    'Potrebno je priložiti izvod iz matične knjige venčanih i rodni listi dece',
+}
+function handleFile(e) {
+  const file = e.target.files[0]
+  if (file) {
+    fileName.value = file.name
+    console.log("Odabran fajl:", file)
+  }
 }
 
 const labelOf = (tip) => LABELS[tip] || tip
@@ -111,19 +123,28 @@ async function handleNext() {
   font-size: 0.9rem;
   color: var(--text-mid);
 }
-.step-nav {
-  display: flex;
-  justify-content: center;
-  gap: 0.5rem;
-  margin-top: 1.5rem;
+
+.upload-section {
+  margin-top: 1rem;
 }
-.step-btn {
+
+.upload-btn {
+  display: inline-block;
   background: var(--btn-primary);
   color: white;
-  border: none;
+  padding: 0.5rem 1rem;
   border-radius: 6px;
-  padding: 0.4rem 0.9rem;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 0.9rem;
+}
+
+.upload-btn:hover {
+  opacity: 0.9;
+}
+
+.file-name {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-mid);
 }
 </style>

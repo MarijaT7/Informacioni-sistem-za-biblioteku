@@ -34,5 +34,9 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('regJmbg')
   }
 
-  return { token, user, regJmbg, isLoggedIn, setAuth, setRegJmbg, logout }
+  function getRole() {
+    return user.value ? user.value.role : null
+  }
+
+  return { token, user, regJmbg, isLoggedIn, setAuth, setRegJmbg, logout, getRole }
 })

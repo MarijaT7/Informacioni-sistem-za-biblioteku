@@ -75,4 +75,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 
+    @ExceptionHandler(NoContractFoundException.class)
+    public ResponseEntity<String> handleNoContractFoundException(NoContractFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(ContractNotActiveException.class)
+    public ResponseEntity<String> handleContractNotActiveException(ContractNotActiveException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
 }

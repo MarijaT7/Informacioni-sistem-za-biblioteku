@@ -5,13 +5,16 @@ import ftn.iis.dto.DobavljacDto;
 import ftn.iis.dto.DobavljacIzmenaDto;
 import ftn.iis.dto.OsnovniDobavljacDto;
 import ftn.iis.enums.StatusDobavljaca;
+import ftn.iis.enums.StatusUgovora;
 import ftn.iis.exception.*;
 import ftn.iis.model.Dobavljac;
 import ftn.iis.model.Izdavac;
 import ftn.iis.model.Knjizara;
+import ftn.iis.model.Ugovor;
 import ftn.iis.repository.DobavljacRepository;
 import ftn.iis.repository.IzdavacRepository;
 import ftn.iis.repository.KnjizaraRepository;
+import ftn.iis.repository.UgovorRepository;
 import ftn.iis.utils.JwtService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,13 +28,16 @@ public class DobavljacService {
     private final JwtService jwtService;
     private final IzdavacRepository izdavacRepository;
     private final KnjizaraRepository knjizaraRepository;
+    private final UgovorRepository ugovorRepository;
 
     public DobavljacService(DobavljacRepository dobavljacRepository, JwtService jwtService,
-                            IzdavacRepository izdavacRepository, KnjizaraRepository knjizaraRepository){
+                            IzdavacRepository izdavacRepository, KnjizaraRepository knjizaraRepository,
+                            UgovorRepository ugovorRepository){
         this.dobavljacRepository = dobavljacRepository;
         this.jwtService = jwtService;
         this.izdavacRepository = izdavacRepository;
         this.knjizaraRepository = knjizaraRepository;
+        this.ugovorRepository = ugovorRepository;
     }
 
     public DobavljacDetaljniDto kreirajDobavljaca(String token, DobavljacDto dto){
@@ -211,7 +217,7 @@ public class DobavljacService {
         return rezultat;
     }
 
-    public DobavljacDetaljniDto obrisi(String token, Long id) {
+    public void obrisi(String token, Long id) {
         String role = jwtService.extractRole(token);
         if(!role.equalsIgnoreCase("MENADZER")){
             throw new NonManagerDeletingSupplierException();
@@ -219,25 +225,17 @@ public class DobavljacService {
 
         Dobavljac dobavljac = dobavljacRepository.findById(id).orElseThrow(() -> new NoSupplierFound());
 
+        // 1. Postavljam sve aktivne ugovore na RASKINUT
+        List<Ugovor> ugovori = ugovorRepository.findAllByDobavljacId(id);
+        for (Ugovor u : ugovori) {
+            if (u.getStatus() == StatusUgovora.AKTIVAN) {
+                u.setStatus(StatusUgovora.RASKINUT);
+                ugovorRepository.save(u);
+            }
+        }
+
+        // 2. Logicko brisanje dobavljaca
         dobavljac.setStatus(StatusDobavljaca.NEAKTIVAN);
         dobavljacRepository.save(dobavljac);
-
-        // Sklapam response DTO
-        boolean jeIzdavac = dobavljac.getIzdavac() != null;
-        boolean jeKnjizara = dobavljac.getKnjizara() != null;
-        String tip = (jeIzdavac ? "1" : "0") + (jeKnjizara ? "1" : "0");
-        String url = jeKnjizara ? dobavljac.getKnjizara().getUrlOnlineProdavnice() : null;
-
-        DobavljacDetaljniDto rezultat = new DobavljacDetaljniDto();
-        rezultat.setId(dobavljac.getId());
-        rezultat.setNaziv(dobavljac.getNaziv());
-        rezultat.setEmail(dobavljac.getEmail());
-        rezultat.setTel(dobavljac.getTel());
-        rezultat.setPib(dobavljac.getPib());
-        rezultat.setTipDobavljaca(tip);
-        rezultat.setUrlOnlineProdavnice(url);
-        rezultat.setStatus(dobavljac.getStatus());
-
-        return rezultat;
     }
 }

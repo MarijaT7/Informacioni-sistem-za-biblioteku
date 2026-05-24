@@ -53,10 +53,10 @@ public class DobavljacController {
         return ResponseEntity.ok(dobavljacDetaljniDto);
     }
 
-    @DeleteMapping("/brisanje/{id}")
-    public ResponseEntity<?> obrisi(@RequestHeader ("Authorization") String authHeader, @PathVariable Long id){
+    @PatchMapping("/brisanje/{id}")
+    public ResponseEntity<Void> obrisi(@RequestHeader ("Authorization") String authHeader, @PathVariable Long id){
         String token = authHeader.substring(7);
-        DobavljacDetaljniDto dobavljacDetaljniDto = dobavljacService.obrisi(token, id);
-        return ResponseEntity.ok(dobavljacDetaljniDto);
+        dobavljacService.obrisi(token, id);
+        return ResponseEntity.noContent().build();
     }
 }

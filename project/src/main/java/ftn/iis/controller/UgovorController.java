@@ -35,4 +35,12 @@ public class UgovorController {
         return ResponseEntity.ok(rezultat);
     }
 
+    @PatchMapping("/raskid/{id}")
+    public ResponseEntity<UgovorDetaljniDto> raskiniUgovor(@RequestHeader("Authorization") String authHeader,
+                                          @PathVariable Long id){
+        String token = authHeader.substring(7);
+        UgovorDetaljniDto rezultat = ugovorService.raskiniUgovor(token, id);
+        return ResponseEntity.ok(rezultat);
+    }
+
 }

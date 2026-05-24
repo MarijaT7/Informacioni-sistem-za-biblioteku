@@ -103,4 +103,25 @@ public class UgovorService {
 
         return rezultati;
     }
+
+
+    @Transactional
+    public UgovorDetaljniDto raskiniUgovor(String token, Long id) {
+        String role = jwtService.extractRole(token);
+        if (!role.equalsIgnoreCase("MENADZER")) {
+            throw new NonManagerCreatingContractException();
+        }
+        Ugovor ugovor = ugovorRepository.findById(id)
+                .orElseThrow(() -> new NoContractFoundException());
+
+        // Mogu da raskinem samo aktivan ugovor
+        if (ugovor.getStatus() != StatusUgovora.AKTIVAN){
+            throw new ContractNotActiveException();
+        }
+
+        ugovor.setStatus(StatusUgovora.RASKINUT);
+        ugovor = ugovorRepository.save(ugovor);
+
+        return mapirajUDto(ugovor);
+    }
 }

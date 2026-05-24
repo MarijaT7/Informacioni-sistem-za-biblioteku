@@ -7,9 +7,9 @@ INSERT INTO biblioteka (bid, name, ziro_rb) VALUES
 ('BIB003', 'Biblioteka Zmaj','840-345678-90');
 
 -- Katalozi
-INSERT INTO katalog (kat_ime, standard, bib_id) VALUES ('Srpska književnost', 'MARC', 'BIB001');
-INSERT INTO katalog (kat_ime, standard, bib_id) VALUES ('Jugoslovenska književnost', 'MARC', 'BIB002');
-INSERT INTO katalog (kat_ime, standard, bib_id) VALUES ('Savremena proza', 'MARC', 'BIB003');
+INSERT INTO katalog (kat_ime, standard, bib_id, deleted) VALUES ('Srpska književnost', 'MARC', 'BIB001', FALSE);
+INSERT INTO katalog (kat_ime, standard, bib_id, deleted) VALUES ('Jugoslovenska književnost', 'MARC', 'BIB002', FALSE);
+INSERT INTO katalog (kat_ime, standard, bib_id, deleted) VALUES ('Savremena proza', 'MARC', 'BIB003', FALSE);
 
 
 -- KNJIGA 1: Samo Fizička knjiga

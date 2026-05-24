@@ -1,5 +1,6 @@
 package ftn.iis.model;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -27,11 +28,14 @@ public class Katalog {
     @OneToMany(mappedBy = "katalog")
     private List<Knjiga> books = new ArrayList<>();
 
+    private boolean deleted;
+
     public Katalog(Long katId, String standard, String katIme, Biblioteka biblioteka) {
         this.katId = katId;
         this.standard = standard;
         this.katIme = katIme;
         this.biblioteka = biblioteka;
+        deleted = false;
     }
 
     public Katalog() {

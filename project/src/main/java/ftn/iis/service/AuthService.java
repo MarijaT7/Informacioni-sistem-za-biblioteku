@@ -42,12 +42,24 @@ public class AuthService {
     //logovanje korisnika
     public AuthResponse login(Login request){
 
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-
-        );
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()
+                    )
+            );
+        } catch (Exception e) {
+            throw new RuntimeException("Pogrešan email ili lozinka");
+        }
         User user= userRepository.findByEmail(request.getEmail())
                 .orElseThrow(()-> new RuntimeException("Korisnik nije pronadjen"));
+        Clanarina clanarina = clanarinaRepository.findByUserJmbg(user.getJmbg())
+                .orElseThrow(() -> new RuntimeException("Članarina ne postoji"));
+
+        if (!clanarina.isActive()) {
+            throw new RuntimeException("Članarina je istekla");
+        }
         return buildAuthResponse(user);
     }
     private AuthResponse buildAuthResponse(User user) {

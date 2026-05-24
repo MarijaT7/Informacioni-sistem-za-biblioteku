@@ -13,6 +13,18 @@ const routes = [
     component: () => import('../views/UserProfile.vue'),
     meta: { requiresAuth: true }
   },
+  {
+  path: '/menadzer',
+  component: () => import('../views/menadzer/AppLayout.vue'),
+  meta: { requiresAuth: true },
+  meta: { requiresAuth: true, requiresRole: 'MENADZER' },
+  children: [
+    { path: '',                    redirect: '/menadzer/dashboard' },
+    { path: 'dashboard',           component: () => import('../views/menadzer/DashboardView.vue') },
+    { path: 'dobavljaci',          component: () => import('../views/menadzer/DobavljaciView.vue') },
+    { path: 'dobavljaci/novi',     component: () => import('../views/menadzer/DodajDobavljacaView.vue') },
+  ]
+},
 ]
 
 const router = createRouter({
@@ -24,9 +36,15 @@ router.beforeEach((to, _from, next) => {
   const auth = useAuthStore()
   if (to.meta.requiresAuth && !auth.isLoggedIn) {
     next('/login')
-  } else {
-    next()
+    return
   }
+
+  if (to.meta.requiresRole && auth.user?.role !== to.meta.requiresRole) {
+    next('/login')
+    return
+  }
+
+  next()
 })
 
 export default router

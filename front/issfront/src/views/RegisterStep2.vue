@@ -59,6 +59,7 @@ const selected   = ref(null)
 const error      = ref('')
 const loading    = ref(false)
 const fileName = ref('')
+const file = ref(null)
 
 onMounted(async () => {
   const res = await publicApi.getKategorije()
@@ -78,10 +79,10 @@ const DOCS = {
   PORODICNA:    'Potrebno je priložiti izvod iz matične knjige venčanih i rodni listi dece',
 }
 function handleFile(e) {
-  const file = e.target.files[0]
-  if (file) {
-    fileName.value = file.name
-    console.log("Odabran fajl:", file)
+  const f = e.target.files[0]
+  if (f) {
+    file.value = f
+    fileName.value = f.name
   }
 }
 
@@ -94,6 +95,11 @@ const docText = computed(() => {
 
 async function handleNext() {
   error.value = ''
+  const kat = kategorije.value.find(k => k.idkc === selected.value)
+  if (kat && kat.tipKC !== 'REGULARNA' && !file.value) {
+      error.value = 'Morate priložiti dokument za izabranu kategoriju'
+      return
+    }
   loading.value = true
   try {
     await authApi.registerStep2(authStore.regJmbg, { kategorijaClanaId: selected.value })

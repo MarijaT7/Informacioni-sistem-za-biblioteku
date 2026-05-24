@@ -184,3 +184,48 @@ INSERT INTO korisnik (
              '0691234767',
              '1999-05-15'
          );
+
+--clan
+INSERT INTO korisnik (
+    jmbg,
+    imeK,
+    przK,
+    dat_rodj,
+    sifraK,
+    email,
+    brojt,
+    tipk,
+    bid,
+    idkc,
+    tip_pretplate,
+    putanja_slike
+) VALUES (
+    '1234567891234',
+    'Petar',
+    'Petrovic',
+    '2026-05-04',
+    '$2a$10$MxNR56RCAjGZjfexyE7ThuOVZKtmsHBU5tABCp9T3lylkG4FVJpX.', --testtest
+    'nesto@gmail.com',
+    '123456789',
+    'CLAN',
+    'BIB001',
+    4,
+    'MESECNA',
+    NULL
+);
+--clanarina za Petra
+INSERT INTO clanarina (
+    datup,
+    datisteka,
+    datbris,
+    is_active,
+    nacin_uplate,
+    jmbg
+) VALUES (
+    '2026-05-04',
+    '2026-06-23',
+    '2026-07-23',
+    true,
+    'FIZICKI',
+    '1234567891234'
+);

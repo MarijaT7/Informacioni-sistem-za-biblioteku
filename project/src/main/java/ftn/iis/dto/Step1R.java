@@ -22,10 +22,11 @@ public class Step1R {
     @NotNull
     private LocalDate dateOfBirth;
 
-    @NotBlank @Email
+    @Email(message = "Email nije u dobrom formatu")
+    @NotBlank(message = "Email je obavezan")
     private String email;
 
-    @NotBlank
+    @NotBlank(message = "Telefon je obavezan")
     private String phone;
 
     @NotBlank @Size(min = 8, message = "Lozinka mora imati najmanje 8 znakova")

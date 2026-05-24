@@ -1,6 +1,7 @@
 package ftn.iis.service;
 
 import ftn.iis.dto.*;
+import ftn.iis.enums.NacinUplate;
 import ftn.iis.enums.TipPretplate;
 import ftn.iis.enums.Uloge;
 import ftn.iis.model.*;
@@ -54,11 +55,13 @@ public class AuthService {
         }
         User user= userRepository.findByEmail(request.getEmail())
                 .orElseThrow(()-> new RuntimeException("Korisnik nije pronadjen"));
-        Clanarina clanarina = clanarinaRepository.findByUserJmbg(user.getJmbg())
-                .orElseThrow(() -> new RuntimeException("Članarina ne postoji"));
+        if(user.getUloge().name().equals("CLAN")) {
+            Clanarina clanarina = clanarinaRepository.findByUserJmbg(user.getJmbg())
+                    .orElseThrow(() -> new RuntimeException("Članarina ne postoji"));
 
-        if (!clanarina.isActive()) {
-            throw new RuntimeException("Članarina je istekla");
+            if (!clanarina.isActive()) {
+                throw new RuntimeException("Članarina je istekla");
+            }
         }
         return buildAuthResponse(user);
     }
@@ -155,6 +158,32 @@ public class AuthService {
 
         user.setFavouriteGenres(genres);
         userRepository.save(user);
+    }
+
+    //produzi clanarinu
+    public void renewMembership(String jmbg, NacinUplate nacinUplate, TipPretplate tipPretplate){
+        User user=getUserByJmbg(jmbg);
+        Clanarina c=user.getClanarina();
+
+        if (c == null) {
+            throw new RuntimeException("Članarina nije pronađena");
+        }
+        LocalDate nesto;
+        if (c.getDatIsteka().isAfter(LocalDate.now())) {
+            nesto = c.getDatIsteka();
+        } else {
+            nesto = LocalDate.now();
+        }
+
+        LocalDate noviIstek= calcDatIsteka(nesto, tipPretplate);
+        c.setDatUplate(LocalDate.now());
+        c.setDatIsteka(noviIstek);
+        c.setDatBrisanja(noviIstek.plusDays(30));
+        c.setActive(true);
+        c.setNacinUplate(nacinUplate);
+
+        user.setTipPretplate(tipPretplate);
+        clanarinaRepository.save(c); //updejtuje postojecu clanarinu
     }
 
 }

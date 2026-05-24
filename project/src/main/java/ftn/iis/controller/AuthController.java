@@ -1,6 +1,8 @@
 package ftn.iis.controller;
 
 import ftn.iis.dto.*;
+import ftn.iis.enums.NacinUplate;
+import ftn.iis.enums.TipPretplate;
 import ftn.iis.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -43,6 +45,14 @@ public class AuthController {
             @PathVariable String jmbg,
             @RequestBody OmiljeniZanrovi request) {
         authService.saveFavouriteGenres(jmbg, request);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("renew/{jmbg}")
+    public ResponseEntity<Void> renewMembership( @PathVariable String jmbg,
+                                                 @RequestParam NacinUplate nacinUplate,
+                                                 @RequestParam TipPretplate tipPretplate){
+        authService.renewMembership(jmbg,nacinUplate,tipPretplate);
         return ResponseEntity.ok().build();
     }
 

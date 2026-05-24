@@ -2,6 +2,8 @@ package ftn.iis.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "audio_knjiga")
@@ -25,6 +27,9 @@ public class AudioKnjiga {
 
     @Column(name = "putanja_ak")
     private String putanjaAK;
+
+    @OneToMany(mappedBy = "audioKnjiga", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<SlusanjeAudioKnjige> slušanja = new ArrayList<>();
 
     public AudioKnjiga() {
     }

@@ -1,6 +1,10 @@
 package ftn.iis.model;
 
+import ftn.iis.enums.StatusDobavljaca;
 import jakarta.persistence.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name="dobavljac")
@@ -19,11 +23,18 @@ public class Dobavljac {
     @Column(name="pib")
     private String pib;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name= "status")
+    private StatusDobavljaca status;
+
     @OneToOne(mappedBy = "dobavljac", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Knjizara knjizara;
 
     @OneToOne(mappedBy = "dobavljac", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Izdavac izdavac;
+
+    @OneToMany(mappedBy = "dobavljac", cascade = CascadeType.ALL)
+    private List<Ugovor> ugovori = new ArrayList<>();
 
     public Dobavljac(){
 
@@ -34,6 +45,7 @@ public class Dobavljac {
         this.email = email;
         this.tel = tel;
         this.pib = pib;
+        this.status = StatusDobavljaca.AKTIVAN; // pri kreiranju je aktivan
     }
 
     public Long getId() {
@@ -76,4 +88,27 @@ public class Dobavljac {
         this.pib = pib;
     }
 
+    public Knjizara getKnjizara() {
+        return knjizara;
+    }
+
+    public void setKnjizara(Knjizara knjizara) {
+        this.knjizara = knjizara;
+    }
+
+    public Izdavac getIzdavac() {
+        return izdavac;
+    }
+
+    public void setIzdavac(Izdavac izdavac) {
+        this.izdavac = izdavac;
+    }
+
+    public void setStatus(StatusDobavljaca status) {
+        this.status = status;
+    }
+
+    public StatusDobavljaca getStatus() {
+        return status;
+    }
 }

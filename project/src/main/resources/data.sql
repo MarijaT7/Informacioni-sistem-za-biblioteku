@@ -118,14 +118,14 @@ INSERT INTO biblioteka (bid, name, ziro_rb) VALUES
 
 
 -- dobavljaci
-INSERT INTO dobavljac (naziv, email, telefon, pib)
-VALUES ('Delfi Knjižare', 'kontakt@delfi.rs', '011/123-456', '102345678');
+INSERT INTO dobavljac (naziv, email, telefon, pib, status)
+VALUES ('Delfi Knjižare', 'kontakt@delfi.rs', '011/123-456', '102345678', 'AKTIVAN');
 
-INSERT INTO dobavljac (naziv, email, telefon, pib)
-VALUES ('Laguna Izdavaštvo', 'podrska@laguna.rs', '011/987-654', '109876543');
+INSERT INTO dobavljac (naziv, email, telefon, pib, status)
+VALUES ('Laguna Izdavaštvo', 'podrska@laguna.rs', '011/987-654', '109876543', 'AKTIVAN');
 
-INSERT INTO dobavljac (naziv, email, telefon, pib)
-VALUES ('Vulkan Izdavaštvo', 'info@vulkani.rs', '011/555-666', '105556661');
+INSERT INTO dobavljac (naziv, email, telefon, pib, status)
+VALUES ('Vulkan Izdavaštvo', 'info@vulkani.rs', '011/555-666', '105556661', 'AKTIVAN');
 
 
 -- 2. knjizare
@@ -184,6 +184,10 @@ INSERT INTO korisnik (
              '0691234767',
              '1999-05-15'
          );
+
+--ugovori
+INSERT INTO ugovor (dobavljac_id, popust, datum_pocetka, datum_isteka, datum_potpisa, rok_isporuke, status)
+VALUES (2, 15.0, '2024-06-01', '2025-06-01', '2024-05-28', 14, 'ISTEKAO');
 
 --clan
 INSERT INTO korisnik (

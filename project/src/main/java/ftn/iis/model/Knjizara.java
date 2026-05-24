@@ -22,4 +22,11 @@ public class Knjizara {
         this.dobavljac = dobavljac;
     }
 
+    public void setUrlOnlineProdavnice(String urlOnlineProdavnice) {
+        this.urlOnlineProdavnice = urlOnlineProdavnice;
+    }
+
+    public String getUrlOnlineProdavnice() {
+        return urlOnlineProdavnice;
+    }
 }

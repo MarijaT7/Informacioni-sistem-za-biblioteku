@@ -12,7 +12,6 @@ public interface UgovorRepository extends JpaRepository<Ugovor, Long> {
 
     // Provera da li dobavljač već ima aktivan ugovor
     boolean existsByDobavljacIdAndStatus(Long dobavljacId, StatusUgovora status);
-
-    // Svi ugovori jednog dobavljača
     List<Ugovor> findAllByDobavljacId(Long dobavljacId);
+    List<Ugovor> findAllByStatus(StatusUgovora statusUgovora);
 }

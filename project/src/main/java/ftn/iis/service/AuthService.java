@@ -54,11 +54,14 @@ public class AuthService {
         }
         User user= userRepository.findByEmail(request.getEmail())
                 .orElseThrow(()-> new RuntimeException("Korisnik nije pronadjen"));
-        Clanarina clanarina = clanarinaRepository.findByUserJmbg(user.getJmbg())
-                .orElseThrow(() -> new RuntimeException("Članarina ne postoji"));
 
-        if (!clanarina.isActive()) {
-            throw new RuntimeException("Članarina je istekla");
+        if(user.getUloge().equals(Uloge.CLAN)) {
+            Clanarina clanarina = clanarinaRepository.findByUserJmbg(user.getJmbg())
+                    .orElseThrow(() -> new RuntimeException("Članarina ne postoji"));
+
+            if (!clanarina.isActive()) {
+                throw new RuntimeException("Članarina je istekla");
+            }
         }
         return buildAuthResponse(user);
     }

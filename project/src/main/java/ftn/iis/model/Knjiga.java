@@ -27,6 +27,10 @@ public class Knjiga {
     @OneToOne(mappedBy = "knjiga", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private AudioKnjiga audioKnjiga;
 
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "katalog_id", nullable = false)
+    private Katalog katalog;
+
     public Knjiga() {
     }
 
@@ -35,6 +39,17 @@ public class Knjiga {
         this.putanjaNaslovna = putanjaNaslovna;
         this.naslov = naslov;
         this.sinopsis = sinopsis;
+    }
+
+    public Knjiga(String isbn, String putanjaNaslovna, String naslov, String sinopsis, FizickaKnjiga fizickaKnjiga, EKnjiga eKnjiga, AudioKnjiga audioKnjiga, Katalog katalog) {
+        this.isbn = isbn;
+        this.putanjaNaslovna = putanjaNaslovna;
+        this.naslov = naslov;
+        this.sinopsis = sinopsis;
+        this.fizickaKnjiga = fizickaKnjiga;
+        this.eKnjiga = eKnjiga;
+        this.audioKnjiga = audioKnjiga;
+        this.katalog = katalog;
     }
 
     public String getIsbn() {
@@ -87,6 +102,14 @@ public class Knjiga {
 
     public AudioKnjiga getAudioKnjiga() {
         return audioKnjiga;
+    }
+
+    public Katalog getKatalog() {
+        return katalog;
+    }
+
+    public void setKatalog(Katalog katalog) {
+        this.katalog = katalog;
     }
 
     public void setAudioKnjiga(AudioKnjiga audioKnjiga) {

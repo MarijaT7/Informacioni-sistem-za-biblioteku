@@ -40,6 +40,8 @@ public class DobavljacService {
         this.ugovorRepository = ugovorRepository;
     }
 
+    @Transactional
+
     public DobavljacDetaljniDto kreirajDobavljaca(String token, DobavljacDto dto){
         String role = jwtService.extractRole(token);
         if(!role.equalsIgnoreCase("MENADZER")){
@@ -57,12 +59,12 @@ public class DobavljacService {
         }
 
         // 3. Provera preko naziva
-        if (dobavljacRepository.existsByNaziv(dto.getTel())) {
+        if (dobavljacRepository.existsByNaziv(dto.getNaziv())) {
             throw new SupplierNameAlreadyExists();
         }
 
         // 4. Provera preko telefona
-        if (dobavljacRepository.existsByTel(dto.getNaziv())) {
+        if (dobavljacRepository.existsByTel(dto.getTel())) {
             throw new SupplierPhoneAlreadyExists();
         }
 
@@ -111,6 +113,7 @@ public class DobavljacService {
         return rezultat;
     }
 
+
     public List<OsnovniDobavljacDto> ispisiSve(String token){
         String role = jwtService.extractRole(token);
         if(!role.equalsIgnoreCase("MENADZER")){
@@ -126,7 +129,6 @@ public class DobavljacService {
         return osnovni;
     }
 
-    @Transactional
     public DobavljacDetaljniDto ispisiJednog(String token, Long id){
         String role = jwtService.extractRole(token);
         if(!role.equalsIgnoreCase("MENADZER")){
@@ -217,6 +219,7 @@ public class DobavljacService {
         return rezultat;
     }
 
+    @Transactional
     public void obrisi(String token, Long id) {
         String role = jwtService.extractRole(token);
         if(!role.equalsIgnoreCase("MENADZER")){

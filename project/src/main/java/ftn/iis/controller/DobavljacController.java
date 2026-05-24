@@ -22,7 +22,7 @@ public class DobavljacController {
     }
 
     @PostMapping("/unos")
-    public ResponseEntity<?> kreirajDobavljaca(@RequestHeader ("Authorization")
+    public ResponseEntity<DobavljacDetaljniDto> kreirajDobavljaca(@RequestHeader ("Authorization")
                                                    String authHeader, @RequestBody DobavljacDto dobavljacDto){
         String token = authHeader.substring(7);
         DobavljacDetaljniDto dobavljacDetaljni = dobavljacService.kreirajDobavljaca(token, dobavljacDto);
@@ -30,7 +30,7 @@ public class DobavljacController {
     }
 
     @GetMapping("/prikaz-svih")
-    public ResponseEntity<?> ispisiSve(@RequestHeader ("Authorization")
+    public ResponseEntity<List<OsnovniDobavljacDto>> ispisiSve(@RequestHeader ("Authorization")
                                                String authHeader){
         String token = authHeader.substring(7);
         List<OsnovniDobavljacDto> dobavljaci = dobavljacService.ispisiSve(token);
@@ -38,7 +38,7 @@ public class DobavljacController {
     }
 
     @GetMapping("/detaljan-prikaz/{id}")
-    public ResponseEntity<?> ispisiJednog(@RequestHeader ("Authorization")
+    public ResponseEntity<DobavljacDetaljniDto> ispisiJednog(@RequestHeader ("Authorization")
                                        String authHeader, @PathVariable Long id){
         String token = authHeader.substring(7);
         DobavljacDetaljniDto dobavljacDetaljniDto = dobavljacService.ispisiJednog(token, id);
@@ -46,7 +46,7 @@ public class DobavljacController {
     }
 
     @PatchMapping("/izmena/{id}")
-    public ResponseEntity<?> izmeni(@RequestHeader ("Authorization")
+    public ResponseEntity<DobavljacDetaljniDto> izmeni(@RequestHeader ("Authorization")
                                           String authHeader, @PathVariable Long id, @RequestBody DobavljacIzmenaDto dto){
         String token = authHeader.substring(7);
         DobavljacDetaljniDto dobavljacDetaljniDto = dobavljacService.izmeni(token, id, dto);

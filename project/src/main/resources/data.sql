@@ -188,3 +188,48 @@ INSERT INTO korisnik (
 --ugovori
 INSERT INTO ugovor (dobavljac_id, popust, datum_pocetka, datum_isteka, datum_potpisa, rok_isporuke, status)
 VALUES (2, 15.0, '2024-06-01', '2025-06-01', '2024-05-28', 14, 'ISTEKAO');
+
+--clan
+INSERT INTO korisnik (
+    jmbg,
+    imeK,
+    przK,
+    dat_rodj,
+    sifraK,
+    email,
+    brojt,
+    tipk,
+    bid,
+    idkc,
+    tip_pretplate,
+    putanja_slike
+) VALUES (
+    '1234567891234',
+    'Petar',
+    'Petrovic',
+    '2026-05-04',
+    '$2a$10$MxNR56RCAjGZjfexyE7ThuOVZKtmsHBU5tABCp9T3lylkG4FVJpX.', --testtest
+    'nesto@gmail.com',
+    '123456789',
+    'CLAN',
+    'BIB001',
+    4,
+    'MESECNA',
+    NULL
+);
+--clanarina za Petra
+INSERT INTO clanarina (
+    datup,
+    datisteka,
+    datbris,
+    is_active,
+    nacin_uplate,
+    jmbg
+) VALUES (
+    '2026-05-04',
+    '2026-06-23',
+    '2026-07-23',
+    true,
+    'FIZICKI',
+    '1234567891234'
+);

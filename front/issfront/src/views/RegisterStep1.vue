@@ -58,7 +58,12 @@
         </div>
       </div>
 
-      <p v-if="error" class="error-msg">{{ error }}</p>
+      <div v-if="error">
+        <ul v-if="Array.isArray(error)" class="error-msg">
+          <li v-for="err in error" :key="err">{{ err }}</li>
+        </ul>
+        <p v-else class="error-msg">{{ error }}</p>
+      </div>
 
       <button class="btn-primary" @click="handleNext" :disabled="loading">
         {{ loading ? 'Učitavanje…' : 'Nastavite' }}
@@ -129,7 +134,11 @@ async function handleNext() {
     authStore.setRegJmbg(res.data.jmbg)
     router.push('/register/step2')
   } catch (e) {
-    error.value = e.response?.data?.message || 'Greška pri registraciji'
+      if (Array.isArray(e.response?.data?.errors)) {
+        error.value = e.response.data.errors
+      } else {
+        error.value = e.response?.data?.message || 'Greška pri registraciji'
+      }
   } finally {
     loading.value = false
   }

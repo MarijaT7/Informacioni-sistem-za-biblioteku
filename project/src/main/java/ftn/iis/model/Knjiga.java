@@ -1,5 +1,7 @@
 package ftn.iis.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
 
@@ -36,6 +38,13 @@ public class Knjiga {
     @OneToOne(mappedBy = "knjiga", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private AudioKnjiga audioKnjiga;
 
+    @ManyToOne(optional = false,fetch = FetchType.LAZY)
+    @JoinColumn(name = "katalog_id", nullable = false)
+    @JsonBackReference("katalog-knjiga")
+    private Katalog katalog;
+
+    private boolean deleted;
+
     public Knjiga() {
         this.tipKnjige = "000";
     }
@@ -47,11 +56,16 @@ public class Knjiga {
         this.sinopsis = sinopsis;
     }
 
-    public Knjiga(String isbn, String putanjaNaslovna, String naslov, String sinopsis, String tipKnjige) {
+    public Knjiga(String isbn, String putanjaNaslovna, String naslov, String sinopsis, FizickaKnjiga fizickaKnjiga, EKnjiga eKnjiga, AudioKnjiga audioKnjiga, Katalog katalog, String autor) {
         this.isbn = isbn;
         this.putanjaNaslovna = putanjaNaslovna;
         this.naslov = naslov;
         this.sinopsis = sinopsis;
+        this.fizickaKnjiga = fizickaKnjiga;
+        this.eKnjiga = eKnjiga;
+        this.audioKnjiga = audioKnjiga;
+        this.katalog = katalog;
+        this.deleted = false;
         this.tipKnjige = tipKnjige;
     }
 
@@ -107,10 +121,26 @@ public class Knjiga {
         return audioKnjiga;
     }
 
+    public Katalog getKatalog() {
+        return katalog;
+    }
+
+    public void setKatalog(Katalog katalog) {
+        this.katalog = katalog;
+    }
+
     public void setAudioKnjiga(AudioKnjiga audioKnjiga) {
         this.audioKnjiga = audioKnjiga;
     }
 
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
+  
     public String getTipKnjige() {
         return tipKnjige;
     }

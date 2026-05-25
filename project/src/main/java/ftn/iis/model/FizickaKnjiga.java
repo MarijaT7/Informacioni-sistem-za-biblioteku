@@ -1,5 +1,6 @@
 package ftn.iis.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
@@ -11,6 +12,7 @@ public class FizickaKnjiga {
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId
     @JoinColumn(name = "isbn")
+    @JsonIgnore
     private Knjiga knjiga;
 
     public FizickaKnjiga() {

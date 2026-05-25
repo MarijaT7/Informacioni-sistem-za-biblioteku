@@ -2,6 +2,7 @@ package ftn.iis.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 @Entity
 @Table(name = "biblioteka")
@@ -20,6 +21,10 @@ public class Biblioteka {
     @OneToMany(mappedBy = "biblioteka", fetch = FetchType.LAZY)
     @JsonIgnore
     private List<User> members;
+
+    @OneToMany(mappedBy = "biblioteka")
+    @JsonIgnore
+    private List<Katalog> catalogs = new ArrayList<>();
 
     public String getBid() {
         return bid;
@@ -51,5 +56,13 @@ public class Biblioteka {
 
     public void setMembers(List<User> members) {
         this.members = members;
+    }
+
+    public List<Katalog> getCatalogs() {
+        return catalogs;
+    }
+
+    public void setCatalogs(List<Katalog> catalogs) {
+        this.catalogs = catalogs;
     }
 }

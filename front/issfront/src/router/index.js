@@ -13,6 +13,10 @@ const routes = [
     component: () => import('../views/UserProfile.vue'),
     meta: { requiresAuth: true }
   },
+  { path: '/katalog/novi',  component: () => import('../views/NoviKatalog.vue'), beforeEnter: (to, from, next) => {
+      const auth = useAuthStore()
+      if(auth.getRole() !== 'BIBLIOTEKAR') {next('/')} else {next()}
+  }}
   {
       path: '/genres/edit',
       component: () => import('../views/FavouriteGenresEdit.vue'),

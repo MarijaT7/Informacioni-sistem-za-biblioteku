@@ -55,7 +55,8 @@ public class AuthService {
         }
         User user= userRepository.findByEmail(request.getEmail())
                 .orElseThrow(()-> new RuntimeException("Korisnik nije pronadjen"));
-        if(user.getUloge().name().equals("CLAN")) {
+
+        if(user.getUloge().equals(Uloge.CLAN)) {
             Clanarina clanarina = clanarinaRepository.findByUserJmbg(user.getJmbg())
                     .orElseThrow(() -> new RuntimeException("Članarina ne postoji"));
 

@@ -51,7 +51,12 @@ async function handleLogin() {
     console.log("RESPONSE:", res)
 
     auth.setAuth(res.data)
-    router.push('/profile')
+    const role = res.data.role
+    if (role === 'MENADZER') {
+      router.push('/menadzer/dashboard')
+    } else {
+      router.push('/profile')
+    }
 
   } catch (e) {
     console.log("FULL ERROR:", e)

@@ -61,4 +61,18 @@ public class KatalogService {
             return false;
         }
     }
+
+    public KatalogDto updateCatalog(KatalogDto katalogDto, Long katId){
+        Optional<Katalog> kat = katalogRepository.findByKatId(katId);
+
+        if(!kat.isPresent())
+            return null;
+
+        Katalog k = kat.get();
+        k.setKatIme(katalogDto.getNaziv());
+        k.setStandard(katalogDto.getStandard());
+        katalogRepository.saveAndFlush(k);
+
+        return katalogDto;
+    }
 }

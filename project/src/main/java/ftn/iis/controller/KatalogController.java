@@ -57,8 +57,14 @@ public class KatalogController {
         return katalogService.getByKatId(id);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("delete/{id}")
     public boolean deleteCatalog(@PathVariable Long id){
         return katalogService.deleteCatlog(id);
     }
+
+    @PutMapping("/{id}")
+    public KatalogDto updateCatalogById(@PathVariable Long id, @RequestBody KatalogDto katalogDto){
+        return katalogService.updateCatalog(katalogDto, id);
+    }
+
 }

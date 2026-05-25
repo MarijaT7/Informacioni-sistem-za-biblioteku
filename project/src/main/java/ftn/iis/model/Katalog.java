@@ -1,5 +1,8 @@
 package ftn.iis.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 
@@ -25,7 +28,8 @@ public class Katalog {
     @JoinColumn(name = "bib_id", nullable = false)
     private Biblioteka biblioteka;
 
-    @OneToMany(mappedBy = "katalog")
+    @OneToMany(mappedBy = "katalog", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JsonManagedReference("katalog-knjiga")
     private List<Knjiga> books = new ArrayList<>();
 
     private boolean deleted;
@@ -79,5 +83,13 @@ public class Katalog {
 
     public void setBooks(List<Knjiga> books) {
         this.books = books;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
     }
 }

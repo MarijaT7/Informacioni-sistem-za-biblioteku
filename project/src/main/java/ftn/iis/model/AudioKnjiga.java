@@ -1,5 +1,6 @@
 package ftn.iis.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ public class AudioKnjiga {
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId
     @JoinColumn(name = "isbn")
+    @JsonIgnore
     private Knjiga knjiga;
 
     @Column(name = "trajanje_sek_ak")

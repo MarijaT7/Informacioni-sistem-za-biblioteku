@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -46,4 +47,18 @@ public class KatalogController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to add catalog");
     }
 
+    @GetMapping("/all")
+    public List<Katalog> allCatalogs(){
+        return katalogService.getAll();
+    }
+
+    @GetMapping("/{id}")
+    public Optional<Katalog> getCatalogById(@PathVariable Long id){
+        return katalogService.getByKatId(id);
+    }
+
+    @PutMapping("/{id}")
+    public boolean deleteCatalog(@PathVariable Long id){
+        return katalogService.deleteCatlog(id);
+    }
 }

@@ -37,6 +37,8 @@ public class Knjiga {
     @JsonBackReference("katalog-knjiga")
     private Katalog katalog;
 
+    private boolean deleted;
+
     public Knjiga() {
     }
 
@@ -57,6 +59,7 @@ public class Knjiga {
         this.audioKnjiga = audioKnjiga;
         this.katalog = katalog;
         this.autor = autor;
+        deleted = false;
     }
 
     public String getIsbn() {
@@ -129,5 +132,13 @@ public class Knjiga {
 
     public void setAutor(String autor) {
         this.autor = autor;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
     }
 }

@@ -63,4 +63,17 @@ public class KnjigaController {
         }
     }
 
+    @PutMapping("delete/{isbn}")
+    public ResponseEntity<?> deleteBook(@RequestHeader("Authorization") String authHeader, @PathVariable String isbn){
+        String token = authHeader.substring(BEARER_PREFIX_LENGTH);
+        String jmbg = jwtService.extractJmbg(token);
+        String role = jwtService.extractRole(token);
+        if(!role.equals("BIBLIOTEKAR"))
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Jedino bibliotekar moze praviti kataloge");
+
+        Knjiga k = knjigaService.getBookByISBN(isbn);
+        k.setDeleted(true);
+        knjigaService.saveBook(k);
+        return ResponseEntity.ok("Uspesno obrisana knjiga");
+    }
 }

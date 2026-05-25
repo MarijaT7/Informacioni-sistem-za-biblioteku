@@ -83,5 +83,4 @@ public class KatalogController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update");
         return ResponseEntity.ok("Updated");
     }
-
 }

@@ -17,6 +17,9 @@ public class Knjiga {
     @Column(name = "naslov", nullable = false)
     private String naslov;
 
+    @Column(name = "autor", nullable = true)
+    private String autor;
+
     @Column(name = "sinopsis")
     private String sinopsis;
 
@@ -44,7 +47,7 @@ public class Knjiga {
         this.sinopsis = sinopsis;
     }
 
-    public Knjiga(String isbn, String putanjaNaslovna, String naslov, String sinopsis, FizickaKnjiga fizickaKnjiga, EKnjiga eKnjiga, AudioKnjiga audioKnjiga, Katalog katalog) {
+    public Knjiga(String isbn, String putanjaNaslovna, String naslov, String sinopsis, FizickaKnjiga fizickaKnjiga, EKnjiga eKnjiga, AudioKnjiga audioKnjiga, Katalog katalog, String autor) {
         this.isbn = isbn;
         this.putanjaNaslovna = putanjaNaslovna;
         this.naslov = naslov;
@@ -53,6 +56,7 @@ public class Knjiga {
         this.eKnjiga = eKnjiga;
         this.audioKnjiga = audioKnjiga;
         this.katalog = katalog;
+        this.autor = autor;
     }
 
     public String getIsbn() {
@@ -117,5 +121,13 @@ public class Knjiga {
 
     public void setAudioKnjiga(AudioKnjiga audioKnjiga) {
         this.audioKnjiga = audioKnjiga;
+    }
+
+    public String getAutor() {
+        return autor;
+    }
+
+    public void setAutor(String autor) {
+        this.autor = autor;
     }
 }

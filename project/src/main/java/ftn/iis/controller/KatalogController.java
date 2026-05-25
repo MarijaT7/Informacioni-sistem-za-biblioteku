@@ -7,6 +7,7 @@ import ftn.iis.service.KatalogService;
 import ftn.iis.service.UserService;
 import ftn.iis.utils.JwtService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -58,13 +59,29 @@ public class KatalogController {
     }
 
     @PutMapping("delete/{id}")
-    public boolean deleteCatalog(@PathVariable Long id){
-        return katalogService.deleteCatlog(id);
+    public ResponseEntity<?> deleteCatalog(@RequestHeader("Authorization") String authHeader, @PathVariable Long id){
+        String token = authHeader.substring(BEARER_PREFIX_LENGTH);
+        String jmbg = jwtService.extractJmbg(token);
+        String role = jwtService.extractRole(token);
+        if(!role.equals("BIBLIOTEKAR"))
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Jedino bibliotekar moze praviti kataloge");
+        if(!katalogService.deleteCatlog(id)){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to delete");
+        }
+        return ResponseEntity.ok("Deleted");
     }
 
     @PutMapping("/{id}")
-    public KatalogDto updateCatalogById(@PathVariable Long id, @RequestBody KatalogDto katalogDto){
-        return katalogService.updateCatalog(katalogDto, id);
+    public ResponseEntity<?> updateCatalogById(@RequestHeader("Authorization") String authHeader, @PathVariable Long id, @RequestBody KatalogDto katalogDto){
+        String token = authHeader.substring(BEARER_PREFIX_LENGTH);
+        String jmbg = jwtService.extractJmbg(token);
+        String role = jwtService.extractRole(token);
+        if(!role.equals("BIBLIOTEKAR"))
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Jedino bibliotekar moze praviti kataloge");
+        KatalogDto k = katalogService.updateCatalog(katalogDto, id);
+        if(k==null)
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update");
+        return ResponseEntity.ok("Updated");
     }
 
 }

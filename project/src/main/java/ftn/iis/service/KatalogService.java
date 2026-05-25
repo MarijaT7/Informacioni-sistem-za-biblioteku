@@ -65,7 +65,7 @@ public class KatalogService {
     public KatalogDto updateCatalog(KatalogDto katalogDto, Long katId){
         Optional<Katalog> kat = katalogRepository.findByKatId(katId);
 
-        if(!kat.isPresent())
+        if(!kat.isPresent() || kat.get().isDeleted())
             return null;
 
         Katalog k = kat.get();

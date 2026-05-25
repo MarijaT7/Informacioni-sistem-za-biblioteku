@@ -14,6 +14,10 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+      path: '/genres/edit',
+      component: () => import('../views/FavouriteGenresEdit.vue'),
+      meta: { requiresAuth: true }
+    },
   path: '/menadzer',
   component: () => import('../views/menadzer/AppLayout.vue'),
   meta: { requiresAuth: true },

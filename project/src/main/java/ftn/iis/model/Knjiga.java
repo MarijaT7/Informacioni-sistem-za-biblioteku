@@ -43,7 +43,11 @@ public class Knjiga {
     @JsonBackReference("katalog-knjiga")
     private Katalog katalog;
 
+    @Column
     private boolean deleted;
+
+    @Column(name = "autor", nullable = true)
+    private String autor;
 
     public Knjiga() {
         this.tipKnjige = "000";
@@ -56,7 +60,7 @@ public class Knjiga {
         this.sinopsis = sinopsis;
     }
 
-    public Knjiga(String isbn, String putanjaNaslovna, String naslov, String sinopsis, FizickaKnjiga fizickaKnjiga, EKnjiga eKnjiga, AudioKnjiga audioKnjiga, Katalog katalog, String autor) {
+    public Knjiga(String isbn, String putanjaNaslovna, String naslov, String sinopsis, FizickaKnjiga fizickaKnjiga, EKnjiga eKnjiga, AudioKnjiga audioKnjiga, Katalog katalog, String autor, String tipKnjige) {
         this.isbn = isbn;
         this.putanjaNaslovna = putanjaNaslovna;
         this.naslov = naslov;
@@ -67,6 +71,7 @@ public class Knjiga {
         this.katalog = katalog;
         this.deleted = false;
         this.tipKnjige = tipKnjige;
+        this.autor = autor;
     }
 
     public String getIsbn() {
@@ -147,6 +152,14 @@ public class Knjiga {
 
     public void setTipKnjige(String tipKnjige) {
         this.tipKnjige = tipKnjige;
+    }
+
+    public String getAutor() {
+        return autor;
+    }
+
+    public void setAutor(String autor) {
+        this.autor = autor;
     }
 
     @PrePersist

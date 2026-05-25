@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -49,6 +50,11 @@ public class UserService {
         return userRepository.findById(jmbg)
                 .orElseThrow(() -> new RuntimeException("Korisnik nije pronađen"));
     }
+
+    public Optional<User> getUserByJmbg2(String jmbg) {
+        return userRepository.findById(jmbg);
+    }
+
     public UserProfileDto getProfile(String jmbg){
         User user=getUserByJmbg(jmbg);
         return toDto(user);

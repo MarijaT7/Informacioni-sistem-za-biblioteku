@@ -13,10 +13,30 @@ const routes = [
     component: () => import('../views/UserProfile.vue'),
     meta: { requiresAuth: true }
   },
-  { path: '/katalog/novi',  component: () => import('../views/NoviKatalog.vue'), beforeEnter: (to, from, next) => {
+  {
+    path: '/knjige',
+    component: () => import('../views/BooksView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/knjige/:isbn',
+    component: () => import('../views/BookDetailView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/knjige/:isbn/citaj',
+    component: () => import('../views/BookReadView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/knjige/:isbn/slusaj',
+    component: () => import('../views/BookListenView.vue'),
+    meta: { requiresAuth: true }
+  },
+    { path: '/katalog/novi',  component: () => import('../views/NoviKatalog.vue'), beforeEnter: () => {
       const auth = useAuthStore()
-      if(auth.getRole() !== 'BIBLIOTEKAR') {next('/')} else {next()}
-  }}
+      return auth.getRole() === 'BIBLIOTEKAR' ? true : '/'
+    }},
   {
       path: '/genres/edit',
       component: () => import('../views/FavouriteGenresEdit.vue'),
@@ -45,19 +65,15 @@ const router = createRouter({
   routes
 })
 
-router.beforeEach((to, _from, next) => {
+router.beforeEach((to) => {
   const auth = useAuthStore()
   if (to.meta.requiresAuth && !auth.isLoggedIn) {
-    next('/login')
-    return
+    return '/login'
   }
 
   if (to.meta.requiresRole && auth.user?.role !== to.meta.requiresRole) {
-    next('/login')
-    return
+    return '/login'
   }
-
-  next()
 })
 
 export default router

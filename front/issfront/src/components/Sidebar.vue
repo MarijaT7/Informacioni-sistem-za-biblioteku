@@ -10,7 +10,7 @@
       <RouterLink class="nav-item" to="#">
         <span class="nav-icon"></span> Početna
       </RouterLink>
-      <RouterLink class="nav-item" to="#">
+      <RouterLink class="nav-item" to="/knjige">
         <span class="nav-icon"></span> Sve knjige
       </RouterLink>
       <RouterLink class="nav-item" to="#">

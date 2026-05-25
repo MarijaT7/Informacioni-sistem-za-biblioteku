@@ -53,4 +53,18 @@ export const ugovorApi = {
   raskini:       (id)        => api.patch(`/ugovori/raskid/${id}`),
 }
 
+// ── Knjige ───────────────────────────────────────────────────────────
+export const knjigaApi = {
+  sveOsnovno:      () => api.get('/knjiga/sve/osnovno'),
+  pretraga:        (q) => api.get('/knjiga/pretraga', { params: { q } }),
+  detalji:         (isbn) => api.get(`/knjiga/detalji/${isbn}`),
+  naslovna:        (isbn) => api.get(`/knjiga/naslovna/${isbn}`, { responseType: 'blob' }),
+  pdf:             (isbn) => api.get(`/knjiga/eknjiga/${isbn}/pdf`, { responseType: 'blob' }),
+  audio:           (isbn) => api.get(`/knjiga/audioknjiga/${isbn}/audio`, { responseType: 'blob' }),
+  citanjeProgress: (isbn) => api.get(`/knjiga/eknjiga/${isbn}/progress`),
+  sacuvajCitanje:  (isbn, data) => api.put(`/knjiga/eknjiga/${isbn}/progress`, data),
+  slusanjeProgress: (isbn) => api.get(`/knjiga/audioknjiga/${isbn}/progress`),
+  sacuvajSlusanje:  (isbn, data) => api.put(`/knjiga/audioknjiga/${isbn}/progress`, data),
+}
+
 export default api

@@ -36,7 +36,7 @@ public class KatalogController {
         if(!role.equals("BIBLIOTEKAR"))
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Jedino bibliotekar moze praviti kataloge");
 
-        Optional<User> user = userService.getUserByJmbg(jmbg);
+        Optional<User> user = userService.getUserByJmbg2(jmbg);
         Katalog kat = new Katalog();
 
         kat.setKatIme(katalogDto.getNaziv());

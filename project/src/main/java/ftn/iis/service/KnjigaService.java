@@ -1,13 +1,17 @@
 package ftn.iis.service;
 
 import ftn.iis.dto.BookDto;
+import ftn.iis.dto.KnjigaDetaljiDto;
+import ftn.iis.dto.KnjigaOsnovnoDto;
 import ftn.iis.model.Knjiga;
 import ftn.iis.repository.KnjigaRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class KnjigaService {
@@ -48,7 +52,24 @@ public class KnjigaService {
         knjigaRepository.saveAndFlush(knjiga);
     }
     //DO NOT ASK ME WHAT DIFFERENCE THERE IS BETWEEN THESE TWO OK I LIKE NAMING THINGS
-    public void saveBook(Knjiga knjiga){
+    public void saveBook(Knjiga knjiga) {
         knjigaRepository.saveAndFlush(knjiga);
+    }
+
+    public List<KnjigaOsnovnoDto> ispisiSveKnjige() {
+        List<Knjiga> knjige = knjigaRepository.findByDeletedFalse();
+        return knjige.stream().map(KnjigaOsnovnoDto::fromKnjiga).collect(Collectors.toList());
+    }
+
+    public List<KnjigaOsnovnoDto> pretraziPoNaslovu(String query) {
+        List<Knjiga> knjige = knjigaRepository.findByNaslovContainingIgnoreCaseAndDeletedFalse(query);
+        return knjige.stream().map(KnjigaOsnovnoDto::fromKnjiga).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<KnjigaDetaljiDto> getDetaljiByIsbn(String isbn) {
+        return knjigaRepository.findByIsbn(isbn)
+                .filter(k -> !k.isDeleted())
+                .map(KnjigaDetaljiDto::fromKnjiga);
     }
 }

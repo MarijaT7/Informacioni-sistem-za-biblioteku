@@ -25,14 +25,14 @@ public class UserController {
         UserProfileDto profile=userService.getProfileByEmail(principal.getName());
         return ResponseEntity.ok(profile);
     }
-    @PutMapping("/api/users/{jmbg}/profile")
+    @PutMapping("/{jmbg}/profile")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserProfileDto> updateProfile(
             @PathVariable String jmbg,
             @RequestBody UpdateProfilDto request) {
         return ResponseEntity.ok(userService.updateProfile(jmbg, request));
     }
-    @PutMapping("/api/users/{jmbg}/genres")
+    @PutMapping("/{jmbg}/genres")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> updateFavouriteGenres(
             @PathVariable String jmbg,

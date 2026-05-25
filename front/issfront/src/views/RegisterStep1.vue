@@ -3,7 +3,6 @@
     <div class="card reg-card">
       <h1>Registrujte se</h1>
 
-      <!-- Library select -->
       <div class="form-group">
         <label>Odaberite biblioteku*</label>
         <select v-model="form.libraryBid">
@@ -14,7 +13,6 @@
         </select>
       </div>
 
-      <!-- Name + Tip clanstva -->
       <div class="row2">
         <div class="form-group">
           <label>Ime i Prezime*</label>
@@ -30,7 +28,7 @@
         </div>
       </div>
 
-      <!-- JMBG + Password -->
+
       <div class="row2">
         <div class="form-group">
           <label>JMBG*</label>
@@ -42,7 +40,6 @@
         </div>
       </div>
 
-      <!-- Email + Phone + DateOfBirth -->
       <div class="row3">
         <div class="form-group">
           <label>Email*</label>

@@ -1,26 +1,26 @@
 <template>
   <aside class="sidebar">
-    <div class="sidebar-profile">
+    <RouterLink to="/profile" class="sidebar-profile">
       <div class="sidebar-avatar">👤</div>
       <div class="sidebar-name">
         {{ authStore.user?.firstName }}<br />{{ authStore.user?.lastName }}
       </div>
-    </div>
+    </RouterLink>
     <nav class="sidebar-nav">
-      <RouterLink class="nav-item" to="/profile">
-        <span class="nav-icon">🏠</span> Početna
+      <RouterLink class="nav-item" to="#">
+        <span class="nav-icon"></span> Početna
       </RouterLink>
       <RouterLink class="nav-item" to="#">
-        <span class="nav-icon">📖</span> Sve knjige
+        <span class="nav-icon"></span> Sve knjige
       </RouterLink>
       <RouterLink class="nav-item" to="#">
-        <span class="nav-icon">🤚</span> Pozajmice
+        <span class="nav-icon"></span> Pozajmice
       </RouterLink>
       <RouterLink class="nav-item" to="#">
-        <span class="nav-icon">🛍</span> Dugovanja
+        <span class="nav-icon"></span> Dugovanja
       </RouterLink>
       <RouterLink class="nav-item" to="#">
-        <span class="nav-icon">🔔</span> Obaveštenja
+        <span class="nav-icon"></span> Obaveštenja
       </RouterLink>
     </nav>
 
@@ -30,7 +30,7 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '../store/auth.js'
+import { useAuthStore } from '../stroage/auth.js'
 
 const router    = useRouter()
 const authStore = useAuthStore()

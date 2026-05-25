@@ -13,6 +13,11 @@ const routes = [
     component: () => import('../views/UserProfile.vue'),
     meta: { requiresAuth: true }
   },
+  {
+      path: '/genres/edit',
+      component: () => import('../views/FavouriteGenresEdit.vue'),
+      meta: { requiresAuth: true }
+    },
 ]
 
 const router = createRouter({

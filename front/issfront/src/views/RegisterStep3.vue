@@ -4,19 +4,16 @@
       <h1>Uplata članarine</h1>
       <p class="subtitle">Odaberite način uplate članarine:</p>
 
-      <!-- Physical -->
       <div class="radio-option" @click="method = 'FIZICKI'">
         <div class="radio-circle" :class="{ active: method === 'FIZICKI' }"></div>
         <span class="radio-label">Fizički – u biblioteci koju ste odabrali</span>
       </div>
 
-      <!-- Online -->
       <div class="radio-option" @click="method = 'ONLINE'">
         <div class="radio-circle" :class="{ active: method === 'ONLINE' }"></div>
         <span class="radio-label">Online plaćanje platnom karticom</span>
       </div>
 
-      <!-- Card form (shown only when ONLINE) -->
       <transition name="slide">
         <div v-if="method === 'ONLINE'" class="card-form">
           <div class="form-group">

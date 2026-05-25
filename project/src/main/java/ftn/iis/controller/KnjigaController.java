@@ -72,8 +72,29 @@ public class KnjigaController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Jedino bibliotekar moze praviti kataloge");
 
         Knjiga k = knjigaService.getBookByISBN(isbn);
+        if(k == null)
+            return ResponseEntity.ok("Knjiga ne postoji ili je vec obrisana");
         k.setDeleted(true);
         knjigaService.saveBook(k);
         return ResponseEntity.ok("Uspesno obrisana knjiga");
+    }
+
+    @PutMapping("/{isbn}")
+    public ResponseEntity<?> updateBook(@RequestHeader("Authorization") String authHeader, @PathVariable String isbn, @RequestBody BookDto bookDto){
+        //This is like the 8th copy and paste of this block man tech debt is huge with this one
+        String token = authHeader.substring(BEARER_PREFIX_LENGTH);
+        String jmbg = jwtService.extractJmbg(token);
+        String role = jwtService.extractRole(token);
+        if(!role.equals("BIBLIOTEKAR"))
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Jedino bibliotekar moze praviti kataloge");
+
+        Knjiga k = knjigaService.getBookByISBN(isbn);
+        if(k == null)
+            return ResponseEntity.ok("Ne postoji ta knjiga");
+        k.setNaslov(bookDto.getNaziv());
+        k.setAutor(bookDto.getAutor());
+        k.setSinopsis(bookDto.getSinopsis());
+        knjigaService.saveBook(k);
+        return ResponseEntity.ok("Uspesno azurirana knjiga");
     }
 }

@@ -49,7 +49,12 @@ async function handleLogin() {
     const res = await authApi.login(form.value)
 
     auth.setAuth(res.data)
-    router.push('/profile')
+    const role = res.data.role
+    if (role === 'MENADZER') {
+      router.push('/menadzer/dashboard')
+    } else {
+      router.push('/profile')
+    }
 
   } catch (e) {
     error.value = e.response?.data?.message || 'Login failed'

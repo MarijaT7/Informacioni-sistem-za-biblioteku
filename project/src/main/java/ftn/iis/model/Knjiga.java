@@ -1,6 +1,7 @@
 package ftn.iis.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Pattern;
 
 @Entity
 @Table(name = "knjiga")
@@ -18,6 +19,14 @@ public class Knjiga {
     @Column(name = "sinopsis")
     private String sinopsis;
 
+    @Column(name = "tip_knjige", length = 3, nullable = false)
+    @Pattern(regexp = "[01]{3}")
+    private String tipKnjige = "000";
+    // Napomena za mapiranje:
+    // 1xx - postoji fizicka knjiga
+    // x1x - postoji eknjiga
+    // xx1 - postoji audio knjiga
+
     @OneToOne(mappedBy = "knjiga", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private FizickaKnjiga fizickaKnjiga;
 
@@ -28,6 +37,7 @@ public class Knjiga {
     private AudioKnjiga audioKnjiga;
 
     public Knjiga() {
+        this.tipKnjige = "000";
     }
 
     public Knjiga(String isbn, String putanjaNaslovna, String naslov, String sinopsis) {
@@ -35,6 +45,14 @@ public class Knjiga {
         this.putanjaNaslovna = putanjaNaslovna;
         this.naslov = naslov;
         this.sinopsis = sinopsis;
+    }
+
+    public Knjiga(String isbn, String putanjaNaslovna, String naslov, String sinopsis, String tipKnjige) {
+        this.isbn = isbn;
+        this.putanjaNaslovna = putanjaNaslovna;
+        this.naslov = naslov;
+        this.sinopsis = sinopsis;
+        this.tipKnjige = tipKnjige;
     }
 
     public String getIsbn() {
@@ -91,5 +109,23 @@ public class Knjiga {
 
     public void setAudioKnjiga(AudioKnjiga audioKnjiga) {
         this.audioKnjiga = audioKnjiga;
+    }
+
+    public String getTipKnjige() {
+        return tipKnjige;
+    }
+
+    public void setTipKnjige(String tipKnjige) {
+        this.tipKnjige = tipKnjige;
+    }
+
+    @PrePersist
+    @PreUpdate
+    public void izracunajTipKnjige() {
+        char[] f = {'0', '0', '0'};
+        if (this.fizickaKnjiga != null) f[0] = '1';
+        if (this.eKnjiga != null)       f[1] = '1';
+        if (this.audioKnjiga != null)  f[2] = '1';
+        this.tipKnjige = new String(f);
     }
 }

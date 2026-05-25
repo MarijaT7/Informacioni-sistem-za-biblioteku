@@ -1,95 +1,95 @@
 -- noinspection SqlNoDataSourceInspectionForFile
 
 -- KNJIGA 1: Samo Fizička knjiga
-INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis)
-VALUES ('9788617150001', 'Na Drini ćuprija', '/naslovne/cuprija.jpg', 'Roman o istoriji višegradskog mosta.');
+INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis, tip_knjige)
+VALUES ('9788617150001', 'Na Drini ćuprija', './src/main/resources/knjige/naslovne/cuprija.jpg', 'Roman o istoriji višegradskog mosta.', '100');
 
 INSERT INTO fizicka_knjiga (isbn)
 VALUES ('9788617150001');
 
 
 -- KNJIGA 2: Samo E-Knjiga
-INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis)
-VALUES ('9788617150002', 'Prokleta avlija', '/naslovne/avlija.jpg', 'Priča o zatvorenicima u istanbulskom zatvoru.');
+INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis, tip_knjige)
+VALUES ('9788617150002', 'Prokleta avlija', './src/main/resources/knjige/naslovne/avlija.jpg', 'Priča o zatvorenicima u istanbulskom zatvoru.', '010');
 
 INSERT INTO e_knjiga (isbn, format_ek, datum_dodavanja_ek, broj_strana_ek, putanja_ek)
-VALUES ('9788617150002', 'PDF', '2026-01-15', 120, '/fajlovi/avlija.pdf');
+VALUES ('9788617150002', 'PDF', '2026-01-15', 116, './src/main/resources/knjige/eknjige/avlija.pdf');
 
 
 -- KNJIGA 3: Samo Audio knjiga
-INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis)
-VALUES ('9788617150003', 'Seobe', '/naslovne/seobe.jpg', 'Istorijski roman o seobama Srba.');
+INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis, tip_knjige)
+VALUES ('9788617150003', 'Seobe', './src/main/resources/knjige/naslovne/seobe.jpg', 'Istorijski roman o seobama Srba.', '001');
 
 INSERT INTO audio_knjiga (isbn, trajanje_sek_ak, format_ak, datum_dodavanja_ak, putanja_ak)
-VALUES ('9788617150003', 28800, 'MP3', '2026-02-10', '/audio/seobe.mp3');
+VALUES ('9788617150003', 10, 'MP3', '2026-02-10', './src/main/resources/knjige/audioknjige/seobe.mp3');
 
 
 -- KNJIGA 4: Sva tri formata
-INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis)
-VALUES ('9788617150004', 'Gorski vijenac', '/naslovne/gorski.jpg', 'Poem epske fantastike i filozofije.');
+INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis, tip_knjige)
+VALUES ('9788617150004', 'Gorski vijenac', './src/main/resources/knjige/naslovne/gorski.jpg', 'Poem epske fantastike i filozofije.', '111');
 
 INSERT INTO fizicka_knjiga (isbn)
 VALUES ('9788617150004');
 
 INSERT INTO e_knjiga (isbn, format_ek, datum_dodavanja_ek, broj_strana_ek, putanja_ek)
-VALUES ('9788617150004', 'EPUB', '2026-03-05', 215, '/fajlovi/gorski.epub');
+VALUES ('9788617150004', 'PDF', '2026-03-05', 89, './src/main/resources/knjige/eknjige/gorski.pdf');
 
 INSERT INTO audio_knjiga (isbn, trajanje_sek_ak, format_ak, datum_dodavanja_ak, putanja_ak)
-VALUES ('9788617150004', 14400, 'M4A', '2026-03-01', '/audio/gorski.m4a');
+VALUES ('9788617150004', 10, 'MP3', '2026-03-01', './src/main/resources/audioknjige/audio/gorski.mp3');
 
 
 -- KNJIGA 5: Kombinacija: Fizička i E-Knjiga
-INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis)
-VALUES ('9788617150005', 'Hazarski rečnik', '/naslovne/hazari.jpg', 'Roman leksikon u ženskom i muškom primerku.');
+INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis, tip_knjige)
+VALUES ('9788617150005', 'Hazarski rečnik', './src/main/resources/knjige/naslovne/hazari.jpg', 'Roman leksikon u ženskom i muškom primerku.', '110');
 
 INSERT INTO fizicka_knjiga (isbn)
 VALUES ('9788617150005');
 
 INSERT INTO e_knjiga (isbn, format_ek, datum_dodavanja_ek, broj_strana_ek, putanja_ek)
-VALUES ('9788617150005', 'PDF', '2026-04-12', 350, '/fajlovi/hazarski_recnik.pdf');
+VALUES ('9788617150005', 'PDF', '2026-04-12', 13, './src/main/resources/knjige/eknjige/hazari.pdf');
 
 
 -- KNJIGA 6: Kombinacija: E-Knjiga i Audio knjiga
-INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis)
-VALUES ('9788617150006', 'Koreni', '/naslovne/koreni.jpg', 'Roman o porodici Katić.');
+INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis, tip_knjige)
+VALUES ('9788617150006', 'Koreni', './src/main/resources/knjige/naslovne/koreni.jpg', 'Roman o porodici Katić.', '011');
 
 INSERT INTO e_knjiga (isbn, format_ek, datum_dodavanja_ek, broj_strana_ek, putanja_ek)
-VALUES ('9788617150006', 'EPUB', '2026-04-20', 280, '/fajlovi/koreni.epub');
+VALUES ('9788617150006', 'PDF', '2026-04-20', 248, './src/main/resources/knjige/eknjige/koreni.pdf');
 
 INSERT INTO audio_knjiga (isbn, trajanje_sek_ak, format_ak, datum_dodavanja_ak, putanja_ak)
-VALUES ('9788617150006', 21600, 'MP3', '2026-04-22', '/audio/koreni.mp3');
+VALUES ('9788617150006', 10, 'MP3', '2026-04-22', './src/main/resources/knjige/audioknjige/koreni.mp3');
 
 
 -- KNJIGA 7: Kombinacija: Fizička i Audio knjiga
-INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis)
-VALUES ('9788617150007', 'Tvrđava', '/naslovne/tvrdjava.jpg', 'Priča o Ahmetu Šabi i njegovom mjestu u svijetu.');
+INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis, tip_knjige)
+VALUES ('9788617150007', 'Tvrđava', './src/main/resources/knjige/naslovne/tvrdjava.jpg', 'Priča o Ahmetu Šabi i njegovom mjestu u svijetu.', '101');
 
 INSERT INTO fizicka_knjiga (isbn)
 VALUES ('9788617150007');
 
 INSERT INTO audio_knjiga (isbn, trajanje_sek_ak, format_ak, datum_dodavanja_ak, putanja_ak)
-VALUES ('9788617150007', 32400, 'MP3', '2026-05-01', '/audio/tvrdjava.mp3');
+VALUES ('9788617150007', 10, 'MP3', '2026-05-01', './src/main/resources/knjige/audioknjige/tvrdjava.mp3');
 
 
 -- KNJIGA 8: Samo Fizička knjiga
-INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis)
-VALUES ('9788617150008', 'Derviš i smrt', '/naslovne/dervis.jpg', 'Psihološko-filozofski roman Meše Selimovića.');
+INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis, tip_knjige)
+VALUES ('9788617150008', 'Derviš i smrt', './src/main/resources/knjige/naslovne/dervis.jpg', 'Psihološko-filozofski roman Meše Selimovića.', '100');
 
 INSERT INTO fizicka_knjiga (isbn)
 VALUES ('9788617150008');
 
 
 -- KNJIGA 9: Samo E-Knjiga
-INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis)
-VALUES ('9788617150009', 'Znakovi pored puta', '/naslovne/znakovi.jpg', 'Zbirka aforizama, zapisa i meditacija.');
+INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis, tip_knjige)
+VALUES ('9788617150009', 'Znakovi pored puta', './src/main/resources/knjige/naslovne/znakovi.jpg', 'Zbirka aforizama, zapisa i meditacija.', '010');
 
 INSERT INTO e_knjiga (isbn, format_ek, datum_dodavanja_ek, broj_strana_ek, putanja_ek)
-VALUES ('9788617150009', 'PDF', '2026-05-10', 400, '/fajlovi/znakovi.pdf');
+VALUES ('9788617150009', 'PDF', '2026-05-10', 307, './src/main/resources/knjige/fajlovi/znakovi.pdf');
 
 
 -- KNJIGA 10: Samo Fizička knjiga
-INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis)
-VALUES ('9788617150010', 'Nečista krv', '/naslovne/krv.jpg', 'Tragična priča o propadanju vranjanskih čorbadžija.');
+INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis, tip_knjige)
+VALUES ('9788617150010', 'Nečista krv', './src/main/resources/knjige/naslovne/krv.jpg', 'Tragična priča o propadanju vranjanskih čorbadžija.', '100');
 
 INSERT INTO fizicka_knjiga (isbn)
 VALUES ('9788617150010');
@@ -233,3 +233,128 @@ INSERT INTO clanarina (
     'FIZICKI',
     '1234567891234'
 );
+
+-- =============================================================
+-- ELEKTRONSKI ČASOPISI
+-- =============================================================
+
+-- Časopis 1 — izdavač: Laguna (id=2)
+INSERT INTO elektronski_casopis (issn, naziv_ec, oblast_ec, opis_ec, jezik_ec, ucestalost_izdavanja_ec, putanja_slike_ec, id_izdavaca_ec)
+VALUES ('00278232', 'Letopis Matice srpske', 'Književnost', 'Najstariji književni časopis na srpskom jeziku.', 'Srpski', 'Mesečno', '/casopisi/letopis.jpg', 2);
+
+-- Časopis 2 — izdavač: Vulkan (id=3)
+INSERT INTO elektronski_casopis (issn, naziv_ec, oblast_ec, opis_ec, jezik_ec, ucestalost_izdavanja_ec, putanja_slike_ec, id_izdavaca_ec)
+VALUES ('18207995', 'Savremena tehnika', 'Tehnika i tehnologija', 'Stručni časopis iz oblasti inženjerstva i primenjenih nauka.', 'Srpski', 'Kvartalno', '/casopisi/savremena_tehnika.jpg', 3);
+
+
+-- =============================================================
+-- BROJEVI ČASOPISA  (issn, broj_izdanja)
+-- =============================================================
+
+-- Letopis Matice srpske — 3 broja
+INSERT INTO broj_casopisa (issn, broj_izdanja, volumen_bc, datum_izdavanja_bc, putanja_dokumenta_bc)
+VALUES ('00278232', 1, 501, '2026-01-01', '/casopisi/letopis/2026_1.pdf');
+
+INSERT INTO broj_casopisa (issn, broj_izdanja, volumen_bc, datum_izdavanja_bc, putanja_dokumenta_bc)
+VALUES ('00278232', 2, 501, '2026-02-01', '/casopisi/letopis/2026_2.pdf');
+
+INSERT INTO broj_casopisa (issn, broj_izdanja, volumen_bc, datum_izdavanja_bc, putanja_dokumenta_bc)
+VALUES ('00278232', 3, 501, '2026-03-01', '/casopisi/letopis/2026_3.pdf');
+
+-- Savremena tehnika — 2 broja
+INSERT INTO broj_casopisa (issn, broj_izdanja, volumen_bc, datum_izdavanja_bc, putanja_dokumenta_bc)
+VALUES ('18207995', 1, 78, '2026-01-15', '/casopisi/savremena_tehnika/2026_1.pdf');
+
+INSERT INTO broj_casopisa (issn, broj_izdanja, volumen_bc, datum_izdavanja_bc, putanja_dokumenta_bc)
+VALUES ('18207995', 2, 78, '2026-04-15', '/casopisi/savremena_tehnika/2026_2.pdf');
+
+
+-- =============================================================
+-- ELEKTRONSKE BAZE PODATAKA
+-- =============================================================
+
+-- Baza 1 — izdavač: Laguna (id=2)
+INSERT INTO elektronska_baza_podataka (naziv_ebp, oblast_ebp, opis_ebp, licenca_ebp, id_izdavaca_ebp)
+VALUES ('SrpskaBib Online', 'Književnost i humanistika', 'Digitalna baza srpske književne baštine i naučnih radova iz humanistike.', 'CC BY-NC 4.0', 2);
+
+-- Baza 2 — izdavač: Vulkan (id=3)
+INSERT INTO elektronska_baza_podataka (naziv_ebp, oblast_ebp, opis_ebp, licenca_ebp, id_izdavaca_ebp)
+VALUES ('TehnoRef', 'Inženjerstvo i tehnika', 'Referentna baza tehničke dokumentacije, standarda i stručnih publikacija.', 'Komercijalna', 3);
+
+
+-- =============================================================
+-- CITANJE E-KNJIGE  (clan: Petar, jmbg='1234567891234')
+-- =============================================================
+
+-- Čita "Prokletu avliju" (isbn=9788617150002) — u toku
+INSERT INTO citanje_eknjige (jmbg_clana, isbn_eknjige, datum_pocetka_ck, trenutna_stranica_ck, datum_poslednjeg_pristupa_ck, datum_zavrsetka_ck, status_citanja_ck)
+VALUES ('1234567891234', '9788617150002', '2026-05-01', 45, '2026-05-10', NULL, 'U_TOKU');
+
+-- Čita "Gorski vijenac" (isbn=9788617150004) — završeno
+INSERT INTO citanje_eknjige (jmbg_clana, isbn_eknjige, datum_pocetka_ck, trenutna_stranica_ck, datum_poslednjeg_pristupa_ck, datum_zavrsetka_ck, status_citanja_ck)
+VALUES ('1234567891234', '9788617150004', '2026-04-01', 215, '2026-04-18', '2026-04-18', 'ZAVRSENO');
+
+-- Ponovo čita "Gorski vijenac" (drugi put — drugačiji datum_pocetka)
+INSERT INTO citanje_eknjige (jmbg_clana, isbn_eknjige, datum_pocetka_ck, trenutna_stranica_ck, datum_poslednjeg_pristupa_ck, datum_zavrsetka_ck, status_citanja_ck)
+VALUES ('1234567891234', '9788617150004', '2026-05-05', 80, '2026-05-12', NULL, 'U_TOKU');
+
+-- Napustio "Znakove pored puta" (isbn=9788617150009)
+INSERT INTO citanje_eknjige (jmbg_clana, isbn_eknjige, datum_pocetka_ck, trenutna_stranica_ck, datum_poslednjeg_pristupa_ck, datum_zavrsetka_ck, status_citanja_ck)
+VALUES ('1234567891234', '9788617150009', '2026-03-10', 22, '2026-03-15', NULL, 'NAPUSTENO');
+
+
+-- =============================================================
+-- SLUŠANJE AUDIO KNJIGE  (clan: Petar, jmbg='1234567891234')
+-- =============================================================
+
+-- Sluša "Seobe" (isbn=9788617150003) — u toku
+INSERT INTO slusanje_audio_knjige (jmbg_clana, isbn_audio_knjige, datum_pocetka_sak, trenutna_sekunda_sak, datum_poslednjeg_pristupa_sak, datum_zavrsetka_sak, status_slusanja_sak)
+VALUES ('1234567891234', '9788617150003', '2026-05-08', 3600, '2026-05-11', NULL, 'U_TOKU');
+
+-- Odslušao "Gorski vijenac" (isbn=9788617150004) — završeno
+INSERT INTO slusanje_audio_knjige (jmbg_clana, isbn_audio_knjige, datum_pocetka_sak, trenutna_sekunda_sak, datum_poslednjeg_pristupa_sak, datum_zavrsetka_sak, status_slusanja_sak)
+VALUES ('1234567891234', '9788617150004', '2026-04-20', 14400, '2026-04-25', '2026-04-25', 'ZAVRSENO');
+
+-- Ponovo sluša "Gorski vijenac" (drugi put)
+INSERT INTO slusanje_audio_knjige (jmbg_clana, isbn_audio_knjige, datum_pocetka_sak, trenutna_sekunda_sak, datum_poslednjeg_pristupa_sak, datum_zavrsetka_sak, status_slusanja_sak)
+VALUES ('1234567891234', '9788617150004', '2026-05-15', 1200, '2026-05-15', NULL, 'U_TOKU');
+
+-- Napustio "Tvrdavu" (isbn=9788617150007)
+INSERT INTO slusanje_audio_knjige (jmbg_clana, isbn_audio_knjige, datum_pocetka_sak, trenutna_sekunda_sak, datum_poslednjeg_pristupa_sak, datum_zavrsetka_sak, status_slusanja_sak)
+VALUES ('1234567891234', '9788617150007', '2026-03-01', 900, '2026-03-02', NULL, 'NAPUSTENO');
+
+
+-- =============================================================
+-- PREUZIMANJE BAZE PODATAKA  (clan: Petar, jmbg='1234567891234')
+-- =============================================================
+
+-- Preuzeo "SrpskaBib Online" (id=1) — dva puta
+INSERT INTO preuzimanje_baze_podataka (jmbg_clana, id_baze, datum_preuzimanja_pbp)
+VALUES ('1234567891234', 1, '2026-04-10');
+
+INSERT INTO preuzimanje_baze_podataka (jmbg_clana, id_baze, datum_preuzimanja_pbp)
+VALUES ('1234567891234', 1, '2026-05-10');
+
+-- Preuzeo "TehnoRef" (id=2) — jednom
+INSERT INTO preuzimanje_baze_podataka (jmbg_clana, id_baze, datum_preuzimanja_pbp)
+VALUES ('1234567891234', 2, '2026-05-01');
+
+
+-- =============================================================
+-- PRISTUP BROJU ČASOPISA  (clan: Petar, jmbg='1234567891234')
+-- =============================================================
+
+-- Pristupio Letopisu br.1 — dva puta
+INSERT INTO pristup_broju_casopisa (jmbg_clana, issn_casopisa, broj_izdanja, datum_pristupanja_pbc)
+VALUES ('1234567891234', '00278232', 1, '2026-02-05');
+
+INSERT INTO pristup_broju_casopisa (jmbg_clana, issn_casopisa, broj_izdanja, datum_pristupanja_pbc)
+VALUES ('1234567891234', '00278232', 1, '2026-03-10');
+
+-- Pristupio Letopisu br.2
+INSERT INTO pristup_broju_casopisa (jmbg_clana, issn_casopisa, broj_izdanja, datum_pristupanja_pbc)
+VALUES ('1234567891234', '00278232', 2, '2026-03-15');
+
+-- Pristupio Savremena tehnika br.1
+INSERT INTO pristup_broju_casopisa (jmbg_clana, issn_casopisa, broj_izdanja, datum_pristupanja_pbc)
+VALUES ('1234567891234', '18207995', 1, '2026-02-20');

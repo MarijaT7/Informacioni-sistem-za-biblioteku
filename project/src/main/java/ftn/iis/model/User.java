@@ -68,6 +68,18 @@ public class User implements UserDetails {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Clanarina clanarina;
 
+    @OneToMany(mappedBy = "clan", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<CitanjeEKnjige> citanja = new ArrayList<>();
+
+    @OneToMany(mappedBy = "clan", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<SlusanjeAudioKnjige> slusanja = new ArrayList<>();
+
+    @OneToMany(mappedBy = "clan", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<PreuzimanjeBazePodataka> preuzeteBaze = new ArrayList<>();
+
+    @OneToMany(mappedBy = "clan", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<PristupBrojuCasopisa> pristupciBrojevimaCasopisa = new ArrayList<>();
+
     public User() {
     }
 
@@ -183,6 +195,38 @@ public class User implements UserDetails {
 
     public void setClanarina(Clanarina clanarina) {
         this.clanarina = clanarina;
+    }
+
+    public List<CitanjeEKnjige> getCitanja() {
+        return citanja;
+    }
+
+    public void setCitanja(List<CitanjeEKnjige> citanja) {
+        this.citanja = citanja;
+    }
+
+    public List<SlusanjeAudioKnjige> getSlusanja() {
+        return slusanja;
+    }
+
+    public void setSlusanja(List<SlusanjeAudioKnjige> slusanja) {
+        this.slusanja = slusanja;
+    }
+
+    public List<PreuzimanjeBazePodataka> getPreuzeteBaze() {
+        return preuzeteBaze;
+    }
+
+    public void setPreuzeteBaze(List<PreuzimanjeBazePodataka> preuzeteBaze) {
+        this.preuzeteBaze = preuzeteBaze;
+    }
+
+    public List<PristupBrojuCasopisa> getPristupciBrojevimaCasopisa() {
+        return pristupciBrojevimaCasopisa;
+    }
+
+    public void setPristupciBrojevimaCasopisa(List<PristupBrojuCasopisa> pristupciBrojevimaCasopisa) {
+        this.pristupciBrojevimaCasopisa = pristupciBrojevimaCasopisa;
     }
 
     @Override

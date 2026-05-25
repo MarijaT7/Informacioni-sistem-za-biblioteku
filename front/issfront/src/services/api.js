@@ -36,4 +36,21 @@ export const userApi = {
   updateProfile:     (jmbg, data) => api.put(`/users/${jmbg}/profile`, data),
   updateGenres:      (jmbg, data) => api.put(`/users/${jmbg}/genres`, data),
 }
+
+// ── Dobavljači ────────────────────────────────────────────────────────
+export const dobavljacApi = {
+  kreiraj:       (data)      => api.post('/dobavljaci/unos', data),
+  svi:           ()          => api.get('/dobavljaci/prikaz-svih'),
+  jedan:         (id)        => api.get(`/dobavljaci/detaljan-prikaz/${id}`),
+  izmeni:        (id, data)  => api.patch(`/dobavljaci/izmena/${id}`, data),
+  obrisi:        (id)        => api.patch(`/dobavljaci/brisanje/${id}`),
+}
+
+// ── Ugovori ───────────────────────────────────────────────────────────
+export const ugovorApi = {
+  kreiraj:       (data)      => api.post('/ugovori/kreiranje', data),
+  sviZaDobavljaca: (id)      => api.get(`/ugovori/ispisi-sve/${id}`),
+  raskini:       (id)        => api.patch(`/ugovori/raskid/${id}`),
+}
+
 export default api

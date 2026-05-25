@@ -2,6 +2,8 @@ package ftn.iis.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "e_knjiga")
@@ -25,6 +27,9 @@ public class EKnjiga {
 
     @Column(name = "putanja_ek")
     private String putanjaEK;
+
+    @OneToMany(mappedBy = "eKnjiga", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<CitanjeEKnjige> citanja = new ArrayList<>();
 
     public EKnjiga() {
     }
@@ -83,5 +88,13 @@ public class EKnjiga {
 
     public void setPutanjaEK(String putanjaEK) {
         this.putanjaEK = putanjaEK;
+    }
+
+    public List<CitanjeEKnjige> getCitanja() {
+        return citanja;
+    }
+
+    public void setCitanja(List<CitanjeEKnjige> citanja) {
+        this.citanja = citanja;
     }
 }

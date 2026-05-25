@@ -3,7 +3,7 @@
     <div class="page-header">
       <div>
         <h1>Dobavljači</h1>
-        <p class="subtitle">Pregled svih dobavljača</p>
+        <p class="subtitle"> Pregled svih dobavljača</p>
       </div>
       <RouterLink to="/menadzer/dobavljaci/novi" class="btn-primary">
         + Novi dobavljač
@@ -29,6 +29,7 @@
             <th>Naziv</th>
             <th>Telefon</th>
             <th>Status</th>
+            <!--<th>Id</th>-->
             <th>Akcije</th>
           </tr>
         </thead>
@@ -41,6 +42,7 @@
                 {{ d.status }}
               </span>
             </td>
+            <!--<td>{{d.id}}</td>-->
             <td class="akcije">
               <RouterLink :to="`/menadzer/dobavljaci/${d.id}`" class="btn-akcija btn-detalji">
                 Detalji

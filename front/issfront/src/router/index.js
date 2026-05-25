@@ -23,6 +23,10 @@ const routes = [
     { path: 'dashboard',           component: () => import('../views/menadzer/DashboardView.vue') },
     { path: 'dobavljaci',          component: () => import('../views/menadzer/DobavljaciView.vue') },
     { path: 'dobavljaci/novi',     component: () => import('../views/menadzer/DodajDobavljacaView.vue') },
+    { path: 'dobavljaci/:id',      component: () => import('../views/menadzer/DobavljacDetaljiView.vue') },
+    { path: 'dobavljaci/:id/izmena', component: () => import('../views/menadzer/IzmenaDobavljacaView.vue') },
+    { path: 'dobavljaci/:id/ugovor', component: () => import('../views/menadzer/DodajUgovorView.vue') },
+
   ]
 },
 ]

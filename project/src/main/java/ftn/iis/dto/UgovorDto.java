@@ -10,6 +10,9 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 public class UgovorDto {
+
+    private Long id;
+
     @NotNull(message = "ID dobavljača je obavezan.")
     private Long dobavljacId;
 
@@ -44,6 +47,7 @@ public class UgovorDto {
         this.datumPotpisa = ugovor.getDatumPotpisa();
         this.rokIsporuke = ugovor.getRokIsporuke();
         this.status = ugovor.getStatus();
+        this.id = ugovor.getId();
     }
 
     public UgovorDto(Long dobavljacId, Double popust, LocalDate datumPocetka,
@@ -55,6 +59,14 @@ public class UgovorDto {
         this.datumPotpisa = datumPotpisa;
         this.rokIsporuke = rokIsporuke;
         this.status =status;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Long getId() {
+        return id;
     }
 
     public Long getDobavljacId() {

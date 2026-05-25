@@ -3,6 +3,7 @@ package ftn.iis.model;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Pattern;
 
 @Entity
 @Table(name = "knjiga")
@@ -17,11 +18,16 @@ public class Knjiga {
     @Column(name = "naslov", nullable = false)
     private String naslov;
 
-    @Column(name = "autor", nullable = true)
-    private String autor;
-
     @Column(name = "sinopsis")
     private String sinopsis;
+
+    @Column(name = "tip_knjige", length = 3, nullable = false)
+    @Pattern(regexp = "[01]{3}")
+    private String tipKnjige = "000";
+    // Napomena za mapiranje:
+    // 1xx - postoji fizicka knjiga
+    // x1x - postoji eknjiga
+    // xx1 - postoji audio knjiga
 
     @OneToOne(mappedBy = "knjiga", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private FizickaKnjiga fizickaKnjiga;
@@ -40,6 +46,7 @@ public class Knjiga {
     private boolean deleted;
 
     public Knjiga() {
+        this.tipKnjige = "000";
     }
 
     public Knjiga(String isbn, String putanjaNaslovna, String naslov, String sinopsis) {
@@ -58,8 +65,8 @@ public class Knjiga {
         this.eKnjiga = eKnjiga;
         this.audioKnjiga = audioKnjiga;
         this.katalog = katalog;
-        this.autor = autor;
-        deleted = false;
+        this.deleted = false;
+        this.tipKnjige = tipKnjige;
     }
 
     public String getIsbn() {
@@ -126,19 +133,29 @@ public class Knjiga {
         this.audioKnjiga = audioKnjiga;
     }
 
-    public String getAutor() {
-        return autor;
-    }
-
-    public void setAutor(String autor) {
-        this.autor = autor;
-    }
-
     public boolean isDeleted() {
         return deleted;
     }
 
     public void setDeleted(boolean deleted) {
         this.deleted = deleted;
+    }
+  
+    public String getTipKnjige() {
+        return tipKnjige;
+    }
+
+    public void setTipKnjige(String tipKnjige) {
+        this.tipKnjige = tipKnjige;
+    }
+
+    @PrePersist
+    @PreUpdate
+    public void izracunajTipKnjige() {
+        char[] f = {'0', '0', '0'};
+        if (this.fizickaKnjiga != null) f[0] = '1';
+        if (this.eKnjiga != null)       f[1] = '1';
+        if (this.audioKnjiga != null)  f[2] = '1';
+        this.tipKnjige = new String(f);
     }
 }

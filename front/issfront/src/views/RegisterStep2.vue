@@ -4,7 +4,6 @@
       <h1>Odaberite kategoriju</h1>
 
       <div class="step2-body">
-        <!-- Category list -->
         <div class="category-list">
           <div
             v-for="kat in kategorije"
@@ -17,7 +16,6 @@
           </div>
         </div>
 
-        <!-- Documentation panel -->
         <div class="doc-panel">
           <p class="doc-title">Neophodna dokumentacija za odabranu kategoriju:</p>
           <div class="doc-box">
@@ -68,8 +66,8 @@ onMounted(async () => {
 })
 
 const LABELS = {
-  REGULARNA: 'Regularna', DECIJA: 'Dečija',
-  STUDENTSKA: 'Studentska', PENZIONERSKA: 'Penzionerska', PORODICNA: 'Porodična'
+  REGULARNA: 'Regularna - 600.00', DECIJA: 'Dečija - 300.00',
+  STUDENTSKA: 'Studentska - 400.00', PENZIONERSKA: 'Penzionerska - 350.00', PORODICNA: 'Porodična - 900.00'
 }
 const DOCS = {
   REGULARNA:    'Za izabranu kategoriju nije potrebno priložiti nikakvu dokumentaciju',

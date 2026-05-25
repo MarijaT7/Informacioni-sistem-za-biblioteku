@@ -3,14 +3,24 @@ package ftn.iis.dto;
 import ftn.iis.enums.StatusDobavljaca;
 
 public class OsnovniDobavljacDto {
+    private Long id;
     private String naziv;
     private StatusDobavljaca status;
     private String tel;
 
-    public OsnovniDobavljacDto(String naziv, String tel, StatusDobavljaca status){
+    public OsnovniDobavljacDto(Long id, String naziv, String tel, StatusDobavljaca status){
+        this.id = id;
         this.naziv = naziv;
         this.tel = tel;
         this.status = status;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public StatusDobavljaca getStatus() {

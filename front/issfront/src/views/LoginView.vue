@@ -41,23 +41,22 @@ const error   = ref('')
 const loading = ref(false)
 
 async function handleLogin() {
-  console.log("KLIK")
 
   error.value = ''
   loading.value = true
 
   try {
     const res = await authApi.login(form.value)
-    console.log("RESPONSE:", res)
 
     auth.setAuth(res.data)
-    router.push('/profile')
+    const role = res.data.role
+    if (role === 'MENADZER') {
+      router.push('/menadzer/dashboard')
+    } else {
+      router.push('/profile')
+    }
 
   } catch (e) {
-    console.log("FULL ERROR:", e)
-    console.log("RESPONSE:", e.response)
-    console.log("DATA:", e.response?.data)
-
     error.value = e.response?.data?.message || 'Login failed'
   } finally {
     loading.value = false

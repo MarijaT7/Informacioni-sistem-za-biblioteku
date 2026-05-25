@@ -124,7 +124,7 @@ public class DobavljacService {
         List<Dobavljac> detaljni = dobavljacRepository.findAll();
         List<OsnovniDobavljacDto> osnovni = new ArrayList<>();
         for (Dobavljac d : detaljni){
-            osnovni.add( new OsnovniDobavljacDto(d.getNaziv(), d.getTel(),  d.getStatus()));
+            osnovni.add( new OsnovniDobavljacDto(d.getId() , d.getNaziv(), d.getTel(),  d.getStatus()));
         }
         return osnovni;
     }

@@ -47,28 +47,10 @@
               <RouterLink :to="`/menadzer/dobavljaci/${d.id}`" class="btn-akcija btn-detalji">
                 Detalji
               </RouterLink>
-              <RouterLink :to="`/menadzer/dobavljaci/${d.id}/izmena`" class="btn-akcija btn-izmena">
-                Izmeni
-              </RouterLink>
-              <button class="btn-akcija btn-brisi" @click="potvrdiBrisanje(d)">
-                Obriši
-              </button>
             </td>
           </tr>
         </tbody>
       </table>
-    </div>
-
-    <!-- Modal za potvrdu brisanja -->
-    <div v-if="dobavljacZaBrisanje" class="modal-overlay" @click.self="dobavljacZaBrisanje = null">
-      <div class="modal">
-        <h2>Brisanje dobavljača</h2>
-        <p>Da li ste sigurni da želite da obrišete <strong>{{ dobavljacZaBrisanje.naziv }}</strong>?</p>
-        <div class="modal-akcije">
-          <button class="btn-primary" @click="obrisi">Da</button>
-          <button class="btn-sekundarni" @click="dobavljacZaBrisanje = null">Ne</button>
-        </div>
-      </div>
     </div>
   </div>
 </template>
@@ -222,15 +204,6 @@ onMounted(ucitaj)
   color: var(--accent);
 }
 
-.btn-izmena {
-  background: rgba(234, 179, 8, 0.1);
-  color: #b45309;
-}
-
-.btn-brisi {
-  background: rgba(220, 38, 38, 0.1);
-  color: #dc2626;
-}
 
 .btn-primary {
   background: var(--accent);

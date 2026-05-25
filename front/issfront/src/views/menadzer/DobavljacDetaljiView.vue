@@ -25,9 +25,12 @@
           </div>
           <div class="header-akcije">
             <span class="status-badge" :class="statusKlasa">{{ dobavljac.status }}</span>
-            <RouterLink :to="`/menadzer/dobavljaci/${id}/izmena`" class="btn-akcija btn-izmena">
-              Izmeni
-            </RouterLink>
+            <button 
+                class="btn-akcija btn-izmena"
+                @click="router.push(`/menadzer/dobavljaci/${id}/izmena`)"
+                :disabled="dobavljac.status === 'NEAKTIVAN'">
+                Izmeni
+            </button>
             <button class="btn-akcija btn-brisi" @click="showModal = true"
               :disabled="dobavljac.status === 'NEAKTIVAN'">
               Obriši

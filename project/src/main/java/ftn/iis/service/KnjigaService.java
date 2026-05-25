@@ -35,4 +35,8 @@ public class KnjigaService {
 
         return retBooks;
     }
+
+    public void newBook(Knjiga knjiga){
+        knjigaRepository.saveAndFlush(knjiga);
+    }
 }

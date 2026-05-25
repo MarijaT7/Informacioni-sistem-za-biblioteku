@@ -64,7 +64,7 @@ public class KatalogController {
         String jmbg = jwtService.extractJmbg(token);
         String role = jwtService.extractRole(token);
         if(!role.equals("BIBLIOTEKAR"))
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Jedino bibliotekar moze praviti kataloge");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Jedino bibliotekar moze brisati kataloge");
         if(!katalogService.deleteCatlog(id)){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to delete");
         }
@@ -77,7 +77,7 @@ public class KatalogController {
         String jmbg = jwtService.extractJmbg(token);
         String role = jwtService.extractRole(token);
         if(!role.equals("BIBLIOTEKAR"))
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Jedino bibliotekar moze praviti kataloge");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Jedino bibliotekar moze menjati kataloge");
         KatalogDto k = katalogService.updateCatalog(katalogDto, id);
         if(k==null)
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update");

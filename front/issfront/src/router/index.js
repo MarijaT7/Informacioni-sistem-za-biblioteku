@@ -42,6 +42,17 @@ const routes = [
       component: () => import('../views/FavouriteGenresEdit.vue'),
       meta: { requiresAuth: true }
     },
+    {
+      path: '/katalog',
+      component: () => import('../views/KatalogView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/katalog/:id',
+      component: () => import('../views/KatalogDetaljiView.vue'),
+      meta: { requiresAuth: true }
+    },
+
   {
   path: '/menadzer',
   component: () => import('../views/menadzer/AppLayout.vue'),

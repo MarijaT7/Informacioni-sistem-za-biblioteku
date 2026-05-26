@@ -108,4 +108,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 
+    @ExceptionHandler(InvalidContractSaleException.class)
+    public ResponseEntity<String> handleInvalidContractSaleException(InvalidContractSaleException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(NegativeDeliveryException.class)
+    public ResponseEntity<String> handleNegativeDeliveryException(NegativeDeliveryException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
 }

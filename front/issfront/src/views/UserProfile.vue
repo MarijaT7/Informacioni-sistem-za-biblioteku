@@ -124,6 +124,7 @@
               <div class="dc-valid" v-if="profile.datIsteka">
                 Važi do: {{ fmt(profile.datIsteka) }}
               </div>
+              <img v-if="qrCodeUrl" :src="qrCodeUrl" class="qr-code" />
               <div class="dc-badge" :class="isActive ? 'active' : 'inactive'">
                 {{ isActive ? 'AKTIVNA' : 'NEAKTIVNA' }}
               </div>
@@ -152,11 +153,12 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import SidebarNav from '../components/Sidebar.vue'
 import { useAuthStore } from '../stroage/auth.js'
 import { userApi, authApi } from '../services/api.js'
-
+import QRCode from 'qrcode'
 const authStore = useAuthStore()
 
 const profile     = ref(null)
 const loading     = ref(true)
+const qrCodeUrl = ref('')
 const editing     = ref(false)
 const showPwChange = ref(false)
 const saveMsg     = ref('')
@@ -178,7 +180,10 @@ const card = reactive({
 
 const editForm = reactive({ firstName: '', lastName: '', email: '', phone: '', newPassword: '' })
 const pwForm   = reactive({ current: '', new: '' })
-
+onMounted(async () => {
+  const value = authStore.user.jmbg + '-' + Date.now()
+  qrCodeUrl.value = await QRCode.toDataURL(value)
+})
 onMounted(async () => {
   try {
     const res = await userApi.getMe()
@@ -376,6 +381,12 @@ const fmt = (d) => d ? new Date(d).toLocaleDateString('sr-RS') : ''
 
 .card-row input {
   flex: 1;
+}
+
+.qr-code {
+  margin-top: 0.5rem;
+  width: 100px;
+  height: 100px;
 }
 .slide-enter-active, .slide-leave-active { transition: all 0.2s ease; }
 .slide-enter-from, .slide-leave-to       { opacity: 0; transform: translateY(-6px); }

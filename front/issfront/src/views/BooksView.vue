@@ -8,14 +8,23 @@
           <h1 class="books-title">Sve knjige</h1>
           <p class="books-sub">Pretražite knjige po nazivu.</p>
         </div>
-        <div class="books-search">
-          <input
-            v-model="query"
-            class="search-input"
-            type="search"
-            placeholder="Unesite naziv knjige"
-          />
-          <button class="btn-secondary" @click="runSearch">Pretraži</button>
+        <div class="books-actions">
+          <button
+            v-if="isLibrarian"
+            class="btn-secondary"
+            @click="openCreateBook"
+          >
+            Dodaj novu knjigu
+          </button>
+          <div class="books-search">
+            <input
+              v-model="query"
+              class="search-input"
+              type="search"
+              placeholder="Unesite naziv knjige"
+            />
+            <button class="btn-secondary" @click="runSearch">Pretraži</button>
+          </div>
         </div>
       </div>
 
@@ -67,9 +76,12 @@ const error = ref('')
 const query = ref('')
 let searchTimer = null
 
+const isLibrarian = ref(false)
+
 onMounted(() => {
   const role = authStore.getRole()
   authorized.value = role === 'CLAN' || role === 'BIBLIOTEKAR'
+  isLibrarian.value = role === 'BIBLIOTEKAR'
   if (authorized.value) {
     loadBooks()
   }
@@ -135,6 +147,10 @@ function runSearch() {
 function openBook(isbn) {
   router.push(`/knjige/${isbn}`)
 }
+
+function openCreateBook() {
+  router.push('/knjige/nova')
+}
 </script>
 
 <style scoped>
@@ -162,6 +178,13 @@ function openBook(isbn) {
   display: flex;
   gap: 0.75rem;
   align-items: center;
+}
+
+.books-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .search-input {
@@ -244,6 +267,10 @@ function openBook(isbn) {
   }
 
   .books-search {
+    width: 100%;
+  }
+
+  .books-actions {
     width: 100%;
   }
 

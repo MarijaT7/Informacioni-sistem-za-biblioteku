@@ -61,6 +61,10 @@ export const knjigaApi = {
   sveOsnovno:      () => api.get('/knjiga/sve/osnovno'),
   pretraga:        (q) => api.get('/knjiga/pretraga', { params: { q } }),
   detalji:         (isbn) => api.get(`/knjiga/detalji/${isbn}`),
+  dodajKompletna:  (formData) =>
+    api.post('/knjiga/nova/kompletna', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    }),
   naslovna:        (isbn) => api.get(`/knjiga/naslovna/${isbn}`, { responseType: 'blob' }),
   pdf:             (isbn) => api.get(`/knjiga/eknjiga/${isbn}/pdf`, { responseType: 'blob' }),
   audio:           (isbn) => api.get(`/knjiga/audioknjiga/${isbn}/audio`, { responseType: 'blob' }),

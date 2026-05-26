@@ -19,6 +19,14 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/knjige/nova',
+    component: () => import('../views/BookCreateView.vue'),
+    beforeEnter: () => {
+      const auth = useAuthStore()
+      return auth.getRole() === 'BIBLIOTEKAR' ? true : '/'
+    }
+  },
+  {
     path: '/knjige/:isbn',
     component: () => import('../views/BookDetailView.vue'),
     meta: { requiresAuth: true }

@@ -96,7 +96,7 @@ INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis, katalog_id, delete
 VALUES ('9788617150009', 'Znakovi pored puta', './src/main/resources/knjige/naslovne/znakovi.jpg', 'Zbirka aforizama, zapisa i meditacija.', 3, FALSE, '010', 'Ivo Andrić');
 
 INSERT INTO e_knjiga (isbn, format_ek, datum_dodavanja_ek, broj_strana_ek, putanja_ek)
-VALUES ('9788617150009', 'PDF', '2026-05-10', 307, './src/main/resources/knjige/fajlovi/znakovi.pdf');
+VALUES ('9788617150009', 'PDF', '2026-05-10', 307, './src/main/resources/knjige/eknjige/znakovi.pdf');
 
 
 -- KNJIGA 10: Samo Fizička knjiga

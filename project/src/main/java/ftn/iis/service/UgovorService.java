@@ -54,6 +54,16 @@ public class UgovorService {
             throw new InvalidContractDateException();
         }
 
+        // 5. Proveravam popust
+        if(dto.getPopust() < 0 || dto.getPopust() > 100){
+            throw new InvalidContractSaleException();
+        }
+
+        // 6. Proveravam jel br dana za isporuku pozitivan
+        if(dto.getRokIsporuke() < 0){
+            throw new NegativeDeliveryException();
+        }
+
         // 5. Kreiram i čuvam
         Ugovor ugovor = new Ugovor(
                 dobavljac,

@@ -25,6 +25,9 @@
       <RouterLink class="nav-item" to="/katalog">
         <span class="nav-icon"></span> Katalog
       </RouterLink>
+      <RouterLink class="nav-item" to="/baze-podataka">
+        <span class="nav-icon"></span> Elektronske baze podataka
+      </RouterLink>
     </nav>
 
     <button class="logout-btn" @click="handleLogout">Odjavi se</button>

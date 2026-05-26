@@ -41,6 +41,27 @@ const routes = [
     component: () => import('../views/BookListenView.vue'),
     meta: { requiresAuth: true }
   },
+  {
+    path: '/baze-podataka',
+    component: () => import('../views/ElektronskeBazeView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/baze-podataka/nova',
+    component: () => import('../views/ElektronskaBazaCreateView.vue'),
+    beforeEnter: () => {
+      const auth = useAuthStore()
+      return auth.getRole() === 'BIBLIOTEKAR' ? true : '/'
+    }
+  },
+  {
+    path: '/baze-podataka/:id/izmena',
+    component: () => import('../views/ElektronskaBazaEditView.vue'),
+    beforeEnter: () => {
+      const auth = useAuthStore()
+      return auth.getRole() === 'BIBLIOTEKAR' ? true : '/'
+    }
+  },
     { path: '/katalog/novi',  component: () => import('../views/NoviKatalog.vue'), beforeEnter: () => {
       const auth = useAuthStore()
       return auth.getRole() === 'BIBLIOTEKAR' ? true : '/'

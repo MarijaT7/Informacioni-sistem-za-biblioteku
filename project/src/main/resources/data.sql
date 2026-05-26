@@ -145,6 +145,15 @@ VALUES (2);
 INSERT INTO izdavac (id)
 VALUES (3);
 
+-- elektronske baze podataka
+INSERT INTO elektronska_baza_podataka (naziv_ebp, oblast_ebp, opis_ebp, licenca_ebp, id_izdavaca_ebp, putanja_ebp)
+VALUES ('EBSCO Academic Search', 'Multidisciplinarno', 'Pregled akademskih radova i citata.', 'Standard', 2,
+    './src/main/resources/baze_podataka/ebsco_academic.zip');
+
+INSERT INTO elektronska_baza_podataka (naziv_ebp, oblast_ebp, opis_ebp, licenca_ebp, id_izdavaca_ebp, putanja_ebp)
+VALUES ('Springer Nature Archive', 'Prirodne nauke', 'Kolekcija naucnih publikacija i monografija.', 'Premium', 3,
+    './src/main/resources/baze_podataka/springer_archive.zip');
+
 -- menadzeri
 INSERT INTO korisnik (
     jmbg,
@@ -300,19 +309,6 @@ VALUES ('18207995', 1, 78, '2026-01-15', '/casopisi/savremena_tehnika/2026_1.pdf
 
 INSERT INTO broj_casopisa (issn, broj_izdanja, volumen_bc, datum_izdavanja_bc, putanja_dokumenta_bc)
 VALUES ('18207995', 2, 78, '2026-04-15', '/casopisi/savremena_tehnika/2026_2.pdf');
-
-
--- =============================================================
--- ELEKTRONSKE BAZE PODATAKA
--- =============================================================
-
--- Baza 1 — izdavač: Laguna (id=2)
-INSERT INTO elektronska_baza_podataka (naziv_ebp, oblast_ebp, opis_ebp, licenca_ebp, id_izdavaca_ebp)
-VALUES ('SrpskaBib Online', 'Književnost i humanistika', 'Digitalna baza srpske književne baštine i naučnih radova iz humanistike.', 'CC BY-NC 4.0', 2);
-
--- Baza 2 — izdavač: Vulkan (id=3)
-INSERT INTO elektronska_baza_podataka (naziv_ebp, oblast_ebp, opis_ebp, licenca_ebp, id_izdavaca_ebp)
-VALUES ('TehnoRef', 'Inženjerstvo i tehnika', 'Referentna baza tehničke dokumentacije, standarda i stručnih publikacija.', 'Komercijalna', 3);
 
 
 -- =============================================================

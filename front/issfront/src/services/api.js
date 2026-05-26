@@ -81,4 +81,26 @@ export const knjigaApi = {
     }),
 }
 
+// ── Elektronske baze podataka ────────────────────────────────────────
+export const bazePodatakaApi = {
+  sveOsnovno: () => api.get('/baze-podataka/sve/osnovno'),
+  pretraga: (q) => api.get('/baze-podataka/pretraga', { params: { q } }),
+  detalji: (id) => api.get(`/baze-podataka/detalji/${id}`),
+  preuzmi: (id) => api.get(`/baze-podataka/${id}/preuzmi`, { responseType: 'blob' }),
+  kreiraj: (formData) =>
+    api.post('/baze-podataka/nova', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    }),
+  azuriraj: (id, formData) =>
+    api.put(`/baze-podataka/${id}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    }),
+  obrisi: (id) => api.delete(`/baze-podataka/${id}`),
+}
+
+// ── Izdavaci ─────────────────────────────────────────────────────────
+export const izdavaciApi = {
+  ispisiSve: () => api.get('/izdavaci/sve')
+}
+
 export default api

@@ -25,6 +25,9 @@ public class ElektronskaBazaPodataka {
     @Column(name = "licenca_ebp")
     private String licenca;
 
+    @Column(name = "putanja_ebp", nullable = false)
+    private String putanjaEbp;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_izdavaca_ebp", nullable = false)
     private Izdavac izdavac;
@@ -82,6 +85,14 @@ public class ElektronskaBazaPodataka {
 
     public void setLicenca(String licenca) {
         this.licenca = licenca;
+    }
+
+    public String getPutanjaEbp() {
+        return putanjaEbp;
+    }
+
+    public void setPutanjaEbp(String putanjaEbp) {
+        this.putanjaEbp = putanjaEbp;
     }
 
     public Izdavac getIzdavac() {

@@ -22,6 +22,9 @@
       <RouterLink class="nav-item" to="#">
         <span class="nav-icon"></span> Obaveštenja
       </RouterLink>
+      <RouterLink class="nav-item" to="/katalog">
+        <span class="nav-icon"></span> Katalog
+      </RouterLink>
     </nav>
 
     <button class="logout-btn" @click="handleLogout">Odjavi se</button>

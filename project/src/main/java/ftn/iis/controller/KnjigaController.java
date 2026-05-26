@@ -20,6 +20,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import ftn.iis.dto.NewBookWithMediaDto;
+import ftn.iis.dto.UpdateBookWithMediaDto;
+import ftn.iis.service.KnjigaManagementService;
+import org.springframework.web.multipart.MultipartFile;
+import java.util.Arrays;
+import java.util.Locale;
+
 import java.awt.print.Book;
 import java.lang.annotation.Repeatable;
 import java.nio.file.Path;
@@ -36,13 +43,19 @@ public class KnjigaController {
     private final KatalogService katalogService;
     private final KnjigaMediaService knjigaMediaService;
     private final KnjigaProgressService knjigaProgressService;
+    private final KnjigaManagementService knjigaManagementService;
 
-    public KnjigaController(KnjigaService knjigaService, JwtService jwtService, KatalogService katalogService, KnjigaMediaService knjigaMediaService, KnjigaProgressService knjigaProgressService) {
+    private static final List<String> ALLOWED_IMAGE_TYPES = Arrays.asList("image/jpeg", "image/jpg");
+    private static final List<String> ALLOWED_PDF_TYPES = Arrays.asList("application/pdf", "application/octet-stream");
+    private static final List<String> ALLOWED_AUDIO_TYPES = Arrays.asList("audio/mpeg", "audio/mp3", "application/octet-stream");
+
+    public KnjigaController(KnjigaService knjigaService, JwtService jwtService, KatalogService katalogService, KnjigaMediaService knjigaMediaService, KnjigaProgressService knjigaProgressService, KnjigaManagementService knjigaManagementService) {
         this.knjigaService = knjigaService;
         this.jwtService = jwtService;
         this.katalogService = katalogService;
         this.knjigaMediaService = knjigaMediaService;
         this.knjigaProgressService = knjigaProgressService;
+        this.knjigaManagementService = knjigaManagementService;
     }
 
     @GetMapping("/{isbn}")
@@ -340,6 +353,17 @@ public class KnjigaController {
         return false;
     }
 
+    private boolean isAllowedContentType(MultipartFile file, List<String> allowedTypes) {
+        if (file == null) {
+            return false;
+        }
+        String contentType = file.getContentType();
+        if (contentType == null) {
+            return false;
+        }
+        return allowedTypes.contains(contentType.toLowerCase(Locale.ROOT));
+    }
+
     private ResponseEntity<Resource> fileResponse(Path path) {
         MediaType mediaType = MediaTypeFactory.getMediaType(path.getFileName().toString())
                 .orElse(MediaType.APPLICATION_OCTET_STREAM);
@@ -348,11 +372,144 @@ public class KnjigaController {
                 .body(new FileSystemResource(path));
     }
 
-    /* korisno za neke metode
-    String token = authHeader.substring(7);
-    String role = jwtService.extractRole(token);
-        if (!role.equalsIgnoreCase("CLAN") && !role.equalsIgnoreCase("BIBLIOTEKAR")) {
-            throw new OtherRoleSearchesBooksException();
+    // DODAVANJE NOVE KNJIGE SA OSNOVNIM PODACIMA I MEDIJIMA
+    @PostMapping(value = "/nova/kompletna", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> postNewBookComplete(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestPart("podaci") NewBookWithMediaDto podaci,
+            @RequestPart(value = "naslovna", required = false) MultipartFile naslovna,
+            @RequestPart(value = "pdf", required = false) MultipartFile pdf,
+            @RequestPart(value = "mp3", required = false) MultipartFile mp3) {
+
+        String role = safeExtractRole(authHeader);
+        if (!isRoleAllowed(role, "BIBLIOTEKAR")) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Jedino bibliotekar može dodavati knjige");
         }
-     */
+
+        if (podaci.getIsbn() == null || podaci.getIsbn().isBlank()) {
+            return ResponseEntity.badRequest().body("ISBN je obavezan");
+        }
+        if (podaci.getNaslov() == null || podaci.getNaslov().isBlank()) {
+            return ResponseEntity.badRequest().body("Naslov je obavezan");
+        }
+        if (podaci.getKatId() == null) {
+            return ResponseEntity.badRequest().body("Katalog ID je obavezan");
+        }
+
+        if (naslovna == null || naslovna.isEmpty()) {
+            return ResponseEntity.badRequest().body("Naslovna strana je obavezna");
+        }
+
+        if (!isAllowedContentType(naslovna, ALLOWED_IMAGE_TYPES)) {
+            return ResponseEntity.badRequest()
+                    .body("Naslovna mora biti slika (JPEG)");
+        }
+        if (pdf != null && !pdf.isEmpty()
+            && !isAllowedContentType(pdf, ALLOWED_PDF_TYPES)) {
+            return ResponseEntity.badRequest().body("eKnjiga mora biti PDF");
+        }
+        if (mp3 != null && !mp3.isEmpty()
+            && !isAllowedContentType(mp3, ALLOWED_AUDIO_TYPES)) {
+            return ResponseEntity.badRequest().body("Audio knjiga mora biti MP3");
+        }
+
+        try {
+            knjigaManagementService.createBookWithMedia(podaci, naslovna, pdf, mp3);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body("Uspesno dodata knjiga sa medijima");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Greška prilikom dodavanja knjige: " + e.getMessage());
+        }
+    }
+
+    // AZURIRANJE KNJIGE, OSNOVNI PODACI I DODAVANJE AUDIO I EKNJIGA
+    @PutMapping(value = "/{isbn}/kompletna", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> updateBookComplete(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable String isbn,
+            @RequestPart("podaci") UpdateBookWithMediaDto podaci,
+            @RequestPart(value = "naslovna", required = false) MultipartFile naslovna,
+            @RequestPart(value = "pdf", required = false) MultipartFile pdf,
+            @RequestPart(value = "mp3", required = false) MultipartFile mp3) {
+
+        String role = safeExtractRole(authHeader);
+        if (!isRoleAllowed(role, "BIBLIOTEKAR")) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Jedino bibliotekar može ažurirati knjige");
+        }
+
+        if (naslovna != null && !naslovna.isEmpty()
+            && !isAllowedContentType(naslovna, ALLOWED_IMAGE_TYPES)) {
+            return ResponseEntity.badRequest()
+                    .body("Naslovna mora biti slika (JPEG)");
+        }
+        if (pdf != null && !pdf.isEmpty()
+            && !isAllowedContentType(pdf, ALLOWED_PDF_TYPES)) {
+            return ResponseEntity.badRequest().body("eKnjiga mora biti PDF");
+        }
+        if (mp3 != null && !mp3.isEmpty()
+            && !isAllowedContentType(mp3, ALLOWED_AUDIO_TYPES)) {
+            return ResponseEntity.badRequest().body("Audio knjiga mora biti MP3");
+        }
+
+        try {
+            knjigaManagementService.updateBookWithMedia(isbn, podaci, naslovna, pdf, mp3);
+            return ResponseEntity.ok("Uspesno azurirana knjiga sa medijima");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Greška prilikom ažuriranja knjige: " + e.getMessage());
+        }
+    }
+
+    // LOGICKO BRISANJE EKNJIGE
+    @PutMapping(value = "/{isbn}/brisanjeeknjige")
+    public ResponseEntity<?> deleteEBook(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable String isbn) {
+
+        String role = safeExtractRole(authHeader);
+        if (!isRoleAllowed(role, "BIBLIOTEKAR")) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Jedino bibliotekar može ažurirati knjige");
+        }
+
+        try {
+            knjigaManagementService.deleteEBook(isbn);
+            return ResponseEntity.ok("Uspesno azurirana knjiga!");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Greška prilikom ažuriranja knjige: " + e.getMessage());
+        }
+    }
+
+    // LOGICKO BRISANJE AUDIO KNJIGE
+    @PutMapping(value = "/{isbn}/brisanjeaudioknjige")
+    public ResponseEntity<?> deleteAudioBook(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable String isbn) {
+
+        String role = safeExtractRole(authHeader);
+        if (!isRoleAllowed(role, "BIBLIOTEKAR")) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Jedino bibliotekar može ažurirati knjige");
+        }
+
+        try {
+            knjigaManagementService.deleteAudioBook(isbn);
+            return ResponseEntity.ok("Uspesno azurirana knjiga!");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Greška prilikom ažuriranja knjige: " + e.getMessage());
+        }
+    }
 }

@@ -30,6 +30,9 @@ export const publicApi = {
   getGenres:     () => api.get('/genres'),
   getKategorije: () => api.get('/kategorije'),
 }
+export const katalogApi = {
+  svi: () => api.get('/katalog/all'),
+}
 export const userApi = {
   getMe:             ()           => api.get('/users/me'),
   getProfile:        (jmbg)       => api.get(`/users/${jmbg}/profile`),
@@ -65,6 +68,13 @@ export const knjigaApi = {
   sacuvajCitanje:  (isbn, data) => api.put(`/knjiga/eknjiga/${isbn}/progress`, data),
   slusanjeProgress: (isbn) => api.get(`/knjiga/audioknjiga/${isbn}/progress`),
   sacuvajSlusanje:  (isbn, data) => api.put(`/knjiga/audioknjiga/${isbn}/progress`, data),
+  obrisi:          (isbn) => api.put(`/knjiga/delete/${isbn}`),
+  obrisiEknjigu:   (isbn) => api.put(`/knjiga/${isbn}/brisanjeeknjige`),
+  obrisiAudio:     (isbn) => api.put(`/knjiga/${isbn}/brisanjeaudioknjige`),
+  azurirajKompletna: (isbn, formData) =>
+    api.put(`/knjiga/${isbn}/kompletna`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    }),
 }
 
 export default api

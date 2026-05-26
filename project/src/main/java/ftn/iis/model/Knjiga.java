@@ -162,8 +162,8 @@ public class Knjiga {
         this.autor = autor;
     }
 
-    @PrePersist
-    @PreUpdate
+    @PostPersist
+    @PostUpdate
     public void izracunajTipKnjige() {
         char[] f = {'0', '0', '0'};
         if (this.fizickaKnjiga != null) f[0] = '1';

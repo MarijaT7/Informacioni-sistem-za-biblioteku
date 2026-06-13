@@ -103,4 +103,20 @@ export const izdavaciApi = {
   ispisiSve: () => api.get('/izdavaci/sve')
 }
 
+// ── Predlozi za nabavku ──────────────────────────────────────────────
+export const predlogApi = {
+  kreiraj:          (data) => api.post('/predlozi/kreiraj', data),
+  mojiPredlozi:     ()     => api.get('/predlozi/moji-zahtevi'),
+  predloziNaCekanju: ()    => api.get('/predlozi/na-cekanju'),
+  odobreniPredlozi: ()     => api.get('/predlozi/odobreni'),
+  obradiPredlog:    (id, data) => api.patch(`/predlozi/obradi/${id}`, data),
+}
+
+// ── Notifikacije ─────────────────────── ───────────────────────────
+export const notifikacijaApi = {
+  mojeNotifikacije:    ()    => api.get('/notifikacije/moje'),
+  oznаciKaoProcitanu:  (id)  => api.patch(`/notifikacije/procitana/${id}`),
+  brojNeprocitanih:    ()    => api.get('/notifikacije/broj-neprocitanih'),
+}
+
 export default api

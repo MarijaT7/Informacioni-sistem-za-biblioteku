@@ -66,6 +66,21 @@ const routes = [
       const auth = useAuthStore()
       return auth.getRole() === 'BIBLIOTEKAR' ? true : '/'
     }},
+    {
+      path: '/moji-predlozi',
+      component: () => import('../views/MojiPredloziView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/notifikacije',
+      component: () => import('../views/NotifikacijeView.vue'),
+      meta: { requiresAuth: true }
+    },
+    //{
+    //  path: '/predlozi-na-cekanju',
+    //  component: () => import('../views/PredloziNaCekanjuView.vue'),
+    //  meta: { requiresAuth: true }
+    //},
   {
       path: '/genres/edit',
       component: () => import('../views/FavouriteGenresEdit.vue'),
@@ -95,7 +110,8 @@ const routes = [
     { path: 'dobavljaci/:id',      component: () => import('../views/menadzer/DobavljacDetaljiView.vue') },
     { path: 'dobavljaci/:id/izmena', component: () => import('../views/menadzer/IzmenaDobavljacaView.vue') },
     { path: 'dobavljaci/:id/ugovor', component: () => import('../views/menadzer/DodajUgovorView.vue') },
-
+    //{ path: 'predlozi',            component: () => import('../views/menadzer/OdobreniPredloziView.vue') },
+ 
   ]
 },
 ]

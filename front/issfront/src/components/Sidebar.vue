@@ -28,6 +28,12 @@
       <RouterLink class="nav-item" to="/baze-podataka">
         <span class="nav-icon"></span> Elektronske baze podataka
       </RouterLink>
+      <RouterLink class="nav-item" to="/moji-predlozi">
+        <span class="nav-icon"></span> Moji predlozi naslova
+      </RouterLink>
+      <RouterLink class="nav-item" to="/notifikacije">
+        <span class="nav-icon"></span> Praćenje statusa predloga
+      </RouterLink>
     </nav>
 
     <button class="logout-btn" @click="handleLogout">Odjavi se</button>

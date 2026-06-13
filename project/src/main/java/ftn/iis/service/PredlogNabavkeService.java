@@ -4,6 +4,7 @@ import ftn.iis.dto.PredlogNabavkaDto;
 import ftn.iis.dto.PredlogNabavkaResponseDto;
 import ftn.iis.enums.Uloge;
 import ftn.iis.exception.NonClanGivingSuggestions;
+import ftn.iis.exception.NonClanViewingSuggestions;
 import ftn.iis.model.PredlogZaNabavku;
 import ftn.iis.model.User;
 import ftn.iis.repository.NotifikacijaRepository;
@@ -12,6 +13,9 @@ import ftn.iis.repository.UserRepository;
 import ftn.iis.utils.JwtService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class PredlogNabavkeService {
@@ -44,6 +48,29 @@ public class PredlogNabavkeService {
         PredlogZaNabavku predlogZaNabavku = new PredlogZaNabavku(korisnik, dto.getNaslov(), dto.getAutor());
         predlogZaNabavku = predlogNabavkaRepository.save(predlogZaNabavku);
         return mapirajUDto(predlogZaNabavku);
+    }
+
+    @Transactional
+    public List<PredlogNabavkaResponseDto> mojiPredlozi(String token){
+        // Validacija da li clan postoji
+        String jmbg = jwtService.extractJmbg(token);
+        User korisnik = userRepository.findById(jmbg)
+                .orElseThrow(() -> new RuntimeException("Korisnik nije pronađen."));
+
+        // Validacija da li je iopste clan
+        String uloga = jwtService.extractRole(token);
+        if(!uloga.equalsIgnoreCase("CLAN")){
+            throw new NonClanViewingSuggestions();
+        }
+
+        List<PredlogZaNabavku> predlozi = predlogNabavkaRepository.findAllByKorisnikJmbgOrderByDatumPodnosenjaDesc(jmbg);
+
+        List<PredlogNabavkaResponseDto> dtos = new ArrayList<>();
+        for (PredlogZaNabavku predlog : predlozi) {
+            dtos.add(mapirajUDto(predlog));
+        }
+
+        return dtos;
     }
 
 

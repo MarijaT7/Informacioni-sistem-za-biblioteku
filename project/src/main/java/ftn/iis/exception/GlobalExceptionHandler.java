@@ -123,4 +123,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
     }
 
+    @ExceptionHandler(NonClanViewingSuggestions.class)
+    public ResponseEntity<String> handleNonClanViewingSuggestions(NonClanViewingSuggestions ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+    }
+
+
 }

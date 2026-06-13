@@ -128,5 +128,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
     }
 
+    @ExceptionHandler(NonManagerViewingSuggestionsException.class)
+    public ResponseEntity<String> handleNonManagerViewingSuggestionsException(NonManagerViewingSuggestionsException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+    }
 
+    @ExceptionHandler(NonBiblotekarViewingSuggestionsException.class)
+    public ResponseEntity<String> handleNonBiblotekarViewingSuggestionsException(NonBiblotekarViewingSuggestionsException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+    }
 }

@@ -2,9 +2,12 @@ package ftn.iis.service;
 
 import ftn.iis.dto.PredlogNabavkaDto;
 import ftn.iis.dto.PredlogNabavkaResponseDto;
+import ftn.iis.enums.StatusPredloga;
 import ftn.iis.enums.Uloge;
+import ftn.iis.exception.NonBiblotekarViewingSuggestionsException;
 import ftn.iis.exception.NonClanGivingSuggestions;
 import ftn.iis.exception.NonClanViewingSuggestions;
+import ftn.iis.exception.NonManagerViewingSuggestionsException;
 import ftn.iis.model.PredlogZaNabavku;
 import ftn.iis.model.User;
 import ftn.iis.repository.NotifikacijaRepository;
@@ -73,6 +76,53 @@ public class PredlogNabavkeService {
         return dtos;
     }
 
+    //menadžer vidi odobrene predloge
+    @Transactional
+    public List<PredlogNabavkaResponseDto> odobreniPredlozi(String token) {
+        // Validacija da li clan postoji
+        String jmbg = jwtService.extractJmbg(token);
+        User korisnik = userRepository.findById(jmbg)
+                .orElseThrow(() -> new RuntimeException("Korisnik nije pronađen."));
+
+        String uloga = jwtService.extractRole(token);
+        if (!uloga.equalsIgnoreCase("MENADZER")) {
+            throw new NonManagerViewingSuggestionsException();
+        }
+
+        List<PredlogZaNabavku> predlozi = predlogNabavkaRepository
+                .findAllByStatusOrderByDatumPodnosenjaDesc(StatusPredloga.ODOBRENO);
+
+        List<PredlogNabavkaResponseDto> dtos = new ArrayList<>();
+        for (PredlogZaNabavku predlog : predlozi) {
+            dtos.add(mapirajUDto(predlog));
+        }
+
+        return dtos;
+    }
+
+    //bibliotekar vidi predloge na čekanju
+    @Transactional
+    public List<PredlogNabavkaResponseDto> predloziNaCekanju(String token) {
+        // Validacija da li clan postoji
+        String jmbg = jwtService.extractJmbg(token);
+        User korisnik = userRepository.findById(jmbg)
+                .orElseThrow(() -> new RuntimeException("Korisnik nije pronađen."));
+
+        String uloga = jwtService.extractRole(token);
+        if (!uloga.equalsIgnoreCase("BIBLIOTEKAR")) {
+            throw new NonBiblotekarViewingSuggestionsException();
+        }
+
+        List<PredlogZaNabavku> predlozi = predlogNabavkaRepository
+                .findAllByStatusOrderByDatumPodnosenjaDesc(StatusPredloga.NA_CEKANJU);
+
+        List<PredlogNabavkaResponseDto> dtos = new ArrayList<>();
+        for (PredlogZaNabavku predlog : predlozi) {
+            dtos.add(mapirajUDto(predlog));
+        }
+
+        return dtos;
+    }
 
     // Pomocna funkcijica
     private PredlogNabavkaResponseDto mapirajUDto(PredlogZaNabavku p) {

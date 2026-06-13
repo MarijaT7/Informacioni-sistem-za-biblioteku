@@ -33,4 +33,16 @@ public class PredlogNabavkaController {
         List<PredlogNabavkaResponseDto> predlozi = predlogNabavkeService.mojiPredlozi(authHeader.substring(7));
         return ResponseEntity.ok(predlozi);
     }
+
+    @GetMapping("/odobreni")
+    public ResponseEntity<List<PredlogNabavkaResponseDto>> odobreniPredlozi(
+            @RequestHeader("Authorization") String authHeader) {
+        return ResponseEntity.ok(predlogNabavkeService.odobreniPredlozi(authHeader.substring(7)));
+    }
+
+    @GetMapping("/na-cekanju")
+    public ResponseEntity<List<PredlogNabavkaResponseDto>> predloziNaCekanju(
+            @RequestHeader("Authorization") String authHeader) {
+        return ResponseEntity.ok(predlogNabavkeService.predloziNaCekanju(authHeader.substring(7)));
+    }
 }

@@ -387,3 +387,23 @@ VALUES ('1234567891234', '00278232', 2, '2026-03-15');
 -- Pristupio Savremena tehnika br.1
 INSERT INTO pristup_broju_casopisa (jmbg_clana, issn_casopisa, broj_izdanja, datum_pristupanja_pbc)
 VALUES ('1234567891234', '18207995', 1, '2026-02-20');
+
+--na drini cuprija
+INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2010, '9788617150001');
+INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2015, '9788617150001');
+
+--gorski vijenac
+INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2012, '9788617150004');
+
+-- hazarski recnik
+INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2018, '9788617150005');
+INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2020, '9788617150005');
+
+-- tvrdjava
+INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2016, '9788617150007');
+
+-- dervis i smrt
+INSERT INTO primerka_knjige (god_iz, isbn_fizicka) VALUES (2014, '9788617150008');
+
+-- necista krv
+INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2019, '9788617150010');

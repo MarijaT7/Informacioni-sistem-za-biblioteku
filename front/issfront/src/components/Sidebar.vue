@@ -7,19 +7,19 @@
       </div>
     </RouterLink>
     <nav class="sidebar-nav">
-      <RouterLink class="nav-item" to="#">
+      <RouterLink class="nav-item" to="/home">
         <span class="nav-icon"></span> Početna
       </RouterLink>
       <RouterLink class="nav-item" to="/knjige">
         <span class="nav-icon"></span> Sve knjige
       </RouterLink>
-      <RouterLink class="nav-item" to="#">
+      <RouterLink class="nav-item" to="/pozajmice">
         <span class="nav-icon"></span> Pozajmice
       </RouterLink>
       <RouterLink class="nav-item" to="#">
         <span class="nav-icon"></span> Dugovanja
       </RouterLink>
-      <RouterLink class="nav-item" to="#">
+      <RouterLink class="nav-item" to="/obavestenja">
         <span class="nav-icon"></span> Obaveštenja
       </RouterLink>
       <RouterLink class="nav-item" to="/katalog">
@@ -37,9 +37,19 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stroage/auth.js'
+import { pozajmicaApi } from '../services/api.js'
 
 const router    = useRouter()
 const authStore = useAuthStore()
+const unreadCount = ref(0)
+onMounted(async () => {
+  if (authStore.isLoggedIn && authStore.getRole() === 'CLAN') {
+    try {
+      const res = await pozajmicaApi.getObavestenja()
+      unreadCount.value = (res.data || []).filter(o => !o.procitano).length
+    } catch {}
+  }
+})
 
 function handleLogout() {
   authStore.logout()

@@ -407,3 +407,28 @@ INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2014, '9788617150008'
 
 -- necista krv
 INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2019, '9788617150010');
+
+--sve su pozajmice za petra
+-- Pozajmica 1: "Na Drini ćuprija" – vraćena na vreme (januar 2026)
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2026-01-10', '2026-01-22', '2026-01-24', FALSE, 1, '1234567891234');
+
+-- Pozajmica 2: "Gorski vijenac" – vraćena na vreme (februar 2026)
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2026-02-01', '2026-02-13', '2026-02-15', FALSE, 3, '1234567891234');
+
+-- Pozajmica 3: "Hazarski rečnik" – vraćena sa zakašnjenjem (mart 2026)
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2026-03-05', '2026-03-28', '2026-03-19', FALSE, 4, '1234567891234');
+
+-- Pozajmica 4: "Tvrđava" – vraćena na vreme (april 2026)
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2026-04-02', '2026-04-14', '2026-04-16', FALSE, 6, '1234567891234');
+
+-- Pozajmica 5: "Derviš i smrt" – vraćena na vreme (april 2026)
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2026-04-20', '2026-04-30', '2026-05-04', FALSE, 7, '1234567891234');
+
+-- Pozajmica 6: "Na Drini ćuprija" (drugi primerak) – aktivna pozajmica (maj 2026, rok jun 2026)
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2026-05-30', NULL, '2026-06-13', TRUE, 2, '1234567891234');

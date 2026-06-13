@@ -12,6 +12,22 @@ api.interceptors.request.use(config => {
   return config
 })
 
+api.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response?.status === 401) {
+      const config = error.config || {}
+      const isMediaRequest = config.responseType === 'blob'
+      if (!isMediaRequest) {
+        const auth = useAuthStore()
+        auth.logout()
+        window.location.href = '/login'
+      }
+    }
+    return Promise.reject(error)
+  }
+)
+
 export const authApi = {
   login:          (data)         => api.post('/auth/login', data),
   registerStep1:  (data)         => api.post('/auth/register/step1', data),
@@ -104,18 +120,18 @@ export const izdavaciApi = {
   ispisiSve: () => api.get('/izdavaci/sve')
 }
 export const pozajmicaApi = {
-  pozajmiFizicku:    (isbn)      => api.post(`/pozajmice/pozajmi/${isbn}`),
-  pozajmiDigitalno:  (isbn, tip) => api.post(`/pozajmice/pozajmi-digitalno/${isbn}`, null, { params: { tip } }),
+  pozajmiFizicku:    (isbn)      => api.post('/pozajmice/pozajmi/${isbn}'),
+  pozajmiDigitalno:  (isbn, tip) => api.post('/pozajmice/pozajmi-digitalno/${isbn}', null, { params: { tip } }),
   mozePozajmiti:     ()          => api.get('/pozajmice/mozePozajmiti'),
-  rezervisi:         (isbn)      => api.post(`/pozajmice/rezervisi/${isbn}`),
+  rezervisi:         (isbn)      => api.post('/pozajmice/rezervisi/${isbn}'),
   getMoje:           ()          => api.get('/pozajmice/moje'),
-  produzenje:        (idP)       => api.post(`/pozajmice/produzenje/${idP}`),
-  izgubljena:        (idP)       => api.post(`/pozajmice/izgubljena/${idP}`),
-  izRezervacije:     (idR)       => api.post(`/pozajmice/iz-rezervacije/${idR}`),
-  getDostupno:       (isbn)      => api.get(`/pozajmice/dostupno/${isbn}`),
+  produzenje:        (idP)       => api.post('/pozajmice/produzenje/${idP}'),
+  izgubljena:        (idP)       => api.post('/pozajmice/izgubljena/${idP}'),
+  izRezervacije:     (idR)       => api.post('/pozajmice/iz-rezervacije/${idR}'),
+  getDostupno:       (isbn)      => api.get('/pozajmice/dostupno/${isbn}'),
   getObavestenja:    ()          => api.get('/pozajmice/obavestenja'),
-  markRead:          (idO)       => api.put(`/pozajmice/obavestenja/${idO}/procitano`),
-  deleteObavestenje: (idO)       => api.delete(`/pozajmice/obavestenja/${idO}`),
+  markRead:          (idO)       => api.put('/pozajmice/obavestenja/${idO}/procitano'),
+  deleteObavestenje: (idO)       => api.delete('/pozajmice/obavestenja/${idO}'),
 }
 
 export default api

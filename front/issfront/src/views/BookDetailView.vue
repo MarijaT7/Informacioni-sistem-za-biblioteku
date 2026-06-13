@@ -356,7 +356,7 @@ async function preuzmiAudio() {
 
 function closeModal() {
   showModal.value = false
-  router.push('/')
+  router.push('/home')
 }
 
 function formatDate(dateStr) {

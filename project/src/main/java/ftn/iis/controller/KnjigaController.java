@@ -516,7 +516,7 @@ public class KnjigaController {
     public ResponseEntity<?> getPreporucene(
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
         try {
-            java.util.List<?> result = knjigaService.getAll();
+            java.util.List<KnjigaOsnovnoDto> result = knjigaService.ispisiSveKnjige();
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

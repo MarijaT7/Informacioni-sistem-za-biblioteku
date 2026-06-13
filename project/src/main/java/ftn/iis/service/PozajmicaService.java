@@ -45,12 +45,6 @@ public class PozajmicaService {
 
     //da li korisnik ima aktivne pozajmice ili pozajmice gde je prekoracio rok vracanja
     public boolean userHasActiveOrOverdueLoan(String jmbg){
-        LocalDate danas= LocalDate.now();
-        List<Pozajmica> aktivne= pozajmicaRepository.findByClan_JmbgAndStatusPozTrue(jmbg);
-        return !aktivne.isEmpty(); //ako je lista prazna i funkcija vrti true, mi dobijamo false
-    }
-
-    public boolean userHasOverdueLoan(String jmbg){
         return  pozajmicaRepository.hasOverduePozajmica(jmbg, LocalDate.now());
     }
 
@@ -67,9 +61,9 @@ public class PozajmicaService {
         }
         List<Pozajmica> activeLoans = pozajmicaRepository.findByClan_JmbgAndStatusPozTrue(jmbg);
         boolean hasOverdue = activeLoans.stream().anyMatch(p -> p.getDatOcVrac().isBefore(LocalDate.now()));
-        if (!activeLoans.isEmpty()) {
+        if (hasOverdue) {
             result.put("success", false);
-            result.put("message", "Knjiga ne može biti pozajmljena pošto još niste podmirili prethodna dugovanja");
+            result.put("message", "Knjiga ne može biti pozajmljena pošto imate pozajmicu sa prekoračenim rokom vraćanja. Molimo vas da najpre vratite zakasnele knjige.");
             return result;
         }
 
@@ -115,9 +109,10 @@ public class PozajmicaService {
 
         // Check for active/overdue loans
         List<Pozajmica> activeLoans = pozajmicaRepository.findByClan_JmbgAndStatusPozTrue(jmbg);
-        if (!activeLoans.isEmpty()) {
+        boolean hasOverdue = activeLoans.stream().anyMatch(p -> p.getDatOcVrac().isBefore(LocalDate.now()));
+        if (hasOverdue) {
             result.put("success", false);
-            result.put("message", "Knjiga ne može biti pozajmljena pošto još niste podmirili prethodna dugovanja");
+            result.put("message", "Knjiga ne može biti pozajmljena pošto imate pozajmicu sa prekoračenim rokom vraćanja. Molimo vas da najpre vratite zakasnele knjige.");
             return result;
         }
 

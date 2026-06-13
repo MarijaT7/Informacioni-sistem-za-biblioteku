@@ -6,7 +6,7 @@
       <h1 class="page-title">Početna</h1>
 
 
-      <section v-if="aktivne.length > 0 || eBooks.length > 0">
+      <section v-if="aktivne.length > 0">
         <h2 class="section-title">Pozajmljeno</h2>
 
         <div class="format-row">
@@ -31,24 +31,6 @@
           </div>
 
 
-          <div v-if="eBooks.length > 0">
-            <p class="format-label">elektronska forma</p>
-            <div class="book-row">
-              <article
-                v-for="b in eBooks"
-                :key="b.isbn"
-                class="book-card"
-                @click="$router.push(`/knjige/${b.isbn}/citaj`)"
-              >
-                <div class="book-cover">
-                  <img v-if="coverUrls[b.isbn]" :src="coverUrls[b.isbn]" alt="" />
-                  <div v-else class="cover-placeholder"></div>
-                </div>
-                <p class="book-title">{{ b.naslov }}</p>
-                <p class="book-author">{{ b.autor }}</p>
-              </article>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -89,7 +71,6 @@ import SidebarNav from '../components/Sidebar.vue'
 import { knjigaApi, pozajmicaApi } from '../services/api.js'
 
 const aktivne = ref([])
-const eBooks  = ref([])
 const preporuke = ref([])
 const coverUrls = ref({})
 const loadingRec = ref(false)

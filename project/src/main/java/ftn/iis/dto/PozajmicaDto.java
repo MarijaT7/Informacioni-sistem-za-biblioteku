@@ -28,11 +28,11 @@ public class PozajmicaDto {
         dto.datVrac = p.getDatVrac();
         dto.datOcVrac = p.getDatOcVrac();
         dto.statusPoz = p.getStatusPoz();
-        dto.idPK = p.getPrimerkaKnjige().getIdPK();
-        dto.isbn = p.getPrimerkaKnjige().getFizickaKnjiga().getIsbn();
-        dto.naslovKnjige = p.getPrimerkaKnjige().getFizickaKnjiga().getKnjiga().getNaslov();
-        dto.autorKnjige = p.getPrimerkaKnjige().getFizickaKnjiga().getKnjiga().getAutor();
-        dto.putanjaNaslovna = p.getPrimerkaKnjige().getFizickaKnjiga().getKnjiga().getPutanjaNaslovna();
+        dto.idPK = p.getPrimerakKnjige().getIdPK();
+        dto.isbn = p.getPrimerakKnjige().getFizickaKnjiga().getIsbn();
+        dto.naslovKnjige = p.getPrimerakKnjige().getFizickaKnjiga().getKnjiga().getNaslov();
+        dto.autorKnjige = p.getPrimerakKnjige().getFizickaKnjiga().getKnjiga().getAutor();
+        dto.putanjaNaslovna = p.getPrimerakKnjige().getFizickaKnjiga().getKnjiga().getPutanjaNaslovna();
         dto.produzenja = p.getProduzenja() != null ? p.getProduzenja().stream()
                 .map(ProduzenjePozajmiceDto::fromProduzenje)
                 .collect(Collectors.toList()) : null;

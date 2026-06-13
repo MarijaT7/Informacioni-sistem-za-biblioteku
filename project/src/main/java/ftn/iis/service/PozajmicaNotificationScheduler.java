@@ -34,13 +34,13 @@ public class PozajmicaNotificationScheduler {
                     .stream()
                     .anyMatch(o -> o.getTipO().equals("VRACANJE") &&
                             o.getDatKreiran().equals(LocalDate.now()) &&
-                            o.getTekstO().contains(p.getPrimerkaKnjige().getFizickaKnjiga().getKnjiga().getNaslov()));
+                            o.getTekstO().contains(p.getPrimerakKnjige().getFizickaKnjiga().getKnjiga().getNaslov()));
 
             if (!alreadyNotified) {
                 Obavestenje o = new Obavestenje();
                 o.setTipO("VRACANJE");
                 o.setTekstO("Podsetnik: knjiga '" +
-                        p.getPrimerkaKnjige().getFizickaKnjiga().getKnjiga().getNaslov() +
+                        p.getPrimerakKnjige().getFizickaKnjiga().getKnjiga().getNaslov() +
                         "' treba da bude vraćena za 48 sati, do " +
                         String.format("%02d.%02d.%d", targetDate.getDayOfMonth(),
                                 targetDate.getMonthValue(), targetDate.getYear()) + ".");

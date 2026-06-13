@@ -28,7 +28,7 @@ public class Pozajmica {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_pk_fk", nullable = false)
-    private PrimerakKnjige primerkaKnjige;
+    private PrimerakKnjige primerakKnjige;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "jmbg_clana", nullable = false)
@@ -83,12 +83,12 @@ public class Pozajmica {
         this.statusPoz = statusPoz;
     }
 
-    public PrimerakKnjige getPrimerkaKnjige() {
-        return primerkaKnjige;
+    public PrimerakKnjige getPrimerakKnjige() {
+        return primerakKnjige;
     }
 
-    public void setPrimerkaKnjige(PrimerakKnjige primerkaKnjige) {
-        this.primerkaKnjige = primerkaKnjige;
+    public void setPrimerakKnjige(PrimerakKnjige primerakKnjige) {
+        this.primerakKnjige = primerakKnjige;
     }
 
     public User getClan() {

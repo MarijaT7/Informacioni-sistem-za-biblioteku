@@ -53,7 +53,7 @@ const routes = [
   },
   {
     path: '/obavestenja',
-    component: () => import('../views/ObaveštenjaView.vue'),
+    component: () => import('../views/ObavestenjaView.vue'),
     meta: { requiresAuth: true }
   },
   {

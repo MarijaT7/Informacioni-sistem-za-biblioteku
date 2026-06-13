@@ -19,7 +19,7 @@ public class PrimerakKnjige {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "isbn_fizicka", nullable = false)
     private FizickaKnjiga fizickaKnjiga;
-    @OneToMany(mappedBy = "primerkaKnjige", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "primerakKnjige", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Pozajmica> pozajmice = new ArrayList<>();
 
     public  PrimerakKnjige(){}

@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 public class PozajmicaService {
 
     private final PozajmicaRepository pozajmicaRepository;
-    private final PrimerakKnjigeRepository primerkaKnjigeRepository;
+    private final PrimerakKnjigeRepository primerakKnjigeRepository;
     private final RezervacijaRepository rezervacijaRepository;
     private final ProduzenjePozajmiceRepository produzenjePozajmiceRepository;
     private final ObavestenjeRepository obavestenjeRepository;
@@ -32,7 +32,7 @@ public class PozajmicaService {
 
     public PozajmicaService(PozajmicaRepository pozajmicaRepository, PrimerakKnjigeRepository primerkaKnjigeRepository, RezervacijaRepository rezervacijaRepository, ProduzenjePozajmiceRepository produzenjePozajmiceRepository, ObavestenjeRepository obavestenjeRepository, UserRepository userRepository, KnjigaRepository knjigaRepository, EKnjigaRepository eKnjigaRepository, AudioKnjigaRepository audioKnjigaRepository, ClanarinaRepository clanarinaRepository) {
         this.pozajmicaRepository = pozajmicaRepository;
-        this.primerkaKnjigeRepository = primerkaKnjigeRepository;
+        this.primerakKnjigeRepository = primerkaKnjigeRepository;
         this.rezervacijaRepository = rezervacijaRepository;
         this.produzenjePozajmiceRepository = produzenjePozajmiceRepository;
         this.obavestenjeRepository = obavestenjeRepository;
@@ -73,7 +73,7 @@ public class PozajmicaService {
             return result;
         }
 
-        List<PrimerakKnjige> available = primerkaKnjigeRepository.findAvailablePrimerciByIsbn(isbn);
+        List<PrimerakKnjige> available = primerakKnjigeRepository.findAvailablePrimerciByIsbn(isbn);
         if (available.isEmpty()) {
             result.put("success", false);
             result.put("noAvailable", true);
@@ -88,7 +88,7 @@ public class PozajmicaService {
         pozajmica.setDatPoz(danas);
         pozajmica.setDatOcVrac(datOcVrac);
         pozajmica.setStatusPoz(true);
-        pozajmica.setPrimerkaKnjige(primerak);
+        pozajmica.setPrimerakKnjige(primerak);
         pozajmica.setClan(user);
         pozajmicaRepository.save(pozajmica);
 
@@ -296,7 +296,7 @@ public class PozajmicaService {
         pozajmica.setDatVrac(LocalDate.now());
         pozajmicaRepository.save(pozajmica);
 
-        checkAndNotifyReservation(pozajmica.getPrimerkaKnjige().getFizickaKnjiga().getIsbn());
+        checkAndNotifyReservation(pozajmica.getPrimerakKnjige().getFizickaKnjiga().getIsbn());
 
         result.put("success", true);
         result.put("message", "Knjiga je uspešno vraćena.");
@@ -336,7 +336,7 @@ public class PozajmicaService {
         }
 
         String isbn = rezervacija.getFizickaKnjiga().getIsbn();
-        List<PrimerakKnjige> available = primerkaKnjigeRepository.findAvailablePrimerciByIsbn(isbn);
+        List<PrimerakKnjige> available = primerakKnjigeRepository.findAvailablePrimerciByIsbn(isbn);
         if (available.isEmpty()) {
             result.put("success", false);
             result.put("message", "Nema dostupnog primerka trenutno.");
@@ -351,7 +351,7 @@ public class PozajmicaService {
         pozajmica.setDatPoz(today);
         pozajmica.setDatOcVrac(datOcVrac);
         pozajmica.setStatusPoz(true);
-        pozajmica.setPrimerkaKnjige(primerak);
+        pozajmica.setPrimerakKnjige(primerak);
         pozajmica.setClan(rezervacija.getClan());
         pozajmica.setRezervacija(rezervacija);
         pozajmicaRepository.save(pozajmica);
@@ -389,7 +389,7 @@ public class PozajmicaService {
         }
     }
     public int getAvailableCopiesCount(String isbn) {
-        return primerkaKnjigeRepository.findAvailablePrimerciByIsbn(isbn).size();
+        return primerakKnjigeRepository.findAvailablePrimerciByIsbn(isbn).size();
     }
 
 }

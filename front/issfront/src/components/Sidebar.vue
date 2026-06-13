@@ -35,6 +35,7 @@
 </template>
 
 <script setup>
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stroage/auth.js'
 import { pozajmicaApi } from '../services/api.js'

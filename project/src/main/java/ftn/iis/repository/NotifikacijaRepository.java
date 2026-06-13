@@ -6,5 +6,5 @@ import java.util.List;
 
 public interface NotifikacijaRepository extends JpaRepository<Notifikacija, Long> {
     List<Notifikacija> findAllByKorisnikJmbgOrderByDatumDesc(String jmbg);
-    long countByKorisnikJmbgAndProcitanaFalse(String jmbg);
+    Integer countByKorisnikJmbgAndProcitanaFalse(String jmbg);
 }

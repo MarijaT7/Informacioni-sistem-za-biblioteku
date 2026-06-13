@@ -1,8 +1,10 @@
 package ftn.iis.controller;
 
+import ftn.iis.dto.ObradiPredlogDto;
 import ftn.iis.dto.PredlogNabavkaDto;
 import ftn.iis.dto.PredlogNabavkaResponseDto;
 import ftn.iis.service.PredlogNabavkeService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -44,5 +46,13 @@ public class PredlogNabavkaController {
     public ResponseEntity<List<PredlogNabavkaResponseDto>> predloziNaCekanju(
             @RequestHeader("Authorization") String authHeader) {
         return ResponseEntity.ok(predlogNabavkeService.predloziNaCekanju(authHeader.substring(7)));
+    }
+
+    @PatchMapping("/obradi/{id}")
+    public ResponseEntity<PredlogNabavkaResponseDto> obradiPredlog(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable Long id,
+            @RequestBody @Valid ObradiPredlogDto dto) {
+        return ResponseEntity.ok(predlogNabavkeService.obradiPredlog(authHeader.substring(7), id, dto));
     }
 }

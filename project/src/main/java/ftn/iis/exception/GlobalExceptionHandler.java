@@ -137,4 +137,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleNonBiblotekarViewingSuggestionsException(NonBiblotekarViewingSuggestionsException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
     }
+
+    @ExceptionHandler(NonClanRecievingNotification.class)
+    public ResponseEntity<String> handleNonClanRecievingNotification(NonClanRecievingNotification ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+    }
+
 }

@@ -1,5 +1,6 @@
 package ftn.iis.service;
 
+import ftn.iis.dto.ObradiPredlogDto;
 import ftn.iis.dto.PredlogNabavkaDto;
 import ftn.iis.dto.PredlogNabavkaResponseDto;
 import ftn.iis.enums.StatusPredloga;
@@ -8,6 +9,7 @@ import ftn.iis.exception.NonBiblotekarViewingSuggestionsException;
 import ftn.iis.exception.NonClanGivingSuggestions;
 import ftn.iis.exception.NonClanViewingSuggestions;
 import ftn.iis.exception.NonManagerViewingSuggestionsException;
+import ftn.iis.model.Notifikacija;
 import ftn.iis.model.PredlogZaNabavku;
 import ftn.iis.model.User;
 import ftn.iis.repository.NotifikacijaRepository;
@@ -122,6 +124,49 @@ public class PredlogNabavkeService {
         }
 
         return dtos;
+    }
+
+    @Transactional
+    public PredlogNabavkaResponseDto obradiPredlog(String token, Long id, ObradiPredlogDto dto) {
+        // Validacija da li clan postoji
+        String jmbg = jwtService.extractJmbg(token);
+        User korisnik = userRepository.findById(jmbg)
+                .orElseThrow(() -> new RuntimeException("Korisnik nije pronađen."));
+
+        String uloga = jwtService.extractRole(token);
+        if (!uloga.equalsIgnoreCase("BIBLIOTEKAR")) {
+            throw new RuntimeException("Samo bibliotekar može da obrađuje predloge.");
+        }
+
+        PredlogZaNabavku predlog = predlogNabavkaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Predlog nije pronađen."));
+
+        if (predlog.getStatus() != StatusPredloga.NA_CEKANJU) {
+            throw new RuntimeException("Predlog je već obrađen.");
+        }
+
+        StatusPredloga noviStatus = StatusPredloga.valueOf(dto.getStatus().toUpperCase());
+
+        if (noviStatus == StatusPredloga.ODBIJENO &&
+                (dto.getObrazlozenje() == null || dto.getObrazlozenje().isBlank())) {
+            throw new RuntimeException("Obrazloženje je obavezno pri odbijanju.");
+        }
+
+        predlog.setStatus(noviStatus);
+        predlog.setObrazlozenje(dto.getObrazlozenje());
+        predlogNabavkaRepository.save(predlog);
+
+        String poruka;
+        if (noviStatus == StatusPredloga.ODOBRENO) {
+            poruka = "Vaš predlog za nabavku knjige \"" + predlog.getNaslov() + "\" je odobren i uvršten u plan nabavke.";
+        } else {
+            poruka = "Vaš predlog za nabavku knjige \"" + predlog.getNaslov() + "\" je odbijen. Razlog: " + dto.getObrazlozenje();
+        }
+
+        Notifikacija notifikacija = new Notifikacija(predlog.getKorisnik(), poruka);
+        notifikacijaRepository.save(notifikacija);
+
+        return mapirajUDto(predlog);
     }
 
     // Pomocna funkcijica

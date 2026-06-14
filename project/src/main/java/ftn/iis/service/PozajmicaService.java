@@ -4,6 +4,8 @@ import ftn.iis.dto.ObavestenjeDto;
 import ftn.iis.dto.PozajmicaDto;
 import ftn.iis.dto.PozajmiceRezervacijeResponseDto;
 import ftn.iis.dto.RezervacijaDto;
+import ftn.iis.enums.StatusCitanja;
+import ftn.iis.enums.StatusSlusanja;
 import ftn.iis.model.*;
 import ftn.iis.repository.*;
 import jakarta.transaction.Transactional;
@@ -29,8 +31,11 @@ public class PozajmicaService {
     private final EKnjigaRepository eKnjigaRepository;
     private final AudioKnjigaRepository audioKnjigaRepository;
     private final ClanarinaRepository clanarinaRepository;
+    private final CitanjeEKnjigeRepository citanjeEKnjigeRepository;
+    private final SlusanjeAudioKnjigeRepository slusanjeAudioKnjigeRepository;
 
-    public PozajmicaService(PozajmicaRepository pozajmicaRepository, PrimerakKnjigeRepository primerkaKnjigeRepository, RezervacijaRepository rezervacijaRepository, ProduzenjePozajmiceRepository produzenjePozajmiceRepository, ObavestenjeRepository obavestenjeRepository, UserRepository userRepository, KnjigaRepository knjigaRepository, EKnjigaRepository eKnjigaRepository, AudioKnjigaRepository audioKnjigaRepository, ClanarinaRepository clanarinaRepository) {
+    private static final int DIGITAL_LOAN_DAYS=14;
+    public PozajmicaService(PozajmicaRepository pozajmicaRepository, PrimerakKnjigeRepository primerkaKnjigeRepository, RezervacijaRepository rezervacijaRepository, ProduzenjePozajmiceRepository produzenjePozajmiceRepository, ObavestenjeRepository obavestenjeRepository, UserRepository userRepository, KnjigaRepository knjigaRepository, EKnjigaRepository eKnjigaRepository, AudioKnjigaRepository audioKnjigaRepository, ClanarinaRepository clanarinaRepository, CitanjeEKnjigeRepository citanjeEKnjigeRepository, SlusanjeAudioKnjigeRepository slusanjeAudioKnjigeRepository) {
         this.pozajmicaRepository = pozajmicaRepository;
         this.primerakKnjigeRepository = primerkaKnjigeRepository;
         this.rezervacijaRepository = rezervacijaRepository;
@@ -41,6 +46,8 @@ public class PozajmicaService {
         this.eKnjigaRepository = eKnjigaRepository;
         this.audioKnjigaRepository = audioKnjigaRepository;
         this.clanarinaRepository = clanarinaRepository;
+        this.citanjeEKnjigeRepository= citanjeEKnjigeRepository;
+        this.slusanjeAudioKnjigeRepository= slusanjeAudioKnjigeRepository;
     }
 
     //da li korisnik ima aktivne pozajmice ili pozajmice gde je prekoracio rok vracanja
@@ -367,6 +374,18 @@ public class PozajmicaService {
                 .map(ObavestenjeDto::fromObavestenje)
                 .collect(Collectors.toList());
     }
+    public boolean userHasActiveLoanForBook(String jmbg, String isbn) {
+        // Physical loan check
+        List<Pozajmica> activeLoans = pozajmicaRepository.findByClan_JmbgAndStatusPozTrue(jmbg);
+        boolean hasPhysical = activeLoans.stream()
+                .anyMatch(p -> p.getPrimerakKnjige().getFizickaKnjiga().getIsbn().equals(isbn));
+        if (hasPhysical) return true;
+
+        LocalDate cutoff = LocalDate.now().minusDays(DIGITAL_LOAN_DAYS);
+        if (citanjeEKnjigeRepository.hasActiveLoan(jmbg, isbn, cutoff)) return true;
+        if (slusanjeAudioKnjigeRepository.hasActiveLoan(jmbg, isbn, cutoff)) return true;
+        return false;
+    }
 
     public void markObavestenjeRead(Long idO, String jmbg) {
         Obavestenje o = obavestenjeRepository.findById(idO).orElse(null);
@@ -385,6 +404,24 @@ public class PozajmicaService {
     }
     public int getAvailableCopiesCount(String isbn) {
         return primerakKnjigeRepository.findAvailablePrimerciByIsbn(isbn).size();
+    }
+    @Transactional
+    public void expireDigitalLoans() {
+        LocalDate cutoff = LocalDate.now().minusDays(DIGITAL_LOAN_DAYS);
+
+        List<CitanjeEKnjige> expiredCitanja = citanjeEKnjigeRepository.findExpiredActive(cutoff);
+        for (CitanjeEKnjige c : expiredCitanja) {
+            c.setDatumZavrsetka(c.getId().getDatumPocetka().plusDays(DIGITAL_LOAN_DAYS));
+            c.setStatusCitanja(StatusCitanja.NAPUSTENO);
+            citanjeEKnjigeRepository.save(c);
+        }
+
+        List<SlusanjeAudioKnjige> expiredSlusanja = slusanjeAudioKnjigeRepository.findExpiredActive(cutoff);
+        for (SlusanjeAudioKnjige s : expiredSlusanja) {
+            s.setDatumZavrsetka(s.getId().getDatumPocetka().plusDays(DIGITAL_LOAN_DAYS));
+            s.setStatusSlusanja(StatusSlusanja.NAPUSTENO);
+            slusanjeAudioKnjigeRepository.save(s);
+        }
     }
 
 }

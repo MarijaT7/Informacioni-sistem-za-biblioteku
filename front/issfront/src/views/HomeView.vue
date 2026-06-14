@@ -6,7 +6,7 @@
       <h1 class="page-title">Početna</h1>
 
 
-      <section v-if="aktivne.length > 0">
+      <section v-if="aktivne.length > 0 || aktivneDigitalne.length>0">
         <h2 class="section-title">Pozajmljeno</h2>
 
         <div class="format-row">
@@ -30,6 +30,25 @@
             </div>
           </div>
 
+          <div v-if="aktivneDigitalne.length > 0">
+            <p class="format-label">digitalne knjige</p>
+            <div class="book-row">
+              <article
+                v-for="p in aktivneDigitalne"
+                :key="p.isbn + p._tip"
+                class="book-card"
+                @click="p._tip === 'eknjiga' ? $router.push(`/knjige/${p.isbn}/citaj`) : $router.push(`/knjige/${p.isbn}/slusaj`)"
+              >
+                <div class="book-cover">
+                  <img v-if="coverUrls[p.isbn]" :src="coverUrls[p.isbn]" alt="" />
+                  <div v-else class="cover-placeholder"></div>
+                  <span class="digital-badge">{{ p._tip === 'eknjiga' ? '📖' : '🎧' }}</span>
+                </div>
+                <p class="book-title">{{ p.naslovKnjige }}</p>
+                <p class="book-author">{{ p.autorKnjige }}</p>
+              </article>
+            </div>
+          </div>
 
         </div>
       </section>
@@ -71,6 +90,7 @@ import SidebarNav from '../components/Sidebar.vue'
 import { knjigaApi, pozajmicaApi } from '../services/api.js'
 
 const aktivne = ref([])
+const aktivneDigitalne = ref([])
 const preporuke = ref([])
 const coverUrls = ref({})
 const loadingRec = ref(false)
@@ -83,9 +103,17 @@ async function loadPozajmice() {
   try {
     const res = await pozajmicaApi.getMoje()
     aktivne.value = res.data.aktivnePozajmice || []
-    await loadCovers(aktivne.value.map(p => p.isbn))
+    const eKnjige = (res.data.aktivneEKnjige || []).map(p => ({ ...p, _tip: 'eknjiga' }))
+        const audio = (res.data.aktivneAudioKnjige || []).map(p => ({ ...p, _tip: 'audio' }))
+        aktivneDigitalne.value = [...eKnjige, ...audio]
+        const allIsbns = [
+          ...aktivne.value.map(p => p.isbn),
+          ...aktivneDigitalne.value.map(p => p.isbn)
+        ]
+    await loadCovers(allIsbns)
   } catch {
     aktivne.value = []
+    aktivneDigitalne.value = []
   }
 }
 

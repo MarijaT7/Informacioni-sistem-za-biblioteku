@@ -122,6 +122,15 @@ public class PozajmicaController {
         int count = pozajmicaService.getAvailableCopiesCount(isbn);
         return ResponseEntity.ok(Map.of("dostupno", count > 0, "brojDostupnih", count));
     }
+    @GetMapping("/imam-pozajmicu/{isbn}")
+    public ResponseEntity<?> imamAktivnuPozajmicu(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable String isbn) {
+        String jmbg = extractJmbg(authHeader);
+        if (jmbg == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        boolean hasLoan = pozajmicaService.userHasActiveLoanForBook(jmbg, isbn);
+        return ResponseEntity.ok(Map.of("imaPozajmicu", hasLoan));
+    }
 
     @GetMapping("/obavestenja")
     public ResponseEntity<List<ObavestenjeDto>> getObavestenja(

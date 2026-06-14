@@ -129,6 +129,7 @@ export const pozajmicaApi = {
   izgubljena:        (idP)       => api.post(`/pozajmice/izgubljena/${idP}`),
   izRezervacije:     (idR)       => api.post(`/pozajmice/iz-rezervacije/${idR}`),
   getDostupno:       (isbn)      => api.get(`/pozajmice/dostupno/${isbn}`),
+  imamPozajmicu:     (isbn)      => api.get(`/pozajmice/imam-pozajmicu/${isbn}`),
   getObavestenja:    ()          => api.get('/pozajmice/obavestenja'),
   markRead:          (idO)       => api.put(`/pozajmice/obavestenja/${idO}/procitano`),
   deleteObavestenje: (idO)       => api.delete(`/pozajmice/obavestenja/${idO}`),

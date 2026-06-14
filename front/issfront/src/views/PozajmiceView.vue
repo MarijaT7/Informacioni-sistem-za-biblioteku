@@ -30,6 +30,47 @@
           </div>
         </section>
 
+        <!-- DIGITALNE POZAJMICE -->
+        <section v-if="aktivneEKnjige.length > 0 || aktivneAudioKnjige.length > 0" class="mt-section">
+          <h2 class="section-title">Digitalne pozajmice</h2>
+          <div class="book-grid">
+            <div
+              v-for="p in aktivneEKnjige"
+              :key="'ek-' + p.isbn"
+              class="book-card"
+              @click="$router.push(`/knjige/${p.isbn}/citaj`)"
+            >
+              <div class="book-cover">
+                <img v-if="coverUrls[p.isbn]" :src="coverUrls[p.isbn]" alt="" />
+                <div v-else class="cover-placeholder"></div>
+                <span class="format-badge">📖 e-knjiga</span>
+              </div>
+              <div class="book-meta">
+                <p class="book-title">{{ p.naslovKnjige }}</p>
+                <p class="book-author">{{ p.autorKnjige }}</p>
+                <p class="book-date">dostupno do: {{ formatDate(p.datOcVrac) }}</p>
+              </div>
+            </div>
+            <div
+              v-for="p in aktivneAudioKnjige"
+              :key="'au-' + p.isbn"
+              class="book-card"
+              @click="$router.push(`/knjige/${p.isbn}/slusaj`)"
+            >
+              <div class="book-cover">
+                <img v-if="coverUrls[p.isbn]" :src="coverUrls[p.isbn]" alt="" />
+                <div v-else class="cover-placeholder"></div>
+                <span class="format-badge">🎧 audio</span>
+              </div>
+              <div class="book-meta">
+                <p class="book-title">{{ p.naslovKnjige }}</p>
+                <p class="book-author">{{ p.autorKnjige }}</p>
+                <p class="book-date">dostupno do: {{ formatDate(p.datOcVrac) }}</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
 
         <section v-if="rezervacije.length > 0" class="mt-section">
           <h2 class="section-title">Rezervacije</h2>
@@ -64,7 +105,7 @@
         </section>
 
 
-        <div v-if="aktivne.length === 0 && rezervacije.length === 0" class="empty-state">
+        <div v-if="aktivne.length === 0 && aktivneEKnjige.length === 0 && aktivneAudioKnjige.length === 0 && rezervacije.length === 0" class="empty-state">
           <p>Nemate aktivnih pozajmica ni rezervacija.</p>
           <button class="btn-secondary" @click="$router.push('/knjige')">Pregledajte knjige</button>
         </div>
@@ -123,6 +164,8 @@ import { pozajmicaApi, knjigaApi } from '../services/api.js'
 const router = useRouter()
 const loading = ref(true)
 const aktivne = ref([])
+const aktivneEKnjige = ref([])
+const aktivneAudioKnjige = ref([])
 const rezervacije = ref([])
 const coverUrls = ref({})
 const selectedPozajmica = ref(null)
@@ -144,10 +187,14 @@ async function loadData() {
   try {
     const res = await pozajmicaApi.getMoje()
     aktivne.value = res.data.aktivnePozajmice || []
+    aktivneEKnjige.value = res.data.aktivneEKnjige || []
+    aktivneAudioKnjige.value = res.data.aktivneAudioKnjige || []
     rezervacije.value = res.data.aktivneRezervacije || []
     await loadAllCovers()
   } catch {
     aktivne.value = []
+    aktivneEKnjige.value = []
+    aktivneAudioKnjige.value = []
     rezervacije.value = []
   } finally {
     loading.value = false
@@ -157,6 +204,8 @@ async function loadData() {
 async function loadAllCovers() {
   const isbnSet = new Set([
     ...aktivne.value.map(p => p.isbn),
+    ...aktivneEKnjige.value.map(p => p.isbn),
+    ...aktivneAudioKnjige.value.map(p => p.isbn),
     ...rezervacije.value.map(r => r.isbn)
   ])
   for (const isbn of isbnSet) {

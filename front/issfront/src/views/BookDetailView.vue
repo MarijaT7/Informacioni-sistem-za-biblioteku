@@ -13,7 +13,52 @@
           <button class="btn-secondary" @click="backToList">Nazad na sve knjige</button>
         </div>
 
-        <section v-if="book" class="book-detail">
+        <!-- FROM HOME: show pozajmica-style card (same as PozajmiceView detail) -->
+        <section v-if="book && fromHome && isClan" class="book-detail">
+          <div class="detail-cover">
+            <img v-if="coverUrl" :src="coverUrl" alt="" />
+            <div v-else class="cover-placeholder"></div>
+          </div>
+          <div class="detail-info">
+            <h1>{{ book.naslov }}</h1>
+            <p class="detail-author">{{ book.autor }}</p>
+
+            <div class="format-icons">
+              <div class="format-icon" :class="{ active: book.fizicka }" title="Fizička">
+                <span>📚</span><small>fizička</small>
+              </div>
+              <div class="format-icon" :class="{ active: book.elektronska }" title="Elektronska">
+                <span>📖</span><small>elektronska</small>
+              </div>
+              <div class="format-icon" :class="{ active: book.audio }" title="Audio">
+                <span>🎧</span><small>audio</small>
+              </div>
+            </div>
+
+            <div class="modal-dates">
+              <p>Trenutno pozajmljeno</p>
+            </div>
+
+            <div class="borrow-section">
+              <div v-if="book.elektronska" class="borrow-row">
+                <span class="borrow-label">Elektronska forma:</span>
+                <button class="btn-borrow" @click="preuzmiEBook" :disabled="borrowing">Čitajte</button>
+              </div>
+              <div v-if="book.audio" class="borrow-row">
+                <span class="borrow-label">Audio forma:</span>
+                <button class="btn-borrow" @click="preuzmiAudio" :disabled="borrowing">Slušajte</button>
+              </div>
+            </div>
+
+            <div class="detail-desc">
+              <h3>Opis knjige</h3>
+              <p>{{ book.sinopsis }}</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- NORMAL VIEW -->
+        <section v-else-if="book" class="book-detail">
           <div class="detail-cover">
             <img v-if="coverUrl" :src="coverUrl" alt="" />
             <div v-else class="cover-placeholder"></div>
@@ -48,13 +93,18 @@
 
                 <!-- Physical book -->
                 <div v-if="book.fizicka" class="borrow-row">
-                  <span class="borrow-label">Fizička forma<span v-if="!dostupno"> - knjiga trenutno nije dostupna</span>:</span>
-                  <button v-if="dostupno" class="btn-borrow" @click="pozajmiFizicku" :disabled="borrowing">
-                    Pozajmite
-                  </button>
-                  <button v-else class="btn-borrow-secondary" @click="rezervisi" :disabled="reserving">
-                    Rezervišite
-                  </button>
+                  <template v-if="korisnikImaPozajmicu">
+                    <span class="borrow-label">Fizička forma — već pozajmljeno ✓</span>
+                  </template>
+                  <template v-else>
+                    <span class="borrow-label">Fizička forma<span v-if="!dostupno"> - knjiga trenutno nije dostupna</span>:</span>
+                    <button v-if="dostupno" class="btn-borrow" @click="pozajmiFizicku" :disabled="borrowing">
+                      Pozajmite
+                    </button>
+                    <button v-else class="btn-borrow-secondary" @click="rezervisi" :disabled="reserving">
+                      Rezervišite
+                    </button>
+                  </template>
                 </div>
 
                 <!-- E-book -->
@@ -172,7 +222,6 @@
     </div>
   </div>
 </template>
-
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -185,6 +234,8 @@ const route = useRoute()
 const router = useRouter()
 
 const isbn = computed(() => route.params.isbn)
+// If fromHome=true, show the pozajmica detail view instead of full book detail
+const fromHome = computed(() => route.query.fromHome === 'true')
 const authorized = ref(false)
 const book = ref(null)
 const coverUrl = ref('')
@@ -216,6 +267,7 @@ const showModal = ref(false)
 const modalTitle = ref('')
 const modalMessage = ref('')
 const modalExtra = ref('')
+const korisnikImaPozajmicu = ref(false)
 
 const isClan = computed(() => authStore.getRole() === 'CLAN')
 const isLibrarian = computed(() => authStore.getRole() === 'BIBLIOTEKAR')
@@ -226,7 +278,10 @@ onMounted(() => {
   if (authorized.value) {
     loadDetails()
     if (role === 'BIBLIOTEKAR') loadCatalogs()
-    if (role === 'CLAN') checkAvailability()
+    if (role === 'CLAN') {
+      checkAvailability()
+      checkUserHasLoan()
+    }
   }
 })
 
@@ -240,6 +295,15 @@ async function checkAvailability() {
     dostupno.value = res.data.dostupno
   } catch {
     dostupno.value = false
+  }
+}
+
+async function checkUserHasLoan() {
+  try {
+    const res = await pozajmicaApi.imamPozajmicu(isbn.value)
+    korisnikImaPozajmicu.value = res.data.imaPozajmicu
+  } catch {
+    korisnikImaPozajmicu.value = false
   }
 }
 
@@ -277,6 +341,7 @@ async function pozajmiFizicku() {
     modalExtra.value = 'Važenje pozajmice od ' + formatDate(data.datPoz) + ' do ' + formatDate(data.datOcVrac) + '.'
     showModal.value = true
     checkAvailability()
+    checkUserHasLoan()
   } catch (e) {
     const msg = e.response?.data?.message || e.response?.data || 'Greška pri pozajmici.'
     modalTitle.value = 'Pozajmica'

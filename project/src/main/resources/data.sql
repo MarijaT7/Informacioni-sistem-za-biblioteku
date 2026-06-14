@@ -432,3 +432,43 @@ VALUES ('2026-04-20', '2026-04-30', '2026-05-04', FALSE, 7, '1234567891234');
 -- Pozajmica 6: "Na Drini ćuprija" (drugi primerak) – aktivna pozajmica (maj 2026, rok jun 2026)
 INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
 VALUES ('2026-05-30', NULL, '2026-06-16', TRUE, 2, '1234567891234');
+-- Na Drini ćuprija (Andrić) -> Istorijski romani, Domaći pisci, Klasici
+INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
+('9788617150001', 9), ('9788617150001', 4), ('9788617150001', 10);
+
+-- Prokleta avlija (Andrić) -> Domaći pisci, Klasici, Drama
+INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
+('9788617150002', 4), ('9788617150002', 10), ('9788617150002', 5);
+
+-- Seobe (Crnjanski) -> Istorijski romani, Domaći pisci, Klasici
+INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
+('9788617150003', 9), ('9788617150003', 4), ('9788617150003', 10);
+
+-- Gorski vijenac (Njegoš) -> Epska fantastika, Poezija, Domaći pisci, Klasici
+INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
+('9788617150004', 6), ('9788617150004', 13), ('9788617150004', 4), ('9788617150004', 10);
+
+-- Hazarski rečnik (Pavić) -> Domaći pisci, Epska fantastika, Klasici
+INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
+('9788617150005', 4), ('9788617150005', 6), ('9788617150005', 10);
+
+-- Koreni (Ćosić) -> Istorijski romani, Domaći pisci
+INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
+('9788617150006', 9), ('9788617150006', 4);
+
+-- Tvrđava (Selimović) -> Domaći pisci, Popularna psihologija, Klasici
+INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
+('9788617150007', 4), ('9788617150007', 14), ('9788617150007', 10);
+
+-- Derviš i smrt (Selimović) -> Domaći pisci, Popularna psihologija, Klasici
+INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
+('9788617150008', 4), ('9788617150008', 14), ('9788617150008', 10);
+
+-- Znakovi pored puta (Andrić) -> Domaći pisci, Klasici, Poezija
+INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
+('9788617150009', 4), ('9788617150009', 10), ('9788617150009', 13);
+
+-- Nečista krv (Stanković) -> Domaći pisci, Drama, Klasici
+INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
+('9788617150010', 4), ('9788617150010', 5), ('9788617150010', 10);
+

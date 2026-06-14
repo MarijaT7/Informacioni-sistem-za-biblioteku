@@ -1,6 +1,8 @@
 package ftn.iis.dto;
 
+import ftn.iis.model.CitanjeEKnjige;
 import ftn.iis.model.Pozajmica;
+import ftn.iis.model.SlusanjeAudioKnjige;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -18,6 +20,7 @@ public class PozajmicaDto {
     private String autorKnjige;
     private String putanjaNaslovna;
     private List<ProduzenjePozajmiceDto> produzenja;
+    private String tipDigitalne;
 
     public PozajmicaDto() {}
 
@@ -36,6 +39,30 @@ public class PozajmicaDto {
         dto.produzenja = p.getProduzenja() != null ? p.getProduzenja().stream()
                 .map(ProduzenjePozajmiceDto::fromProduzenje)
                 .collect(Collectors.toList()) : null;
+        return dto;
+    }
+    public static PozajmicaDto fromCitanje(CitanjeEKnjige c) {
+        PozajmicaDto dto = new PozajmicaDto();
+        dto.isbn = c.getId().getIsbnEKnjige();
+        dto.datPoz = c.getId().getDatumPocetka();
+        dto.datOcVrac = c.getId().getDatumPocetka().plusDays(14);
+        dto.statusPoz = true;
+        dto.naslovKnjige = c.geteKnjiga().getKnjiga().getNaslov();
+        dto.autorKnjige = c.geteKnjiga().getKnjiga().getAutor();
+        dto.putanjaNaslovna = c.geteKnjiga().getKnjiga().getPutanjaNaslovna();
+        dto.tipDigitalne = "EKNJIGA";
+        return dto;
+    }
+    public static PozajmicaDto fromSlusanje(SlusanjeAudioKnjige s) {
+        PozajmicaDto dto = new PozajmicaDto();
+        dto.isbn = s.getId().getIsbnAudioKnjige();
+        dto.datPoz = s.getId().getDatumPocetka();
+        dto.datOcVrac = s.getId().getDatumPocetka().plusDays(14);
+        dto.statusPoz = true;
+        dto.naslovKnjige = s.getAudioKnjiga().getKnjiga().getNaslov();
+        dto.autorKnjige = s.getAudioKnjiga().getKnjiga().getAutor();
+        dto.putanjaNaslovna = s.getAudioKnjiga().getKnjiga().getPutanjaNaslovna();
+        dto.tipDigitalne = "AUDIO";
         return dto;
     }
 
@@ -61,4 +88,12 @@ public class PozajmicaDto {
     public void setPutanjaNaslovna(String putanjaNaslovna) { this.putanjaNaslovna = putanjaNaslovna; }
     public List<ProduzenjePozajmiceDto> getProduzenja() { return produzenja; }
     public void setProduzenja(List<ProduzenjePozajmiceDto> produzenja) { this.produzenja = produzenja; }
+
+    public String getTipDigitalne() {
+        return tipDigitalne;
+    }
+
+    public void setTipDigitalne(String tipDigitalne) {
+        this.tipDigitalne = tipDigitalne;
+    }
 }

@@ -231,6 +231,8 @@ INSERT INTO korisnik (
     'MESECNA',
     NULL
 );
+
+
 --clanarina za Petra
 INSERT INTO clanarina (
     datup,
@@ -387,3 +389,26 @@ VALUES ('1234567891234', '00278232', 2, '2026-03-15');
 -- Pristupio Savremena tehnika br.1
 INSERT INTO pristup_broju_casopisa (jmbg_clana, issn_casopisa, broj_izdanja, datum_pristupanja_pbc)
 VALUES ('1234567891234', '18207995', 1, '2026-02-20');
+
+-- Predlozi za nabavku
+INSERT INTO predlog_za_nabavku (korisnik_jmbg, naslov, autor, datum_podnosenja, status, obrazlozenje)
+VALUES ('1234567891234', 'Duna', 'Frank Herbert', '2026-01-10', 'NA_CEKANJU', NULL);
+
+INSERT INTO predlog_za_nabavku (korisnik_jmbg, naslov, autor, datum_podnosenja, status, obrazlozenje)
+VALUES ('1234567891234', 'Majstor i Margarita', 'Mihail Bulgakov', '2026-02-15', 'ODOBRENO', NULL);
+
+INSERT INTO predlog_za_nabavku (korisnik_jmbg, naslov, autor, datum_podnosenja, status, obrazlozenje)
+VALUES ('1234567891234', '1984', 'Dzordz Orvel', '2026-02-22', 'NA_CEKANJU', NULL);
+
+INSERT INTO predlog_za_nabavku (korisnik_jmbg, naslov, autor, datum_podnosenja, status, obrazlozenje)
+VALUES ('1234567891234', 'Zlocin i kazna', 'Fjodor Mihailovič Dostojevski', '2025-10-20', 'NA_CEKANJU', NULL);
+
+INSERT INTO predlog_za_nabavku (korisnik_jmbg, naslov, autor, datum_podnosenja, status, obrazlozenje)
+VALUES ('1234567891234', 'Fifty Shades of Grey', 'E.L. James', '2026-03-01', 'ODBIJENO', 'Knjiga nije primerena za biblioteku.');
+
+-- Notifikacije
+INSERT INTO notifikacija (korisnik_jmbg, poruka, datum, procitana)
+VALUES ('1234567891234', 'Vaš predlog za nabavku knjige "Majstor i Margarita" je odobren i uvršten u plan nabavke.', '2026-02-16 10:00:00', false);
+
+INSERT INTO notifikacija (korisnik_jmbg, poruka, datum, procitana)
+VALUES ('1234567891234', 'Vaš predlog za nabavku knjige "Fifty Shades of Grey" je odbijen. Razlog: Knjiga nije primerena za biblioteku.', '2026-03-02 09:30:00', false);

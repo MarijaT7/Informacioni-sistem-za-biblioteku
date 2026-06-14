@@ -132,7 +132,7 @@ public class PozajmicaService {
             result.put("message", "Korisnik nije pronađen.");
             return result;
         }
-        Knjiga knjiga = knjigaRepository.findByIsbn(isbn).orElse(null);
+        Knjiga knjiga = knjigaRepository.findByIsbnWithFizicka(isbn).orElse(null);
         if (knjiga == null || knjiga.getFizickaKnjiga() == null) {
             result.put("success", false);
             result.put("message", "Knjiga nije pronađena.");

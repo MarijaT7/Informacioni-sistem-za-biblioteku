@@ -12,8 +12,13 @@ import java.util.List;
 public interface PrimerakKnjigeRepository extends JpaRepository<PrimerakKnjige, Long> {
 
     List<PrimerakKnjige> findByFizickaKnjiga_Isbn(String isbn);
-    @Query("SELECT p FROM PrimerakKnjige p WHERE p.fizickaKnjiga.isbn = :isbn " +
-            "AND NOT EXISTS (SELECT poz FROM Pozajmica poz WHERE poz.primerakKnjige = p AND poz.statusPoz = true)")
+    @Query("SELECT p FROM PrimerakKnjige p " +
+            "JOIN FETCH p.fizickaKnjiga fk " +
+            "WHERE fk.isbn = :isbn " +
+            "AND NOT EXISTS (" +
+            "  SELECT poz FROM Pozajmica poz " +
+            "  WHERE poz.primerakKnjige = p AND poz.statusPoz = true" +
+            ")")
     List<PrimerakKnjige> findAvailablePrimerciByIsbn(@Param("isbn") String isbn);
 
 }

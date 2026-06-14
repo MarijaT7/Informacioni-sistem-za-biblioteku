@@ -431,4 +431,4 @@ VALUES ('2026-04-20', '2026-04-30', '2026-05-04', FALSE, 7, '1234567891234');
 
 -- Pozajmica 6: "Na Drini ćuprija" (drugi primerak) – aktivna pozajmica (maj 2026, rok jun 2026)
 INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
-VALUES ('2026-05-30', NULL, '2026-06-13', TRUE, 2, '1234567891234');
+VALUES ('2026-05-30', NULL, '2026-06-16', TRUE, 2, '1234567891234');

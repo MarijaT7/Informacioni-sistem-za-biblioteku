@@ -28,11 +28,18 @@
       <RouterLink class="nav-item" to="/baze-podataka">
         <span class="nav-icon"></span> Elektronske baze podataka
       </RouterLink>
-      <RouterLink class="nav-item" to="/moji-predlozi">
+
+      <!-- Samo za clana -->
+      <RouterLink v-if="role === 'CLAN'" class="nav-item" to="/moji-predlozi">
         <span class="nav-icon"></span> Moji predlozi naslova
       </RouterLink>
-      <RouterLink class="nav-item" to="/notifikacije">
+      <RouterLink v-if="role === 'CLAN'" class="nav-item" to="/notifikacije">
         <span class="nav-icon"></span> Praćenje statusa predloga
+      </RouterLink>
+
+      <!-- Samo za bibliotekara -->
+      <RouterLink v-if="role === 'BIBLIOTEKAR'" class="nav-item" to="/predlozi-na-cekanju">
+        <span class="nav-icon"></span> Predlozi naslova
       </RouterLink>
     </nav>
 
@@ -46,6 +53,7 @@ import { useAuthStore } from '../stroage/auth.js'
 
 const router    = useRouter()
 const authStore = useAuthStore()
+const role = authStore.getRole()
 
 function handleLogout() {
   authStore.logout()

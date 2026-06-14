@@ -398,6 +398,12 @@ INSERT INTO predlog_za_nabavku (korisnik_jmbg, naslov, autor, datum_podnosenja, 
 VALUES ('1234567891234', 'Majstor i Margarita', 'Mihail Bulgakov', '2026-02-15', 'ODOBRENO', NULL);
 
 INSERT INTO predlog_za_nabavku (korisnik_jmbg, naslov, autor, datum_podnosenja, status, obrazlozenje)
+VALUES ('1234567891234', '1984', 'Dzordz Orvel', '2026-02-22', 'NA_CEKANJU', NULL);
+
+INSERT INTO predlog_za_nabavku (korisnik_jmbg, naslov, autor, datum_podnosenja, status, obrazlozenje)
+VALUES ('1234567891234', 'Zlocin i kazna', 'Fjodor Mihailovič Dostojevski', '2025-10-20', 'NA_CEKANJU', NULL);
+
+INSERT INTO predlog_za_nabavku (korisnik_jmbg, naslov, autor, datum_podnosenja, status, obrazlozenje)
 VALUES ('1234567891234', 'Fifty Shades of Grey', 'E.L. James', '2026-03-01', 'ODBIJENO', 'Knjiga nije primerena za biblioteku.');
 
 -- Notifikacije

@@ -76,11 +76,11 @@ const routes = [
       component: () => import('../views/NotifikacijeView.vue'),
       meta: { requiresAuth: true }
     },
-    //{
-    //  path: '/predlozi-na-cekanju',
-    //  component: () => import('../views/PredloziNaCekanjuView.vue'),
-    //  meta: { requiresAuth: true }
-    //},
+    {
+      path: '/predlozi-na-cekanju',
+      component: () => import('../views/PredloziNaCekanjuView.vue'),
+      meta: { requiresAuth: true }
+    },
   {
       path: '/genres/edit',
       component: () => import('../views/FavouriteGenresEdit.vue'),

@@ -16,11 +16,13 @@ public class PozajmicaNotificationScheduler {
 
     private final PozajmicaRepository pozajmicaRepository;
     private final ObavestenjeRepository obavestenjeRepository;
+    private final PozajmicaService pozajmicaService;
 
     public PozajmicaNotificationScheduler(PozajmicaRepository pozajmicaRepository,
-                                          ObavestenjeRepository obavestenjeRepository) {
+                                          ObavestenjeRepository obavestenjeRepository, PozajmicaService pozajmicaService) {
         this.pozajmicaRepository = pozajmicaRepository;
         this.obavestenjeRepository = obavestenjeRepository;
+        this.pozajmicaService=pozajmicaService;
     }
     @Scheduled(cron = "0 0 8 * * *")
     @Transactional
@@ -49,6 +51,10 @@ public class PozajmicaNotificationScheduler {
                 obavestenjeRepository.save(o);
             }
         }
+    }
+    @Scheduled(cron = "0 0 0 * * *")
+    public void expireDigitalLoans() {
+        pozajmicaService.expireDigitalLoans();
     }
 
 

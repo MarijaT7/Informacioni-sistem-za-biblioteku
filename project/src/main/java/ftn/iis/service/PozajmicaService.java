@@ -7,6 +7,8 @@ import ftn.iis.dto.RezervacijaDto;
 import ftn.iis.enums.StatusCitanja;
 import ftn.iis.enums.StatusSlusanja;
 import ftn.iis.model.*;
+import ftn.iis.model.id.CitanjeEKnjigeId;
+import ftn.iis.model.id.SlusanjeAudioKnjigeId;
 import ftn.iis.repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
@@ -34,8 +36,20 @@ public class PozajmicaService {
     private final CitanjeEKnjigeRepository citanjeEKnjigeRepository;
     private final SlusanjeAudioKnjigeRepository slusanjeAudioKnjigeRepository;
 
-    private static final int DIGITAL_LOAN_DAYS=14;
-    public PozajmicaService(PozajmicaRepository pozajmicaRepository, PrimerakKnjigeRepository primerkaKnjigeRepository, RezervacijaRepository rezervacijaRepository, ProduzenjePozajmiceRepository produzenjePozajmiceRepository, ObavestenjeRepository obavestenjeRepository, UserRepository userRepository, KnjigaRepository knjigaRepository, EKnjigaRepository eKnjigaRepository, AudioKnjigaRepository audioKnjigaRepository, ClanarinaRepository clanarinaRepository, CitanjeEKnjigeRepository citanjeEKnjigeRepository, SlusanjeAudioKnjigeRepository slusanjeAudioKnjigeRepository) {
+    private static final int DIGITAL_LOAN_DAYS = 14;
+
+    public PozajmicaService(PozajmicaRepository pozajmicaRepository,
+                            PrimerakKnjigeRepository primerkaKnjigeRepository,
+                            RezervacijaRepository rezervacijaRepository,
+                            ProduzenjePozajmiceRepository produzenjePozajmiceRepository,
+                            ObavestenjeRepository obavestenjeRepository,
+                            UserRepository userRepository,
+                            KnjigaRepository knjigaRepository,
+                            EKnjigaRepository eKnjigaRepository,
+                            AudioKnjigaRepository audioKnjigaRepository,
+                            ClanarinaRepository clanarinaRepository,
+                            CitanjeEKnjigeRepository citanjeEKnjigeRepository,
+                            SlusanjeAudioKnjigeRepository slusanjeAudioKnjigeRepository) {
         this.pozajmicaRepository = pozajmicaRepository;
         this.primerakKnjigeRepository = primerkaKnjigeRepository;
         this.rezervacijaRepository = rezervacijaRepository;
@@ -46,21 +60,21 @@ public class PozajmicaService {
         this.eKnjigaRepository = eKnjigaRepository;
         this.audioKnjigaRepository = audioKnjigaRepository;
         this.clanarinaRepository = clanarinaRepository;
-        this.citanjeEKnjigeRepository= citanjeEKnjigeRepository;
-        this.slusanjeAudioKnjigeRepository= slusanjeAudioKnjigeRepository;
+        this.citanjeEKnjigeRepository = citanjeEKnjigeRepository;
+        this.slusanjeAudioKnjigeRepository = slusanjeAudioKnjigeRepository;
     }
 
-    //da li korisnik ima aktivne pozajmice ili pozajmice gde je prekoracio rok vracanja
-    public boolean userHasActiveOrOverdueLoan(String jmbg){
-        return  pozajmicaRepository.hasOverduePozajmica(jmbg, LocalDate.now());
+    // Da li korisnik ima aktivne pozajmice gde je prekoracio rok vracanja
+    public boolean userHasActiveOrOverdueLoan(String jmbg) {
+        return pozajmicaRepository.hasOverduePozajmica(jmbg, LocalDate.now());
     }
 
-    //pozajmljivanje fizickih knjiga
+    // Pozajmljivanje fizickih knjiga
     @Transactional
-    public Map<String, Object> borrowPhysicalBook(String jmbg, String isbn){
+    public Map<String, Object> borrowPhysicalBook(String jmbg, String isbn) {
         Map<String, Object> result = new HashMap<>();
 
-        User user= userRepository.findByJmbg(jmbg).orElse(null);
+        User user = userRepository.findByJmbg(jmbg).orElse(null);
         if (user == null) {
             result.put("success", false);
             result.put("message", "Korisnik nije pronađen.");
@@ -82,9 +96,9 @@ public class PozajmicaService {
             return result;
         }
 
-        PrimerakKnjige primerak=available.get(0);
-        LocalDate danas= LocalDate.now();
-        LocalDate datOcVrac= danas.plusDays(14);
+        PrimerakKnjige primerak = available.get(0);
+        LocalDate danas = LocalDate.now();
+        LocalDate datOcVrac = danas.plusDays(14);
         Pozajmica pozajmica = new Pozajmica();
         pozajmica.setDatPoz(danas);
         pozajmica.setDatOcVrac(datOcVrac);
@@ -99,10 +113,16 @@ public class PozajmicaService {
         result.put("message", "Knjiga je uspešno pozajmljena i biće dostupna za preuzimanje u vašoj odabranoj biblioteci od " + formatDate(danas) + ". Važenje pozajmice od " + formatDate(danas) + " do " + formatDate(datOcVrac) + ".");
         return result;
     }
+
     private String formatDate(LocalDate date) {
         return String.format("%02d. %02d. %d", date.getDayOfMonth(), date.getMonthValue(), date.getYear());
     }
 
+    /**
+     * Pozajmljivanje digitalnih knjiga (eKnjiga ili audio).
+     * Kreira CitanjeEKnjige/SlusanjeAudioKnjige zapis ako vec ne postoji aktivna pozajmica.
+     * Nakon toga korisnik se pojavljuje u sekciji "Pozajmice" i biva filtriran iz preporuka.
+     */
     @Transactional
     public Map<String, Object> borrowDigital(String jmbg, String isbn, String type) {
         Map<String, Object> result = new HashMap<>();
@@ -114,7 +134,7 @@ public class PozajmicaService {
             return result;
         }
 
-        // Check for active/overdue loans
+        // Provera overdue fizickih pozajmica
         List<Pozajmica> activeLoans = pozajmicaRepository.findByClan_JmbgAndStatusPozTrue(jmbg);
         boolean hasOverdue = activeLoans.stream().anyMatch(p -> p.getDatOcVrac().isBefore(LocalDate.now()));
         if (hasOverdue) {
@@ -123,14 +143,57 @@ public class PozajmicaService {
             return result;
         }
 
+        LocalDate danas = LocalDate.now();
+        LocalDate cutoff = danas.minusDays(DIGITAL_LOAN_DAYS);
+
+        if ("audio".equals(type)) {
+            // Proveri da li vec postoji aktivna audio pozajmica za ovu knjigu
+            boolean hasActive = slusanjeAudioKnjigeRepository.hasActiveLoan(jmbg, isbn, cutoff);
+            if (!hasActive) {
+                AudioKnjiga audioKnjiga = audioKnjigaRepository.findById(isbn).orElse(null);
+                if (audioKnjiga == null) {
+                    result.put("success", false);
+                    result.put("message", "Audio knjiga nije pronađena.");
+                    return result;
+                }
+                SlusanjeAudioKnjige slusanje = new SlusanjeAudioKnjige();
+                slusanje.setId(new SlusanjeAudioKnjigeId(jmbg, isbn, danas));
+                slusanje.setClan(user);
+                slusanje.setAudioKnjiga(audioKnjiga);
+                slusanje.setStatusSlusanja(StatusSlusanja.U_TOKU);
+                slusanje.setTrenutnaSekunda(0);
+                slusanje.setDatumPoslednjegPristupa(danas);
+                slusanjeAudioKnjigeRepository.save(slusanje);
+            }
+        } else {
+            // Proveri da li vec postoji aktivna eknjiga pozajmica
+            boolean hasActive = citanjeEKnjigeRepository.hasActiveLoan(jmbg, isbn, cutoff);
+            if (!hasActive) {
+                EKnjiga eKnjiga = eKnjigaRepository.findById(isbn).orElse(null);
+                if (eKnjiga == null) {
+                    result.put("success", false);
+                    result.put("message", "eKnjiga nije pronađena.");
+                    return result;
+                }
+                CitanjeEKnjige citanje = new CitanjeEKnjige();
+                citanje.setId(new CitanjeEKnjigeId(jmbg, isbn, danas));
+                citanje.setClan(user);
+                citanje.seteKnjiga(eKnjiga);
+                citanje.setStatusCitanja(StatusCitanja.U_TOKU);
+                citanje.setTrenutnaStranica(1);
+                citanje.setDatumPoslednjegPristupa(danas);
+                citanjeEKnjigeRepository.save(citanje);
+            }
+        }
+
         result.put("success", true);
-        result.put("message", "Možete pristupiti " + (type.equals("audio") ? "audio knjizi" : "e-knjizi") + ".");
+        result.put("message", "Možete pristupiti " + ("audio".equals(type) ? "audio knjizi" : "e-knjizi") + ".");
         return result;
     }
 
-    //pravljenje rezervacija
+    // Pravljenje rezervacija
     @Transactional
-    public  Map<String, Object> makeReservation(String jmbg, String isbn){
+    public Map<String, Object> makeReservation(String jmbg, String isbn) {
         Map<String, Object> result = new HashMap<>();
 
         User user = userRepository.findByJmbg(jmbg).orElse(null);
@@ -168,10 +231,15 @@ public class PozajmicaService {
         result.put("message", "Knjiga je uspešno rezervisana i očekuje se da će biti dostupna za preuzimanje u vašoj odabranoj biblioteci od " + formatDate(datIspR) + ".");
         return result;
     }
+
+    /**
+     * Vraca sve pozajmice i rezervacije korisnika, ukljucujuci aktivne digitalne pozajmice.
+     */
     @Transactional
     public PozajmiceRezervacijeResponseDto getPozajmiceAndRezervacije(String jmbg) {
         PozajmiceRezervacijeResponseDto response = new PozajmiceRezervacijeResponseDto();
 
+        // Fizicke pozajmice
         List<Pozajmica> allPozajmice = pozajmicaRepository.findByClan_Jmbg(jmbg);
         List<PozajmicaDto> aktivne = allPozajmice.stream()
                 .filter(p -> Boolean.TRUE.equals(p.getStatusPoz()))
@@ -182,6 +250,22 @@ public class PozajmicaService {
                 .map(PozajmicaDto::fromPozajmica)
                 .collect(Collectors.toList());
 
+        // Digitalne aktivne pozajmice (u poslednjih 14 dana, bez datuma zavrsetka)
+        LocalDate cutoff = LocalDate.now().minusDays(DIGITAL_LOAN_DAYS);
+
+        List<PozajmicaDto> aktivneEKnjige = citanjeEKnjigeRepository
+                .findActiveByJmbg(jmbg, cutoff)
+                .stream()
+                .map(PozajmicaDto::fromCitanje)
+                .collect(Collectors.toList());
+
+        List<PozajmicaDto> aktivneAudioKnjige = slusanjeAudioKnjigeRepository
+                .findActiveByJmbg(jmbg, cutoff)
+                .stream()
+                .map(PozajmicaDto::fromSlusanje)
+                .collect(Collectors.toList());
+
+        // Rezervacije
         List<Rezervacija> rezervacije = rezervacijaRepository.findByClan_Jmbg(jmbg);
         List<RezervacijaDto> aktivneRez = rezervacije.stream()
                 .filter(r -> r.getDatObavR() == null)
@@ -190,11 +274,13 @@ public class PozajmicaService {
 
         response.setAktivnePozajmice(aktivne);
         response.setIstorija(istorija);
+        response.setAktivneEKnjige(aktivneEKnjige);
+        response.setAktivneAudioKnjige(aktivneAudioKnjige);
         response.setAktivneRezervacije(aktivneRez);
         return response;
     }
 
-    //produzenje
+    // Produzenje
     @Transactional
     public Map<String, Object> requestExtension(Long pozajmicaId, String jmbg) {
         Map<String, Object> result = new HashMap<>();
@@ -205,7 +291,6 @@ public class PozajmicaService {
             result.put("message", "Pozajmica nije pronađena.");
             return result;
         }
-
 
         boolean hasPending = pozajmica.getProduzenja().stream().anyMatch(pp -> pp.getStatusPP() == null);
         if (hasPending) {
@@ -227,7 +312,7 @@ public class PozajmicaService {
         return result;
     }
 
-    //samo za bibliotekara
+    // Samo za bibliotekara
     @Transactional
     public Map<String, Object> processExtension(Long idPP, String bibliotekarJmbg, boolean approve, String razlog) {
         Map<String, Object> result = new HashMap<>();
@@ -248,7 +333,6 @@ public class PozajmicaService {
             pp.setBibliotekar(bibliotekar);
             produzenjePozajmiceRepository.save(pp);
 
-            // Update pozajmica return date
             Pozajmica pozajmica = pp.getPozajmica();
             pozajmica.setDatOcVrac(noviDatVrac);
             pozajmicaRepository.save(pozajmica);
@@ -265,7 +349,7 @@ public class PozajmicaService {
         return result;
     }
 
-    //izgubljena knjiga
+    // Izgubljena knjiga
     @Transactional
     public Map<String, Object> reportLostBook(Long pozajmicaId, String jmbg) {
         Map<String, Object> result = new HashMap<>();
@@ -275,7 +359,6 @@ public class PozajmicaService {
             result.put("message", "Pozajmica nije pronađena.");
             return result;
         }
-        // Mark as returned (lost) - set returned date
         pozajmica.setStatusPoz(false);
         pozajmica.setDatVrac(LocalDate.now());
         pozajmicaRepository.save(pozajmica);
@@ -284,7 +367,8 @@ public class PozajmicaService {
         result.put("message", "Prijava izgubljene knjige je evidentirana. Biće vam naplaćena naknada.");
         return result;
     }
-    //vracanje knjige
+
+    // Vracanje knjige
     @Transactional
     public Map<String, Object> returnBook(Long pozajmicaId, String jmbg) {
         Map<String, Object> result = new HashMap<>();
@@ -304,6 +388,7 @@ public class PozajmicaService {
         result.put("message", "Knjiga je uspešno vraćena.");
         return result;
     }
+
     private void checkAndNotifyReservation(String isbn) {
         List<Rezervacija> activeRez = rezervacijaRepository.findActiveRezervacijeByIsbn(isbn);
         if (!activeRez.isEmpty()) {
@@ -319,6 +404,7 @@ public class PozajmicaService {
             obavestenjeRepository.save(o);
         }
     }
+
     @Transactional
     public Map<String, Object> borrowFromReservation(Long rezervacijaId, String jmbg) {
         Map<String, Object> result = new HashMap<>();
@@ -330,7 +416,6 @@ public class PozajmicaService {
             return result;
         }
 
-        // Check for overdue loans
         if (pozajmicaRepository.hasOverduePozajmica(jmbg, LocalDate.now())) {
             result.put("success", false);
             result.put("message", "Knjiga ne može biti pozajmljena pošto još niste podmirili prethodna dugovanja");
@@ -358,7 +443,6 @@ public class PozajmicaService {
         pozajmica.setRezervacija(rezervacija);
         pozajmicaRepository.save(pozajmica);
 
-        // Mark reservation as fulfilled
         rezervacija.setDatObavR(today);
         rezervacijaRepository.save(rezervacija);
 
@@ -368,14 +452,15 @@ public class PozajmicaService {
         result.put("message", "Knjiga je uspešno pozajmljena. Datum vraćanja: " + formatDate(datOcVrac));
         return result;
     }
+
     public List<ObavestenjeDto> getObavestenja(String jmbg) {
         return obavestenjeRepository.findByClan_JmbgOrderByDatKreiranDesc(jmbg)
                 .stream()
                 .map(ObavestenjeDto::fromObavestenje)
                 .collect(Collectors.toList());
     }
+
     public boolean userHasActiveLoanForBook(String jmbg, String isbn) {
-        // Physical loan check
         List<Pozajmica> activeLoans = pozajmicaRepository.findByClan_JmbgAndStatusPozTrue(jmbg);
         boolean hasPhysical = activeLoans.stream()
                 .anyMatch(p -> p.getPrimerakKnjige().getFizickaKnjiga().getIsbn().equals(isbn));
@@ -402,9 +487,12 @@ public class PozajmicaService {
             obavestenjeRepository.delete(o);
         }
     }
+
     public int getAvailableCopiesCount(String isbn) {
         return primerakKnjigeRepository.findAvailablePrimerciByIsbn(isbn).size();
     }
+
+
     @Transactional
     public void expireDigitalLoans() {
         LocalDate cutoff = LocalDate.now().minusDays(DIGITAL_LOAN_DAYS);
@@ -423,5 +511,4 @@ public class PozajmicaService {
             slusanjeAudioKnjigeRepository.save(s);
         }
     }
-
 }

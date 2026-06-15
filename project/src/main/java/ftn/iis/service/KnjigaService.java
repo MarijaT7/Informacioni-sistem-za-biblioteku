@@ -5,12 +5,12 @@ import ftn.iis.dto.KnjigaDetaljiDto;
 import ftn.iis.dto.KnjigaOsnovnoDto;
 import ftn.iis.model.Knjiga;
 import ftn.iis.model.User;
-import ftn.iis.repository.KnjigaRepository;
-import ftn.iis.repository.UserRepository;
+import ftn.iis.repository.*;
 import org.springframework.boot.webmvc.autoconfigure.WebMvcProperties;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -18,9 +18,15 @@ import java.util.stream.Collectors;
 public class KnjigaService {
     private final KnjigaRepository knjigaRepository;
     private final UserRepository userRepository;
-    public KnjigaService(KnjigaRepository knjigaRepository, UserRepository userRepository) {
+    private final PozajmicaRepository pozajmicaRepository;
+    private final CitanjeEKnjigeRepository citanjeEKnjigeRepository;
+    private final SlusanjeAudioKnjigeRepository slusanjeAudioKnjigeRepository;
+    public KnjigaService(KnjigaRepository knjigaRepository, UserRepository userRepository, PozajmicaRepository pozajmicaRepository, CitanjeEKnjigeRepository citanjeEKnjigeRepository, SlusanjeAudioKnjigeRepository slusanjeAudioKnjigeRepository) {
         this.knjigaRepository = knjigaRepository;
         this.userRepository= userRepository;
+        this.pozajmicaRepository=pozajmicaRepository;
+        this.citanjeEKnjigeRepository=citanjeEKnjigeRepository;
+        this.slusanjeAudioKnjigeRepository=slusanjeAudioKnjigeRepository;
     }
 
     public Optional<BookDto> getByISBN(String isbn){
@@ -91,10 +97,21 @@ public class KnjigaService {
         Set<String> favAuthors = autoriUZanru.stream()
                 .map(String::toLowerCase)
                 .collect(Collectors.toSet());
+        Set<String> pozajmljeniIsbns = pozajmicaRepository.findByClan_JmbgAndStatusPozTrue(jmbg)
+                .stream()
+                .map(p -> p.getPrimerakKnjige().getFizickaKnjiga().getIsbn())
+                .collect(Collectors.toCollection(java.util.HashSet::new));
+
+        LocalDate cutoff = java.time.LocalDate.now().minusDays(14);
+        citanjeEKnjigeRepository.findActiveByJmbg(jmbg, cutoff)
+                .forEach(c -> pozajmljeniIsbns.add(c.getId().getIsbnEKnjige()));
+        slusanjeAudioKnjigeRepository.findActiveByJmbg(jmbg, cutoff)
+                .forEach(s -> pozajmljeniIsbns.add(s.getId().getIsbnAudioKnjige()));
         List<Knjiga> sve = knjigaRepository.findByDeletedFalse();
         List<Map.Entry<Knjiga, Integer>> scored = new ArrayList<>();
 
         for (Knjiga k : sve) {
+            if (pozajmljeniIsbns.contains(k.getIsbn())) continue;
             int score = 0;
             if (genreIsbnSet.contains(k.getIsbn())) {
                 score += 3;

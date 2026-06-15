@@ -17,14 +17,14 @@ public interface CitanjeEKnjigeRepository extends JpaRepository<CitanjeEKnjige, 
             String jmbgClana,
             String isbnEKnjige
     );
-    @Query("SELECT c FROM CitanjeEKnjige c WHERE c.id.jmbgClana = :jmbg AND c.datumZavrsetka IS NULL AND c.id.datumPocetka >= :cutoff")
+    @Query("SELECT c FROM CitanjeEKnjige c JOIN FETCH c.eKnjiga ek JOIN FETCH ek.knjiga WHERE c.id.jmbgClana = :jmbg AND c.datumZavrsetka IS NULL AND c.id.datumPocetka >= :cutoff")
     List<CitanjeEKnjige> findActiveByJmbg(@Param("jmbg") String jmbg, @Param("cutoff") LocalDate cutoff);
 
-
+    // For auto-expiry scheduler: loans older than 14 days, not yet expired
     @Query("SELECT c FROM CitanjeEKnjige c WHERE c.datumZavrsetka IS NULL AND c.id.datumPocetka < :cutoff")
     List<CitanjeEKnjige> findExpiredActive(@Param("cutoff") LocalDate cutoff);
 
-
+    // Check if user has active loan for this isbn
     @Query("SELECT COUNT(c) > 0 FROM CitanjeEKnjige c WHERE c.id.jmbgClana = :jmbg AND c.id.isbnEKnjige = :isbn AND c.datumZavrsetka IS NULL AND c.id.datumPocetka >= :cutoff")
     boolean hasActiveLoan(@Param("jmbg") String jmbg, @Param("isbn") String isbn, @Param("cutoff") LocalDate cutoff);
 }

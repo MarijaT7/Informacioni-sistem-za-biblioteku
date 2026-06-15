@@ -17,14 +17,14 @@ public interface SlusanjeAudioKnjigeRepository extends JpaRepository<SlusanjeAud
             String jmbgClana,
             String isbnAudioKnjige
     );
-    @Query("SELECT s FROM SlusanjeAudioKnjige s WHERE s.id.jmbgClana = :jmbg AND s.datumZavrsetka IS NULL AND s.id.datumPocetka >= :cutoff")
+    @Query("SELECT s FROM SlusanjeAudioKnjige s JOIN FETCH s.audioKnjiga ak JOIN FETCH ak.knjiga WHERE s.id.jmbgClana = :jmbg AND s.datumZavrsetka IS NULL AND s.id.datumPocetka >= :cutoff")
     List<SlusanjeAudioKnjige> findActiveByJmbg(@Param("jmbg") String jmbg, @Param("cutoff") LocalDate cutoff);
 
-
+    // For auto-expiry scheduler
     @Query("SELECT s FROM SlusanjeAudioKnjige s WHERE s.datumZavrsetka IS NULL AND s.id.datumPocetka < :cutoff")
     List<SlusanjeAudioKnjige> findExpiredActive(@Param("cutoff") LocalDate cutoff);
 
-
+    // Check if user has active audio loan for this isbn
     @Query("SELECT COUNT(s) > 0 FROM SlusanjeAudioKnjige s WHERE s.id.jmbgClana = :jmbg AND s.id.isbnAudioKnjige = :isbn AND s.datumZavrsetka IS NULL AND s.id.datumPocetka >= :cutoff")
     boolean hasActiveLoan(@Param("jmbg") String jmbg, @Param("isbn") String isbn, @Param("cutoff") LocalDate cutoff);
 }

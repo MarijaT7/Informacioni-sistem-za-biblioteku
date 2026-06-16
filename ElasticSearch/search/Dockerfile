@@ -21,12 +21,25 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends tesseract-ocr tesseract-ocr-all \
     && rm -rf /var/lib/apt/lists/*
 
+# resolve the real tessdata directory installed by apt (version-numbered subdir varies by release)
+RUN TESSDATA_DIR=$(dirname "$(find / -name 'eng.traineddata' -print -quit 2>/dev/null)") \
+    && echo "OCR_TESSDATA_PATH=${TESSDATA_DIR}" > /etc/tessdata.env \
+    && test -n "${TESSDATA_DIR}" && test -d "${TESSDATA_DIR}"
+
 # non-root user
 RUN groupadd -r spring && useradd -r -g spring spring
-USER spring
 
 COPY --from=builder /app/target/*.jar app.jar
 
+# bake the discovered tessdata path into a startup script (env files aren't auto-sourced by `java -jar`)
+RUN echo '#!/bin/sh' > /app/entrypoint.sh \
+    && cat /etc/tessdata.env | sed 's/^/export /' >> /app/entrypoint.sh \
+    && echo 'exec java -jar app.jar' >> /app/entrypoint.sh \
+    && chmod +x /app/entrypoint.sh \
+    && chown -R spring:spring /app
+
+USER spring
+
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["/app/entrypoint.sh"]

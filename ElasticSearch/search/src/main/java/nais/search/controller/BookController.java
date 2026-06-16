@@ -69,18 +69,18 @@ public class BookController {
 
     @PostMapping(value = "/{recordId}/ocr", consumes = "multipart/form-data")
     public ResponseEntity<?> runOcr(@PathVariable String recordId,
-                                     @RequestPart("pdf") MultipartFile pdf,
+                                     @RequestPart("file") MultipartFile file,
                                      @RequestParam(required = false, defaultValue = "false") boolean force) {
-        if (pdf == null || pdf.isEmpty())
-            return ResponseEntity.badRequest().body("pdf je obavezan");
+        if (file == null || file.isEmpty())
+            return ResponseEntity.badRequest().body("file je obavezan");
 
         try {
-            Optional<Book> result = bookService.runOcr(recordId, pdf.getBytes(), force);
+            Optional<Book> result = bookService.runOcr(recordId, file.getBytes(), force);
             if (result.isEmpty())
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Knjiga ne postoji u indeksu");
             return ResponseEntity.ok(result.get());
         } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Greska prilikom citanja PDF-a");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Greska prilikom citanja fajla");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("OCR neuspesan: " + e.getMessage());
         }

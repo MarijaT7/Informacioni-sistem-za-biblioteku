@@ -69,7 +69,7 @@ public class SearchSyncClient {
     public void requestOcr(String recordId, File pdfFile) {
         try {
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-            body.add("pdf", new FileSystemResource(pdfFile));
+            body.add("file", new FileSystemResource(pdfFile));
 
             restClient.post()
                     .uri("/api/books/{recordId}/ocr", recordId)

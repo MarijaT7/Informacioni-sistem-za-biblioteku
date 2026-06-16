@@ -16,6 +16,11 @@
           <span class="nav-icon">📋</span>
           <span class="nav-label">Dobavljači</span>
         </RouterLink>
+
+        <RouterLink to="/menadzer/predlozi" class="nav-item" active-class="nav-item--active">
+          <span class="nav-icon">📑</span>
+          <span class="nav-label">Predlozi</span>
+        </RouterLink>
       </nav>
 
       <button class="nav-item nav-item--logout" @click="handleLogout">

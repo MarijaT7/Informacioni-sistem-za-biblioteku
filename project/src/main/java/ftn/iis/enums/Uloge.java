@@ -1,5 +1,5 @@
 package ftn.iis.enums;
 
 public enum Uloge {
-    CLAN, BIBLIOTEKAR, ADMINISTRATOR,MENADZER
+    CLAN, BIBLIOTEKAR, ADMINISTRATOR, MENADZER
 }

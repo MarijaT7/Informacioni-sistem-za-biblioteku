@@ -403,7 +403,7 @@ INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2020, '9788617150005'
 INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2016, '9788617150007');
 
 -- dervis i smrt
-INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2014, '9788617150008');
+--INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2014, '9788617150008');
 
 -- necista krv
 INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2019, '9788617150010');

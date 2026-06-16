@@ -118,11 +118,7 @@ public class PozajmicaService {
         return String.format("%02d. %02d. %d", date.getDayOfMonth(), date.getMonthValue(), date.getYear());
     }
 
-    /**
-     * Pozajmljivanje digitalnih knjiga (eKnjiga ili audio).
-     * Kreira CitanjeEKnjige/SlusanjeAudioKnjige zapis ako vec ne postoji aktivna pozajmica.
-     * Nakon toga korisnik se pojavljuje u sekciji "Pozajmice" i biva filtriran iz preporuka.
-     */
+
     @Transactional
     public Map<String, Object> borrowDigital(String jmbg, String isbn, String type) {
         Map<String, Object> result = new HashMap<>();
@@ -232,9 +228,7 @@ public class PozajmicaService {
         return result;
     }
 
-    /**
-     * Vraca sve pozajmice i rezervacije korisnika, ukljucujuci aktivne digitalne pozajmice.
-     */
+
     @Transactional
     public PozajmiceRezervacijeResponseDto getPozajmiceAndRezervacije(String jmbg) {
         PozajmiceRezervacijeResponseDto response = new PozajmiceRezervacijeResponseDto();

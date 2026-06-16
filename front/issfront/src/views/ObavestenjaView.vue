@@ -50,6 +50,8 @@
 import { computed, onMounted, ref } from 'vue'
 import SidebarNav from '../components/Sidebar.vue'
 import { pozajmicaApi } from '../services/api.js'
+import { useAuthStore } from '../stroage/auth.js'
+const authStore = useAuthStore()
 
 const loading = ref(true)
 const obavestenja = ref([])
@@ -60,6 +62,8 @@ const ostala = computed(() => obavestenja.value.filter(o => o.tipO !== 'VRACANJE
 
 onMounted(async () => {
   await loadObavestenja()
+  authStore.setUnreadCount(0)
+  obavestenja.value.forEach(o => o.procitano = true)
 })
 
 async function loadObavestenja() {

@@ -9,6 +9,11 @@ const routes = [
   { path: '/register/step3',component: () => import('../views/RegisterStep3.vue') },
   { path: '/register/genres',component: () => import('../views/FavouriteGenres.vue') },
   {
+      path: '/home',
+      component: () => import('../views/HomeView.vue'),
+      meta: { requiresAuth: true }
+  },
+  {
     path: '/profile',
     component: () => import('../views/UserProfile.vue'),
     meta: { requiresAuth: true }
@@ -39,6 +44,16 @@ const routes = [
   {
     path: '/knjige/:isbn/slusaj',
     component: () => import('../views/BookListenView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/pozajmice',
+    component: () => import('../views/PozajmiceView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/obavestenja',
+    component: () => import('../views/ObavestenjaView.vue'),
     meta: { requiresAuth: true }
   },
   {

@@ -152,14 +152,14 @@ async function posaljiPredlog() {
 }
 
 function statusKlasa(status) {
-  if (status === 'ODOBRENO') return 'status--odobreno'
-  if (status === 'ODBIJENO') return 'status--odbijeno'
+  if (status === 'ODOBRENO_BIBLIOTEKAR') return 'status--odobreno'
+  if (status === 'ODBIJENO_BIBLIOTEKAR') return 'status--odbijeno'
   return 'status--cekanje'
 }
 
 function statusNaziv(status) {
-  if (status === 'ODOBRENO') return 'Odobreno'
-  if (status === 'ODBIJENO') return 'Odbijeno'
+  if (status === 'ODOBRENO_BIBLIOTEKAR') return 'Odobreno'
+  if (status === 'ODBIJENO_BIBLIOTEKAR') return 'Odbijeno'
   return 'Na čekanju'
 }
 

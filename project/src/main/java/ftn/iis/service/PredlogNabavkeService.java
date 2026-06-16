@@ -4,14 +4,15 @@ import ftn.iis.dto.ObradiPredlogDto;
 import ftn.iis.dto.PredlogNabavkaDto;
 import ftn.iis.dto.PredlogNabavkaResponseDto;
 import ftn.iis.enums.StatusPredloga;
-import ftn.iis.enums.Uloge;
 import ftn.iis.exception.NonBiblotekarViewingSuggestionsException;
 import ftn.iis.exception.NonClanGivingSuggestions;
 import ftn.iis.exception.NonClanViewingSuggestions;
 import ftn.iis.exception.NonManagerViewingSuggestionsException;
+import ftn.iis.model.Genre;
 import ftn.iis.model.Notifikacija;
 import ftn.iis.model.PredlogZaNabavku;
 import ftn.iis.model.User;
+import ftn.iis.repository.GenreRepository;
 import ftn.iis.repository.NotifikacijaRepository;
 import ftn.iis.repository.PredlogNabavkaRepository;
 import ftn.iis.repository.UserRepository;
@@ -29,13 +30,16 @@ public class PredlogNabavkeService {
     private final JwtService jwtService;
     private final UserRepository userRepository;
     private final NotifikacijaRepository notifikacijaRepository;
+    private final GenreRepository genreRepository;
 
     public PredlogNabavkeService(PredlogNabavkaRepository predlogNabavkaRepository, JwtService jwtService,
-                                 UserRepository userRepository, NotifikacijaRepository notifikacijaRepository){
+                                 UserRepository userRepository, NotifikacijaRepository notifikacijaRepository,
+                                 GenreRepository genreRepository){
         this.predlogNabavkaRepository = predlogNabavkaRepository;
         this.jwtService = jwtService;
         this.userRepository = userRepository;
         this.notifikacijaRepository = notifikacijaRepository;
+        this.genreRepository= genreRepository;
     }
 
     @Transactional
@@ -92,7 +96,7 @@ public class PredlogNabavkeService {
         }
 
         List<PredlogZaNabavku> predlozi = predlogNabavkaRepository
-                .findAllByStatusOrderByDatumPodnosenjaDesc(StatusPredloga.ODOBRENO);
+                .findAllByStatusOrderByDatumPodnosenjaDesc(StatusPredloga.ODOBRENO_BIBLIOTEKAR);
 
         List<PredlogNabavkaResponseDto> dtos = new ArrayList<>();
         for (PredlogZaNabavku predlog : predlozi) {
@@ -147,17 +151,34 @@ public class PredlogNabavkeService {
 
         StatusPredloga noviStatus = StatusPredloga.valueOf(dto.getStatus().toUpperCase());
 
-        if (noviStatus == StatusPredloga.ODBIJENO &&
+        if (noviStatus == StatusPredloga.ODBIJENO_BIBLIOTEKAR &&
                 (dto.getObrazlozenje() == null || dto.getObrazlozenje().isBlank())) {
             throw new RuntimeException("Obrazloženje je obavezno pri odbijanju.");
         }
 
+        if (noviStatus == StatusPredloga.ODOBRENO_BIBLIOTEKAR) {
+            if (dto.getZanrId() == null) {
+                throw new RuntimeException("Žanr je obavezan pri odobravanju.");
+            }
+            if (dto.getOkvirnaCena() == null || dto.getOkvirnaCena() <= 0) {
+                throw new RuntimeException("Okvirna cena je obavezna pri odobravanju.");
+            }
+
+            Genre zanr = genreRepository.findById(dto.getZanrId())
+                    .orElseThrow(() -> new RuntimeException("Žanr nije pronađen."));
+
+            predlog.setZanr(zanr);
+            predlog.setOkvirnaCena(dto.getOkvirnaCena());
+        }
+
         predlog.setStatus(noviStatus);
-        predlog.setObrazlozenje(dto.getObrazlozenje());
+        predlog.setObrazlozenje_bibliotekara(dto.getObrazlozenje());
+
+
         predlogNabavkaRepository.save(predlog);
 
         String poruka;
-        if (noviStatus == StatusPredloga.ODOBRENO) {
+        if (noviStatus == StatusPredloga.ODOBRENO_BIBLIOTEKAR) {
             poruka = "Vaš predlog za nabavku knjige \"" + predlog.getNaslov() + "\" je odobren i uvršten u plan nabavke.";
         } else {
             poruka = "Vaš predlog za nabavku knjige \"" + predlog.getNaslov() + "\" je odbijen. Razlog: " + dto.getObrazlozenje();
@@ -177,7 +198,7 @@ public class PredlogNabavkeService {
         dto.setAutor(p.getAutor());
         dto.setDatumPodnosenja(p.getDatumPodnosenja());
         dto.setStatus(p.getStatus());
-        dto.setObrazlozenje(p.getObrazlozenje());
+        dto.setObrazlozenje(p.getObrazlozenje_bibliotekara());
         dto.setKorisnikIme(p.getKorisnik().getFirstName());
         dto.setKorisnikPrezime(p.getKorisnik().getLastName());
         return dto;

@@ -62,14 +62,29 @@
         <div v-if="predlogZaOdobravanje" class="modal-overlay" @click.self="predlogZaOdobravanje = null">
           <div class="modal animated-scale-up">
             <h2>Odobravanje predloga</h2>
-            <p>Da li ste sigurni da želite da odobrite predlog za knjigu <strong class="istaknuto">{{ predlogZaOdobravanje.naslov }}</strong>?</p>
-            
+            <p>Odobravate predlog za knjigu <strong class="istaknuto">{{ predlogZaOdobravanje.naslov }}</strong>.</p>
+
+            <div class="form-group">
+              <label>Žanr knjige</label>
+              <select v-model="izabraniZanrId">
+                <option :value="null" disabled>Izaberite žanr</option>
+                <option v-for="z in zanrovi" :key="z.id" :value="z.id">
+                  {{ z.name }}
+                </option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Okvirna cena (RSD)</label>
+              <input v-model="okvirnaCena" type="number" min="0" step="0.01" placeholder="npr. 1500" />
+            </div>
+
             <div v-if="modalError" class="alert alert--error">
               <span class="alert-icon">⚠️</span> {{ modalError }}
             </div>
-            
+
             <div class="modal-akcije">
-              <button class="btn-primary" @click="obradiPredlog('ODOBRENO')">Da, odobri</button>
+              <button class="btn-primary" @click="obradiPredlog('ODOBRENO_BIBLIOTEKAR')">Da, odobri</button>
               <button class="btn-sekundarni" @click="predlogZaOdobravanje = null">Odustani</button>
             </div>
           </div>
@@ -94,7 +109,7 @@
             </div>
             
             <div class="modal-akcije">
-              <button class="btn-primary btn-primary--danger" @click="obradiPredlog('ODBIJENO')">Odbij predlog</button>
+              <button class="btn-primary btn-primary--danger" @click="obradiPredlog('ODBIJENO_BIBLIOTEKAR')">Odbij predlog</button>
               <button class="btn-sekundarni" @click="zatvoriOdbijanje">Odustani</button>
             </div>
           </div>
@@ -107,6 +122,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { predlogApi } from '../services/api.js'
+import { publicApi } from '../services/api.js'
 import SidebarNav from '../components/Sidebar.vue'
 
 const predlozi = ref([])
@@ -116,6 +132,10 @@ const modalError = ref('')
 const predlogZaOdobravanje = ref(null)
 const predlogZaOdbijanje = ref(null)
 const obrazlozenje = ref('')
+
+const zanrovi = ref([])
+const izabraniZanrId = ref(null)
+const okvirnaCena = ref('')
 
 async function ucitaj() {
   loading.value = true
@@ -130,9 +150,19 @@ async function ucitaj() {
   }
 }
 
+async function ucitajZanrove() {
+  try {
+    const res = await publicApi.getGenres()
+    zanrovi.value = res.data
+  } catch (e) {
+  }
+}
+
 function otvoriOdobravanje(p) {
   predlogZaOdobravanje.value = p
   modalError.value = ''
+  izabraniZanrId.value = null
+  okvirnaCena.value = ''
 }
 
 function otvoriOdbijanje(p) {
@@ -150,17 +180,30 @@ function zatvoriOdbijanje() {
 async function obradiPredlog(status) {
   modalError.value = ''
 
-  const predlog = status === 'ODOBRENO' ? predlogZaOdobravanje.value : predlogZaOdbijanje.value
+  const predlog = status === 'ODOBRENO_BIBLIOTEKAR' ? predlogZaOdobravanje.value : predlogZaOdbijanje.value
 
-  if (status === 'ODBIJENO' && !obrazlozenje.value.trim()) {
+  if (status === 'ODBIJENO_BIBLIOTEKAR' && !obrazlozenje.value.trim()) {
     modalError.value = 'Razlog odbijanja je obavezan.'
     return
+  }
+
+  if (status === 'ODOBRENO_BIBLIOTEKAR') {
+    if (!izabraniZanrId.value) {
+      modalError.value = 'Žanr je obavezan.'
+      return
+    }
+    if (!okvirnaCena.value || okvirnaCena.value <= 0) {
+      modalError.value = 'Okvirna cena je obavezna.'
+      return
+    }
   }
 
   try {
     await predlogApi.obradiPredlog(predlog.id, {
       status,
-      obrazlozenje: status === 'ODBIJENO' ? obrazlozenje.value : null
+      obrazlozenje: status === 'ODBIJENO_BIBLIOTEKAR' ? obrazlozenje.value : null,
+      zanrId: status === 'ODOBRENO_BIBLIOTEKAR' ? izabraniZanrId.value : null,
+      okvirnaCena: status === 'ODOBRENO_BIBLIOTEKAR' ? Number(okvirnaCena.value) : null
     })
     predlogZaOdobravanje.value = null
     predlogZaOdbijanje.value = null
@@ -170,11 +213,14 @@ async function obradiPredlog(status) {
   }
 }
 
-onMounted(ucitaj)
+onMounted(() => {
+  ucitaj()
+  ucitajZanrove()
+})
+
 </script>
 
 <style scoped>
-/* Prilagođeno punoj širini stranice */
 .predlozi-wrapper { 
   width: 100%; 
   max-width: 100%;
@@ -182,7 +228,6 @@ onMounted(ucitaj)
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* Pozicioniranje i boje zaglavlja sa slike */
 .page-header { 
   margin-bottom: 2rem; 
   width: 100%;
@@ -196,7 +241,7 @@ onMounted(ucitaj)
   font-size: 2.25rem; 
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: #3f4e37; /* Tamno zeleni tekst sa slika */
+  color: #3f4e37;
 }
 .subtitle { 
   color: #556644; 
@@ -205,7 +250,7 @@ onMounted(ucitaj)
   opacity: 0.85;
 }
 
-/* USKLAĐENO: Čisto bela pozadina i jače zaobljene ivice za tabelu */
+
 .table-wrapper { 
   background: #ffffff !important;
   border: none; 
@@ -216,7 +261,7 @@ onMounted(ucitaj)
 }
 
 .tabla { width: 100%; border-collapse: collapse; font-size: 0.95rem; text-align: left; }
-.tabla thead { background: #f4f6f0; } /* Svetlo zelenkasti podton za zaglavlje */
+.tabla thead { background: #f4f6f0; }
 .tabla th {
   padding: 1.1rem 1.5rem; 
   font-weight: 600;
@@ -235,14 +280,12 @@ onMounted(ucitaj)
 .tabla tbody tr { transition: background-color 0.15s ease; }
 .tabla tbody tr:hover { background: #f9faf7; }
 
-/* Tipografija u kolonama */
 .td-korisnik { font-weight: 500; color: #556644; }
 .td-naslov { font-weight: 600; color: #3f4e37; }
 .td-autor { color: #666666; }
 .td-datum { color: #666666; font-size: 0.9rem; }
 .text-center { text-align: center; }
 
-/* Poravnanje i stil dugmadi unutar tabele */
 .akcije { 
   display: flex; 
   gap: 0.65rem; 
@@ -251,7 +294,7 @@ onMounted(ucitaj)
 
 .btn-akcija {
   padding: 0.45rem 1rem; 
-  border-radius: 50px; /* Zaobljeni "pill" oblik dugmadi */
+  border-radius: 50px; 
   font-size: 0.825rem;
   font-weight: 600; 
   border: none; 
@@ -278,12 +321,11 @@ onMounted(ucitaj)
   transform: translateY(-1px);
 }
 
-/* Modali sa punom belom pozadinom i ivicama od 20px */
 .modal-overlay {
   position: fixed; 
   inset: 0; 
-  background: rgba(63, 78, 55, 0.4); /* Maslinasto tonirana zatamnjena pozadina overlay-a */
-  backdrop-filter: blur(4px); /* Blago zamućenje pozadine */
+  background: rgba(63, 78, 55, 0.4); 
+  backdrop-filter: blur(4px); 
   display: flex; 
   align-items: center; 
   justify-content: center; 
@@ -315,7 +357,6 @@ onMounted(ucitaj)
   font-weight: 600;
 }
 
-/* Polje za unos teksta u modalu */
 .form-group textarea {
   width: 100%; 
   padding: 0.85rem 1rem; 
@@ -336,6 +377,36 @@ onMounted(ucitaj)
   box-shadow: 0 0 0 4px rgba(122, 143, 110, 0.15);
 }
 
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+.form-group label {
+  font-size: 0.9rem;
+  color: #556644;
+  font-weight: 500;
+}
+.form-group select,
+.form-group input {
+  padding: 0.65rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  color: #333;
+  background: #f8fafc;
+  font-family: inherit;
+  outline: none;
+  transition: all 0.2s ease;
+}
+.form-group select:focus,
+.form-group input:focus {
+  border-color: #7a8f6e;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(122, 143, 110, 0.15);
+}
+
 /* Dugmad u modalu */
 .modal-akcije { 
   display: flex; 
@@ -345,7 +416,7 @@ onMounted(ucitaj)
 }
 
 .btn-primary {
-  background: #7a8f6e; /* Glavna maslinasta sa "Pretraži" dugmeta */
+  background: #7a8f6e;
   color: #fff; 
   border: none; 
   border-radius: 12px;
@@ -384,7 +455,6 @@ onMounted(ucitaj)
   border-color: #cbd5e1;
 }
 
-/* Greške i obaveštenja unutar modala */
 .alert { 
   padding: 0.85rem 1.25rem; 
   border-radius: 10px; 
@@ -396,7 +466,6 @@ onMounted(ucitaj)
 }
 .alert--error { background: rgba(220, 38, 38, 0.08); color: #dc2626; }
 
-/* Stanja ekrana (Loading, Error, Empty) */
 .state-msg { 
   text-align: center; 
   padding: 4rem 2rem; 
@@ -414,7 +483,6 @@ onMounted(ucitaj)
 .state-icon { font-size: 2.5rem; }
 .state-msg--error { color: #dc2626; }
 
-/* Spinner */
 .spinner {
   width: 30px; 
   height: 30px;
@@ -425,7 +493,6 @@ onMounted(ucitaj)
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* Glatke animacije pojavljivanja */
 .animated-fade-in { animation: fadeIn 0.35s ease-out; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 

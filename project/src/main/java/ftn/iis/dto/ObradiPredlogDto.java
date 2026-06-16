@@ -5,8 +5,9 @@ import jakarta.validation.constraints.NotBlank;
 public class ObradiPredlogDto {
     @NotBlank(message = "Status je obavezan.")
     private String status;
-
-    private String obrazlozenje;
+    private String obrazlozenje;      // obavezno ako ODBIJENO_BIBLIOTEKAR
+    private Long zanrId;              // obavezno ako ODOBRENO_BIBLIOTEKAR
+    private Double okvirnaCena;       // obavezno ako ODOBRENO_BIBLIOTEKAR
 
     public ObradiPredlogDto() {}
 
@@ -24,5 +25,21 @@ public class ObradiPredlogDto {
 
     public void setObrazlozenje(String obrazlozenje) {
         this.obrazlozenje = obrazlozenje;
+    }
+
+    public Double getOkvirnaCena() {
+        return okvirnaCena;
+    }
+
+    public void setOkvirnaCena(Double okvirnaCena) {
+        this.okvirnaCena = okvirnaCena;
+    }
+
+    public Long getZanrId() {
+        return zanrId;
+    }
+
+    public void setZanrId(Long zanrId) {
+        this.zanrId = zanrId;
     }
 }

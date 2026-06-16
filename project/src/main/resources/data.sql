@@ -474,21 +474,24 @@ INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
 INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
 ('9788617150010', 4), ('9788617150010', 5), ('9788617150010', 10);
 
+
+-- zan
+
 -- Predlozi za nabavku
-INSERT INTO predlog_za_nabavku (korisnik_jmbg, naslov, autor, datum_podnosenja, status, obrazlozenje)
-VALUES ('1234567891234', 'Duna', 'Frank Herbert', '2026-01-10', 'NA_CEKANJU', NULL);
+INSERT INTO predlog_za_nabavku (korisnik_jmbg, naslov, autor, datum_podnosenja, status)
+VALUES ('1234567891234', 'Duna', 'Frank Herbert', '2026-01-10', 'NA_CEKANJU');
 
-INSERT INTO predlog_za_nabavku (korisnik_jmbg, naslov, autor, datum_podnosenja, status, obrazlozenje)
-VALUES ('1234567891234', 'Majstor i Margarita', 'Mihail Bulgakov', '2026-02-15', 'ODOBRENO', NULL);
+INSERT INTO predlog_za_nabavku (korisnik_jmbg, naslov, autor, datum_podnosenja, status, obrazlozenje_bibliotekara, zanr_id, okvirna_cena)
+VALUES ('1234567891234', 'Majstor i Margarita', 'Mihail Bulgakov', '2026-02-15', 'ODOBRENO_BIBLIOTEKAR', NULL, 10, 1200.00);
 
-INSERT INTO predlog_za_nabavku (korisnik_jmbg, naslov, autor, datum_podnosenja, status, obrazlozenje)
-VALUES ('1234567891234', '1984', 'Dzordz Orvel', '2026-02-22', 'NA_CEKANJU', NULL);
+INSERT INTO predlog_za_nabavku (korisnik_jmbg, naslov, autor, datum_podnosenja, status)
+VALUES ('1234567891234', '1984', 'Dzordz Orvel', '2026-02-22', 'NA_CEKANJU');
 
-INSERT INTO predlog_za_nabavku (korisnik_jmbg, naslov, autor, datum_podnosenja, status, obrazlozenje)
-VALUES ('1234567891234', 'Zlocin i kazna', 'Fjodor Mihailovič Dostojevski', '2025-10-20', 'NA_CEKANJU', NULL);
+INSERT INTO predlog_za_nabavku (korisnik_jmbg, naslov, autor, datum_podnosenja, status, obrazlozenje_bibliotekara, zanr_id, okvirna_cena)
+VALUES ('1234567891234', 'Zlocin i kazna', 'Fjodor Mihailovič Dostojevski', '2025-10-20', 'ODOBRENO_BIBLIOTEKAR', NULL, 10, 1500.00);
 
-INSERT INTO predlog_za_nabavku (korisnik_jmbg, naslov, autor, datum_podnosenja, status, obrazlozenje)
-VALUES ('1234567891234', 'Fifty Shades of Grey', 'E.L. James', '2026-03-01', 'ODBIJENO', 'Knjiga nije primerena za biblioteku.');
+INSERT INTO predlog_za_nabavku (korisnik_jmbg, naslov, autor, datum_podnosenja, status, obrazlozenje_bibliotekara)
+VALUES ('1234567891234', 'Fifty Shades of Grey', 'E.L. James', '2026-03-01', 'ODBIJENO_BIBLIOTEKAR', 'Knjiga nije primerena za biblioteku.');
 
 -- Notifikacije
 INSERT INTO notifikacija (korisnik_jmbg, poruka, datum, procitana)
@@ -496,3 +499,19 @@ VALUES ('1234567891234', 'Vaš predlog za nabavku knjige "Majstor i Margarita" j
 
 INSERT INTO notifikacija (korisnik_jmbg, poruka, datum, procitana)
 VALUES ('1234567891234', 'Vaš predlog za nabavku knjige "Fifty Shades of Grey" je odbijen. Razlog: Knjiga nije primerena za biblioteku.', '2026-03-02 09:30:00', false);
+
+INSERT INTO notifikacija (korisnik_jmbg, poruka, datum, procitana)
+VALUES ('1234567891234', 'Vaš predlog za nabavku knjige "Zlocin i kazna" je odobren i uvršten u plan nabavke.', '2026-02-11 10:00:00', false);
+
+
+-- Budzeti po zanru
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno) VALUES (1, 10000.00, 2000.00 );
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno) VALUES (2, 15000.00, 4500.50);
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno) VALUES (3, 8000.00, 1200.00);
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno) VALUES (4, 25000.00, 18750.00);
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno) VALUES (5, 12000.00, 0.00);
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno) VALUES (6, 6500.00, 3100.25);
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno) VALUES (7, 18500.00, 9200.00);
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno) VALUES (8, 5000.00, 4800.00);
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno) VALUES (9, 30000.00, 11500.75);
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno) VALUES (10, 14000.00, 5600.00);

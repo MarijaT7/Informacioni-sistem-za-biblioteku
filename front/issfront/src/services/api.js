@@ -142,6 +142,11 @@ export const predlogApi = {
   predloziNaCekanju: ()    => api.get('/predlozi/na-cekanju'),
   odobreniPredlozi: ()     => api.get('/predlozi/odobreni'),
   obradiPredlog:    (id, data) => api.patch(`/predlozi/obradi/${id}`, data),
+  obradiPredlogMenadzer(id, odobren) {
+    return api.put(`/predlozi/${id}/obrada-menadzer`, {
+        odobren
+    })
+  }
 }
 
 // ── Notifikacije ─────────────────────── ───────────────────────────

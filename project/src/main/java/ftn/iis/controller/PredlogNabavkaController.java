@@ -1,8 +1,6 @@
 package ftn.iis.controller;
 
-import ftn.iis.dto.ObradiPredlogDto;
-import ftn.iis.dto.PredlogNabavkaDto;
-import ftn.iis.dto.PredlogNabavkaResponseDto;
+import ftn.iis.dto.*;
 import ftn.iis.service.PredlogNabavkeService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -37,7 +35,7 @@ public class PredlogNabavkaController {
     }
 
     @GetMapping("/odobreni")
-    public ResponseEntity<List<PredlogNabavkaResponseDto>> odobreniPredlozi(
+    public ResponseEntity<List<PredlogNabavkaZaMenadzeraDto>> odobreniPredlozi(
             @RequestHeader("Authorization") String authHeader) {
         return ResponseEntity.ok(predlogNabavkeService.odobreniPredlozi(authHeader.substring(7)));
     }
@@ -54,5 +52,13 @@ public class PredlogNabavkaController {
             @PathVariable Long id,
             @RequestBody @Valid ObradiPredlogDto dto) {
         return ResponseEntity.ok(predlogNabavkeService.obradiPredlog(authHeader.substring(7), id, dto));
+    }
+
+    @PutMapping("/{id}/obrada-menadzer")
+    public ResponseEntity<?> obradiPredlogMenadzer(@RequestHeader("Authorization") String authHeader,
+                                                   @PathVariable Long id, @RequestBody ObradaPredlogaMenadzerDto dto){
+        String token = authHeader.substring(7);
+        predlogNabavkeService.obradiPredlogMenadzer(token, id, dto);
+        return ResponseEntity.ok().build();
     }
 }

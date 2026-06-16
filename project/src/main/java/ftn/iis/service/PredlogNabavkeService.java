@@ -1,9 +1,8 @@
 package ftn.iis.service;
 
-import ftn.iis.dto.ObradiPredlogDto;
-import ftn.iis.dto.PredlogNabavkaDto;
-import ftn.iis.dto.PredlogNabavkaResponseDto;
+import ftn.iis.dto.*;
 import ftn.iis.enums.StatusPredloga;
+import ftn.iis.enums.Uloge;
 import ftn.iis.exception.NonBiblotekarViewingSuggestionsException;
 import ftn.iis.exception.NonClanGivingSuggestions;
 import ftn.iis.exception.NonClanViewingSuggestions;
@@ -84,7 +83,7 @@ public class PredlogNabavkeService {
 
     //menadžer vidi odobrene predloge
     @Transactional
-    public List<PredlogNabavkaResponseDto> odobreniPredlozi(String token) {
+    public List<PredlogNabavkaZaMenadzeraDto> odobreniPredlozi(String token) {
         // Validacija da li clan postoji
         String jmbg = jwtService.extractJmbg(token);
         User korisnik = userRepository.findById(jmbg)
@@ -98,16 +97,16 @@ public class PredlogNabavkeService {
         List<PredlogZaNabavku> predlozi = predlogNabavkaRepository
                 .findAllByStatusOrderByDatumPodnosenjaDesc(StatusPredloga.ODOBRENO_BIBLIOTEKAR);
 
-        List<PredlogNabavkaResponseDto> dtos = new ArrayList<>();
+        List<PredlogNabavkaZaMenadzeraDto> dtos = new ArrayList<>();
         for (PredlogZaNabavku predlog : predlozi) {
-            dtos.add(mapirajUDto(predlog));
+            dtos.add(mapirajUDtoMenadzera(predlog));
         }
 
         return dtos;
-    }
+}
 
-    //bibliotekar vidi predloge na čekanju
-    @Transactional
+//bibliotekar vidi predloge na čekanju
+@Transactional
     public List<PredlogNabavkaResponseDto> predloziNaCekanju(String token) {
         // Validacija da li clan postoji
         String jmbg = jwtService.extractJmbg(token);
@@ -190,6 +189,36 @@ public class PredlogNabavkeService {
         return mapirajUDto(predlog);
     }
 
+    @Transactional
+    public void obradiPredlogMenadzer(String token, Long predlogId, ObradaPredlogaMenadzerDto dto){
+
+        // Validacija da li clan postoji
+        String jmbg = jwtService.extractJmbg(token);
+        User korisnik = userRepository.findById(jmbg)
+                .orElseThrow(() -> new RuntimeException("Korisnik nije pronađen."));
+
+        String uloga = jwtService.extractRole(token);
+        if (!uloga.equalsIgnoreCase("MENADZER")) {
+            throw new RuntimeException("Samo menadzer može da odobrava nabavke.");
+        }
+
+        PredlogZaNabavku predlog = predlogNabavkaRepository.findById(predlogId)
+                .orElseThrow(() -> new RuntimeException("Predlog nije pronađen."));
+
+        if (predlog.getStatus() != StatusPredloga.ODOBRENO_BIBLIOTEKAR) {
+            throw new RuntimeException("Predlog nije odobren od strane bibliotekara.");
+        }
+
+        if(dto.getOdobren()){
+            predlog.setStatus(StatusPredloga.ODOBRENO_MENADZER);
+        }
+        else{
+            predlog.setStatus(StatusPredloga.ODBIJENO_MENADZER);
+        }
+
+        predlogNabavkaRepository.save(predlog);
+    }
+
     // Pomocna funkcijica
     private PredlogNabavkaResponseDto mapirajUDto(PredlogZaNabavku p) {
         PredlogNabavkaResponseDto dto = new PredlogNabavkaResponseDto();
@@ -204,4 +233,16 @@ public class PredlogNabavkeService {
         return dto;
     }
 
+    private PredlogNabavkaZaMenadzeraDto mapirajUDtoMenadzera (PredlogZaNabavku p){
+        PredlogNabavkaZaMenadzeraDto dto = new PredlogNabavkaZaMenadzeraDto();
+        dto.setId(p.getId());
+        dto.setNaslov(p.getNaslov());
+        dto.setAutor(p.getAutor());
+        dto.setDatumPodnosenja(p.getDatumPodnosenja());
+        dto.setKorisnikIme(p.getKorisnik().getFirstName());
+        dto.setKorisnikPrezime(p.getKorisnik().getLastName());
+        dto.setOkvirnaCena(p.getOkvirnaCena());
+        dto.setZanrNaziv(p.getZanr().getName());
+        return dto;
+    }
 }

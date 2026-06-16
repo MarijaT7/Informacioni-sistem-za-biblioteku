@@ -126,6 +126,10 @@ export const pozajmicaApi = {
   rezervisi:         (isbn)      => api.post(`/pozajmice/rezervisi/${isbn}`),
   getMoje:           ()          => api.get('/pozajmice/moje'),
   produzenje:        (idP)       => api.post(`/pozajmice/produzenje/${idP}`),
+  produzenjaNaCekanju:    ()                    => api.get('/pozajmice/produzenja/na-cekanju'),
+  obradiProduzenje:       (idPP, approve, razlog) => api.post(`/pozajmice/produzenja/${idPP}/obradi`, null, {
+      params: { approve, razlog: razlog || '' }
+  }),
   izgubljena:        (idP)       => api.post(`/pozajmice/izgubljena/${idP}`),
   izRezervacije:     (idR)       => api.post(`/pozajmice/iz-rezervacije/${idR}`),
   getDostupno:       (isbn)      => api.get(`/pozajmice/dostupno/${isbn}`),

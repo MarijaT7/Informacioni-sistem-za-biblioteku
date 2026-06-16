@@ -268,7 +268,7 @@ INSERT INTO korisnik (
     'Srdjan',
     'Sancanin',
     '1995-02-25',
-    '$2a$10$MxNR56RCAjGZjfexyE7ThuOVZKtmsHBU5tABCp9T3lylkG4FVJpX.',
+    '$2a$10$MxNR56RCAjGZjfexyE7ThuOVZKtmsHBU5tABCp9T3lylkG4FVJpX.', --testtest
     'check@not.here',
     '0611636913',
     'BIBLIOTEKAR',

@@ -32,6 +32,14 @@ const routes = [
     }
   },
   {
+      path: '/produzenja-na-cekanju',
+      component: () => import('../views/ProduzenjaNaCekanjuView.vue'),
+      beforeEnter: () => {
+          const auth = useAuthStore()
+          return auth.getRole() === 'BIBLIOTEKAR' ? true : '/'
+      }
+  },
+  {
     path: '/knjige/:isbn',
     component: () => import('../views/BookDetailView.vue'),
     meta: { requiresAuth: true }

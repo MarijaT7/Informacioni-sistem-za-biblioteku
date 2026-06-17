@@ -622,8 +622,8 @@ INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmb
 VALUES ('2026-06-17', NULL, '2026-07-01', TRUE, 2, '1234567891237');
 
 -- "Gorski vijenac"
-INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
-VALUES ('2026-06-17', NULL, '2026-07-01', TRUE, 10, '1234567891237');
+--INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+--VALUES ('2026-06-17', NULL, '2026-07-01', TRUE, 10, '1234567891237');
 
 -- "Hazarski rečnik"
 INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)

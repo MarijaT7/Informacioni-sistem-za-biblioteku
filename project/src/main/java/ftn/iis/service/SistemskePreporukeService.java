@@ -23,7 +23,6 @@ public class SistemskePreporukeService {
     private final PozajmicaRepository pozajmicaRepository;
 
     private static final int BROJ_DANA_ANALIZE = 30;
-    private static final int PRAG_POZAJMICA = 2;        // knjiga mora imati 3+ pozajmice
 
     public SistemskePreporukeService(SistemskePreporukeRepository sistemskePreporukeRepository, FizickaKnjigaRepository fizickaKnjigaRepository,
                                      PozajmicaRepository pozajmicaRepository) {
@@ -46,7 +45,7 @@ public class SistemskePreporukeService {
             Integer brPozajmica = pozajmicaRepository.countByIsbnAndDatPozAfter(isbn, od);
             Integer brPrimeraka = fizickaKnjigaRepository.countPrimerciByIsbn(isbn);
 
-            if (brPozajmica >= PRAG_POZAJMICA) {
+            if (brPozajmica >= brPrimeraka/2 && brPrimeraka > 0) {
                 boolean vecPostojiPreporuka = sistemskePreporukeRepository.existsByFizickaKnjigaIsbnAndStatus(isbn, StatusSistemskePreporuke.AKTIVNA);
                 if (!vecPostojiPreporuka) {
                     String predlog = generisiTekstPreporuke(brPozajmica, brPrimeraka);
@@ -78,12 +77,10 @@ public class SistemskePreporukeService {
     // pomocne metodice ~~~
 
     private String generisiTekstPreporuke(int pozajmice, int primerci) {
-        if (pozajmice > 10 && primerci < 3) {
-            return "Visok broj rezervacija uz mali broj primeraka — preporučuje se hitna nabavka.";
-        } else if (pozajmice >= PRAG_POZAJMICA * 2) {
-            return "Knjiga beleži nagli porast pozajmica — preporučuje se nabavka dodatnih primeraka.";
+        if (pozajmice == primerci) {
+            return "Jednak broj pozajmica i primeraka — preporučuje se hitna nabavka.";
         } else {
-            return "Povećana potražnja — razmotrite nabavku dodatnih primeraka.";
+            return "Knjiga beleži nagli porast pozajmica — preporučuje se nabavka dodatnih primeraka.";
         }
     }
 

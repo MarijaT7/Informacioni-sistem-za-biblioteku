@@ -156,4 +156,39 @@ export const notifikacijaApi = {
   brojNeprocitanih:    ()    => api.get('/notifikacije/broj-neprocitanih'),
 }
 
+// ── MARC ─────────────────────────────────────────────────────────────
+export const marcApi = {
+  zapis: (isbn) => api.get(`/marc/${isbn}`),
+}
+
+// ── Autokatalogizacija (BIBLIOTEKAR) ────────────────────────────────────
+export const autokatalogApi = {
+  katalogizuj: (data) => api.post('/knjiga/autokatalog', data),
+}
+
+// ── Pretraga / Elastic (OCR + fulltext) ─────────────────────────────────
+export const searchApi = {
+  poIsbn:        (isbn) => searchApi_.get(`/books/by-isbn/${isbn}`),
+  poRecordId:    (recordId) => searchApi_.get(`/books/${recordId}`),
+  fulltext:      (query) => searchApi_.get('/books/fulltext-search', { params: { query } }),
+  pokreniOcr:    (recordId, file, force = false) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    return searchApi_.post(`/books/${recordId}/ocr`, formData, {
+      params: { force },
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+  },
+}
+
+// ── Medjubibliotecke pozajmice (ILL requests) ───────────────────────────
+export const requestApi = {
+  incoming:  (libraryId) => requestApi_.get(`/requests/incoming/${libraryId}`),
+  outgoing:  (libraryId) => requestApi_.get(`/requests/outgoing/${libraryId}`),
+  jedan:     (id) => requestApi_.get(`/requests/${id}`),
+  kreiraj:   (data) => requestApi_.post('/requests', data),
+  azuriraj:  (id, data) => requestApi_.put(`/requests/${id}`, data),
+  otkazi:    (id) => requestApi_.post(`/requests/${id}/cancel`),
+}
+
 export default api

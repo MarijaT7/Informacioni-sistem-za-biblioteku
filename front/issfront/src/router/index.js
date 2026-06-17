@@ -111,7 +111,22 @@ const routes = [
       component: () => import('../views/KatalogDetaljiView.vue'),
       meta: { requiresAuth: true }
     },
-
+    {
+    path: '/ocr',
+    component: () => import('../views/OcrView.vue'),
+    beforeEnter: () => {
+      const auth = useAuthStore()
+      return auth.getRole() === 'BIBLIOTEKAR' ? true : '/'
+    }
+  },
+  {
+    path: '/zahtevi',
+    component: () => import('../views/RequestInboxView.vue'),
+    beforeEnter: () => {
+      const auth = useAuthStore()
+      return auth.isLibrarianOrAdmin() ? true : '/'
+    }
+    },
   {
   path: '/menadzer',
   component: () => import('../views/menadzer/AppLayout.vue'),

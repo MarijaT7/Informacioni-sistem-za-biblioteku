@@ -20,6 +20,7 @@ INSERT INTO fizicka_knjiga (isbn)
 VALUES ('9788617150001');
 
 
+
 -- KNJIGA 2: Samo E-Knjiga
 INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis, katalog_id, deleted, tip_knjige, autor)
 VALUES ('9788617150002', 'Prokleta avlija', './src/main/resources/knjige/naslovne/avlija.jpg', 'Priča o zatvorenicima u istanbulskom zatvoru.', 1, FALSE, '010', 'Ivo Andrić');
@@ -531,6 +532,8 @@ VALUES ('1234567891234', '18207995', 1, '2026-02-20');
 INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2010, '9788617150001');
 INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2015, '9788617150001');
 
+
+
 --gorski vijenac
 INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2012, '9788617150004');
 
@@ -596,8 +599,8 @@ INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmb
 VALUES ('2026-04-20', '2026-04-30', '2026-05-04', FALSE, 7, '1234567891234');
 
 -- Pozajmica 6: "Na Drini ćuprija" (drugi primerak) – aktivna pozajmica (maj 2026, rok jun 2026)
-INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
-VALUES ('2026-05-30', NULL, '2026-06-18', TRUE, 2, '1234567891234');
+--INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+--VALUES ('2026-05-30', NULL, '2026-06-18', TRUE, 2, '1234567891234');
 
 -- Pozajmica 7: "Na Drini ćuprija"
 INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
@@ -614,6 +617,14 @@ VALUES ('2026-06-17', NULL, '2026-07-01', TRUE, 4, '1234567891234');
 -- Na Drini ćuprija (Andrić) -> Istorijski romani, Domaći pisci, Klasici
 INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
 ('9788617150001', 9), ('9788617150001', 4), ('9788617150001', 10);
+INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis, katalog_id, deleted, tip_knjige, autor)
+VALUES ('4588617150001', 'Gospodar Prstenova', './src/main/resources/knjige/naslovne/tolkin.png', 'Fantastican serijal', 1, FALSE, '100', 'Dz. R. R. Tolkin');
+INSERT INTO fizicka_knjiga (isbn)
+VALUES ('4588617150001');
+
+INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
+('4588617150001', 6);
+INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2010, '4588617150001');
 
 
 -- sve pozajmice za Mariju

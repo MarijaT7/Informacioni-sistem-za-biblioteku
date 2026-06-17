@@ -10,5 +10,5 @@ import java.util.List;
 public interface ObavestenjeRepository extends JpaRepository<Obavestenje, Long> {
 
     List<Obavestenje> findByClan_JmbgOrderByDatKreiranDesc(String jmbg);
-    List<Obavestenje> findByClan_JmbgAndProcitanoFalseOrderByDatKreiranDesc(String jmbg);
+    //List<Obavestenje> findByClan_JmbgAndProcitanoFalseOrderByDatKreiranDesc(String jmbg);
 }

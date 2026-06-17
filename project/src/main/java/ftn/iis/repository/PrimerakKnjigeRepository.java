@@ -11,7 +11,7 @@ import java.util.List;
 @Repository
 public interface PrimerakKnjigeRepository extends JpaRepository<PrimerakKnjige, Long> {
 
-    List<PrimerakKnjige> findByFizickaKnjiga_Isbn(String isbn);
+    //List<PrimerakKnjige> findByFizickaKnjiga_Isbn(String isbn);
     @Query("SELECT p FROM PrimerakKnjige p " +
             "JOIN FETCH p.fizickaKnjiga fk " +
             "WHERE fk.isbn = :isbn " +

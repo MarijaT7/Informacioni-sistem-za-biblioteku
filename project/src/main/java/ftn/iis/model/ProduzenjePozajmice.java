@@ -25,7 +25,7 @@ public class ProduzenjePozajmice {
     @Column(name = "dat_kre_pp", nullable = false)
     private LocalDate datKrePP;
 
-    // logicko brisanje : datKrePP + 10 days
+    // logicko brisanje : datKrePP + 10 dana
     @Column(name = "dat_obr_pp")
     private LocalDate datObrPP;
 

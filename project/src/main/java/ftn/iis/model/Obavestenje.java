@@ -12,7 +12,7 @@ public class Obavestenje {
     @Column(name = "id_o")
     private Long idO;
 
-    // TipO: VRACANJE, REZERVACIJA_DOSTUPNA
+    // TipO: VRACANJE, REZERVACIJA_DOSTUPNA, ima jos...
     @Column(name = "tip_o", nullable = false)
     private String tipO;
 

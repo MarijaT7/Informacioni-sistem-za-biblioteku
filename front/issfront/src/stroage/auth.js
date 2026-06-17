@@ -6,6 +6,7 @@ export const useAuthStore = defineStore('auth', () => {
   const user     = ref(JSON.parse(localStorage.getItem('user') || 'null'))
   const regJmbg  = ref(localStorage.getItem('regJmbg') || null)  // persists across steps
 
+const unreadCount= ref(0)
   const isLoggedIn = computed(() => !!token.value)
 
   function setAuth(authResponse) {
@@ -30,11 +31,14 @@ export const useAuthStore = defineStore('auth', () => {
   function logout() {
     token.value = null
     user.value  = null
+    unreadCount.value= 0
     localStorage.removeItem('token')
     localStorage.removeItem('user')
     localStorage.removeItem('regJmbg')
   }
-
+function setUnreadCount(count) {
+    unreadCount.value = count
+  }
   function getRole() {
     return user.value ? user.value.role : null
   }
@@ -51,5 +55,6 @@ export const useAuthStore = defineStore('auth', () => {
     return getRole() === 'BIBLIOTEKAR' || getRole() === 'ADMINISTRATOR'
   }
 
-  return { token, user, regJmbg, isLoggedIn, setAuth, setRegJmbg, logout, getRole, getBid, isAdmin, isLibrarianOrAdmin }
+  return { token, user, regJmbg, isLoggedIn, setAuth, setRegJmbg, logout, getRole, getBid, isAdmin, isLibrarianOrAdmin, unreadCount, setUnreadCount }
+
 })

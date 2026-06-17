@@ -20,6 +20,7 @@ INSERT INTO fizicka_knjiga (isbn)
 VALUES ('9788617150001');
 
 
+
 -- KNJIGA 2: Samo E-Knjiga
 INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis, katalog_id, deleted, tip_knjige, autor)
 VALUES ('9788617150002', 'Prokleta avlija', './src/main/resources/knjige/naslovne/avlija.jpg', 'Priča o zatvorenicima u istanbulskom zatvoru.', 1, FALSE, '010', 'Ivo Andrić');
@@ -232,6 +233,92 @@ INSERT INTO korisnik (
     NULL
 );
 
+--clan
+INSERT INTO korisnik (
+    jmbg,
+    imeK,
+    przK,
+    dat_rodj,
+    sifraK,
+    email,
+    brojt,
+    tipk,
+    bid,
+    idkc,
+    tip_pretplate,
+    putanja_slike
+) VALUES (
+             '1234567891235',
+             'Jovan',
+             'Jovanovic',
+             '2000-05-04',
+             '$2a$10$MxNR56RCAjGZjfexyE7ThuOVZKtmsHBU5tABCp9T3lylkG4FVJpX.', --testtest
+             'jovan@gmail.com',
+             '123456785',
+             'CLAN',
+             'BIB001',
+             4,
+             'MESECNA',
+             NULL
+         );
+
+--clan
+INSERT INTO korisnik (
+    jmbg,
+    imeK,
+    przK,
+    dat_rodj,
+    sifraK,
+    email,
+    brojt,
+    tipk,
+    bid,
+    idkc,
+    tip_pretplate,
+    putanja_slike
+) VALUES (
+             '1234567891236',
+             'Isidora',
+             'Doric',
+             '2002-05-04',
+             '$2a$10$MxNR56RCAjGZjfexyE7ThuOVZKtmsHBU5tABCp9T3lylkG4FVJpX.', --testtest
+             'isidora@gmail.com',
+             '123456786',
+             'CLAN',
+             'BIB001',
+             4,
+             'MESECNA',
+             NULL
+         );
+
+--clan
+INSERT INTO korisnik (
+    jmbg,
+    imeK,
+    przK,
+    dat_rodj,
+    sifraK,
+    email,
+    brojt,
+    tipk,
+    bid,
+    idkc,
+    tip_pretplate,
+    putanja_slike
+) VALUES (
+             '1234567891237',
+             'Marija',
+             'Maric',
+             '2003-05-04',
+             '$2a$10$MxNR56RCAjGZjfexyE7ThuOVZKtmsHBU5tABCp9T3lylkG4FVJpX.', --testtest
+             'marija@gmail.com',
+             '123456787',
+             'CLAN',
+             'BIB001',
+             4,
+             'MESECNA',
+             NULL
+         );
 
 --clanarina za Petra
 INSERT INTO clanarina (
@@ -249,6 +336,57 @@ INSERT INTO clanarina (
     'FIZICKI',
     '1234567891234'
 );
+
+--clanarina za Jovana
+INSERT INTO clanarina (
+    datup,
+    datisteka,
+    datbris,
+    is_active,
+    nacin_uplate,
+    jmbg
+) VALUES (
+             '2026-05-04',
+             '2026-06-23',
+             '2026-07-23',
+             true,
+             'FIZICKI',
+             '1234567891235'
+         );
+
+--clanarina za Isidoru
+INSERT INTO clanarina (
+    datup,
+    datisteka,
+    datbris,
+    is_active,
+    nacin_uplate,
+    jmbg
+) VALUES (
+             '2026-05-04',
+             '2026-06-23',
+             '2026-07-23',
+             true,
+             'FIZICKI',
+             '1234567891236'
+         );
+
+--clanarina za Mariju
+INSERT INTO clanarina (
+    datup,
+    datisteka,
+    datbris,
+    is_active,
+    nacin_uplate,
+    jmbg
+) VALUES (
+             '2026-05-04',
+             '2026-06-23',
+             '2026-07-23',
+             true,
+             'FIZICKI',
+             '1234567891237'
+         );
 
 INSERT INTO korisnik (
     jmbg,
@@ -268,7 +406,7 @@ INSERT INTO korisnik (
     'Srdjan',
     'Sancanin',
     '1995-02-25',
-    '$2a$10$MxNR56RCAjGZjfexyE7ThuOVZKtmsHBU5tABCp9T3lylkG4FVJpX.',
+    '$2a$10$MxNR56RCAjGZjfexyE7ThuOVZKtmsHBU5tABCp9T3lylkG4FVJpX.', --testtest
     'check@not.here',
     '0611636913',
     'BIBLIOTEKAR',
@@ -451,6 +589,8 @@ VALUES ('1234567891234', '18207995', 1, '2026-02-20');
 INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2010, '9788617150001');
 INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2015, '9788617150001');
 
+
+
 --gorski vijenac
 INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2012, '9788617150004');
 
@@ -466,6 +606,33 @@ INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2016, '9788617150007'
 
 -- necista krv
 INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2019, '9788617150010');
+
+
+
+
+-- dodatni primerci jer nema smisla da imate vecinski po jedan primerak ...
+
+
+
+INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2000, '9788617150001');
+INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2005, '9788617150001');
+
+--gorski vijenac
+INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2002, '9788617150004');
+
+-- hazarski recnik
+INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2008, '9788617150005');
+INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2000, '9788617150005');
+
+-- tvrdjava
+INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2006, '9788617150007');
+
+-- dervis i smrt
+--INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2014, '9788617150008');
+
+-- necista krv
+INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2009, '9788617150010');
+
 
 --sve su pozajmice za petra
 -- Pozajmica 1: "Na Drini ćuprija" – vraćena na vreme (januar 2026)
@@ -489,11 +656,105 @@ INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmb
 VALUES ('2026-04-20', '2026-04-30', '2026-05-04', FALSE, 7, '1234567891234');
 
 -- Pozajmica 6: "Na Drini ćuprija" (drugi primerak) – aktivna pozajmica (maj 2026, rok jun 2026)
+--INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+--VALUES ('2026-05-30', NULL, '2026-06-18', TRUE, 2, '1234567891234');
+
+-- Pozajmica 7: "Na Drini ćuprija"
 INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
-VALUES ('2026-05-30', NULL, '2026-06-18', TRUE, 2, '1234567891234');
+VALUES ('2026-06-17', NULL, '2026-07-01', TRUE, 1, '1234567891234');
+
+-- Pozajmica 8: "Gorski vijenac"
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2026-06-17', NULL, '2026-07-01', TRUE, 3, '1234567891234');
+
+-- Pozajmica 9: "Hazarski rečnik"
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2026-06-17', NULL, '2026-07-01', TRUE, 4, '1234567891234');
+
 -- Na Drini ćuprija (Andrić) -> Istorijski romani, Domaći pisci, Klasici
 INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
 ('9788617150001', 9), ('9788617150001', 4), ('9788617150001', 10);
+INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis, katalog_id, deleted, tip_knjige, autor)
+VALUES ('4588617150001', 'Gospodar Prstenova', './src/main/resources/knjige/naslovne/tolkin.png', 'Fantastican serijal', 1, FALSE, '100', 'Dz. R. R. Tolkin');
+INSERT INTO fizicka_knjiga (isbn)
+VALUES ('4588617150001');
+
+INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
+('4588617150001', 6);
+INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2010, '4588617150001');
+
+
+-- sve pozajmice za Mariju
+-- "Na Drini ćuprija"
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2026-06-17', NULL, '2026-07-01', TRUE, 2, '1234567891237');
+
+-- "Gorski vijenac"
+--INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+--VALUES ('2026-06-17', NULL, '2026-07-01', TRUE, 10, '1234567891237');
+
+-- "Hazarski rečnik"
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2026-06-17', NULL, '2026-07-01', TRUE, 5, '1234567891237');
+
+
+-- sve pozajmice za Isidoru
+--"Na Drini ćuprija"
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2026-06-17', NULL, '2026-07-01', TRUE, 1, '1234567891236');
+
+-- "Hazarski rečnik"
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2026-06-17', NULL, '2026-07-01', TRUE, 11, '1234567891236');
+
+
+-- sve pozajmice za Jovana
+
+-- "Hazarski rečnik"
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2026-06-17', NULL, '2026-07-01', TRUE, 12, '1234567891235');
+
+-- Hazarski rečnik - dodatne pozajmice za potrebe analize trenda
+
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2026-05-25', '2026-06-05', '2026-06-08', FALSE, 4, '1234567891234');
+
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2026-05-28', '2026-06-10', '2026-06-11', FALSE, 5, '1234567891235');
+
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2026-06-01', '2026-06-12', '2026-06-15', FALSE, 11, '1234567891236');
+
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2026-06-03', '2026-06-14', '2026-06-17', FALSE, 12, '1234567891237');
+
+-- TVRĐAVA (9788617150007) - dodatne pozajmice za trend analizu
+
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2026-05-20', '2026-05-30', '2026-06-01', FALSE, 6, '1234567891234');
+
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2026-05-23', '2026-06-02', '2026-06-04', FALSE, 6, '1234567891235');
+
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2026-05-28', '2026-06-07', '2026-06-09', FALSE, 6, '1234567891236');
+
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2026-06-03', '2026-06-12', '2026-06-14', FALSE, 6, '1234567891237');
+
+-- GORSKI VIJENAC (9788617150004) - dodatne pozajmice za trend analizu
+
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2025-05-20', '2025-05-30', '2025-06-01', FALSE, 3, '1234567891236');
+
+
+-- NA DRINI CUPCIJA - dodatne pozajmice za trend analizu
+
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2025-01-10', '2025-01-22', '2025-01-24', FALSE, 1, '1234567891234');
+
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2024-01-10', '2024-01-22', '2024-01-24', FALSE, 1, '1234567891237');
 
 -- Prokleta avlija (Andrić) -> Domaći pisci, Klasici, Drama
 INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
@@ -557,6 +818,8 @@ VALUES ('1234567891234', 'Vaš predlog za nabavku knjige "Majstor i Margarita" j
 INSERT INTO notifikacija (korisnik_jmbg, poruka, datum, procitana)
 VALUES ('1234567891234', 'Vaš predlog za nabavku knjige "Fifty Shades of Grey" je odbijen. Razlog: Knjiga nije primerena za biblioteku.', '2026-03-02 09:30:00', false);
 
+--INSERT INTO obavestenje (tip_o, tekst_o, dat_kreiran,procitano, jmbg_clana)
+--VALUES ('VRACANJE', 'Podsetnik: knjiga Na Drini ćuprija treba da bude vraćena do 18.06.2026.', CURRENT_DATE, FALSE, '1234567891234');
 INSERT INTO notifikacija (korisnik_jmbg, poruka, datum, procitana)
 VALUES ('1234567891234', 'Vaš predlog za nabavku knjige "Zlocin i kazna" je odobren i uvršten u plan nabavke.', '2026-02-11 10:00:00', false);
 
@@ -572,3 +835,45 @@ INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno) VALUES (7, 18500
 INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno) VALUES (8, 5000.00, 4800.00);
 INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno) VALUES (9, 30000.00, 11500.75);
 INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno) VALUES (10, 14000.00, 5600.00);
+
+
+-- Podaci vezani za AI asistenta
+-- Čet sesije
+INSERT INTO cet_sesija (naslov_cs, datum_kreiranja_cs, datum_azuriranja_cs, tip_agenta_cs, jmbg_clana)
+VALUES ('Preporuka knjiga o istoriji', '2026-06-01 10:00:00', '2026-06-01 10:05:00', 'AGENT_KNJIGE', '1234567891234');
+
+INSERT INTO cet_sesija (naslov_cs, datum_kreiranja_cs, datum_azuriranja_cs, tip_agenta_cs, jmbg_clana)
+VALUES ('Pitanja o Na Drini ćuprija', '2026-06-02 09:00:00', '2026-06-02 09:10:00', 'AGENT_RECENZIJE', '1234567891234');
+
+-- Čet poruke (id_cs = 1)
+INSERT INTO cet_poruka (tip_cp, datum_kreiranja_cp, sadrzaj_cp, id_cs)
+VALUES ('CLAN', '2026-06-01 10:00:00', 'Možeš li mi preporučiti knjigu o istoriji Balkana?', 1);
+
+INSERT INTO cet_poruka (tip_cp, datum_kreiranja_cp, sadrzaj_cp, id_cs)
+VALUES ('AI_ASISTENT', '2026-06-01 10:00:30', 'Preporučujem "Na Drini ćuprija" od Ive Andrića.', 1);
+
+INSERT INTO cet_poruka (tip_cp, datum_kreiranja_cp, sadrzaj_cp, id_cs)
+VALUES ('CLAN', '2026-06-01 10:00:00', 'Možeš li mi reći nešto o knjizi Na Drini Ćuprija?', 2);
+
+INSERT INTO cet_poruka (tip_cp, datum_kreiranja_cp, sadrzaj_cp, id_cs)
+VALUES ('AI_ASISTENT', '2026-06-01 10:00:30', 'U pitanju je istorijska knjiga koja priča o višegradskom mostu.', 2);
+
+-- Ocena čet poruke (User 1234567891234 ocenjuje poruku id_cp=2)
+INSERT INTO ocena_cet_poruke (jmbg_clana, id_cp, ocena_cp, komentar_cp, datum_ocenjivanja_cs)
+VALUES ('1234567891234', 2, 5, 'Odlična preporuka, baš ono što sam tražio.', '2026-06-01 10:06:00');
+
+-- Podaci vezani za diskusije i komentare
+-- Diskusija vezana za knjigu (isbn = '9788617150001')
+INSERT INTO diskusija (naslov_d, opis_d, datum_kreiranja_d, isbn, jmbg_clana)
+VALUES ('Utisci o romanu', 'Šta mislite o simbolizmu mosta u romanu?', '2026-06-03 12:00:00', '9788617150001', '1234567891234');
+
+-- Komentari (id_d = 1)
+INSERT INTO komentar (tekst_k, datum_kreiranja_k, id_d, jmbg_clana, id_ok)
+VALUES ('Meni je most simbol spajanja kultura.', '2026-06-03 12:10:00', 1, '1234567891234', NULL);
+
+INSERT INTO komentar (tekst_k, datum_kreiranja_k, id_d, jmbg_clana, id_ok)
+VALUES ('Slažem se, i smatram da predstavlja postojanost kroz vekove.', '2026-06-03 12:15:00', 1, '1234567891234', 1);
+
+-- Lajk na komentar (id_k = 1, lajkovao isti korisnik radi testa)
+INSERT INTO komentar_lajk (id_k, jmbg_clana)
+VALUES (1, '1234567891234');

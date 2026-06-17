@@ -84,7 +84,7 @@ public class KnjigaService {
     @Transactional
     public List<KnjigaOsnovnoDto> getPreporuceneForUser(String jmbg){
         User user = userRepository.findByJmbg(jmbg).orElse(null);
-        if (user == null || user.getFavouriteGenres() == null || user.getFavouriteGenres().isEmpty()) {
+        if (user == null ) {
             return Collections.emptyList();
         }
         Set<Long> favZanrIds = user.getFavouriteGenres().stream()
@@ -97,6 +97,17 @@ public class KnjigaService {
         Set<String> favAuthors = autoriUZanru.stream()
                 .map(String::toLowerCase)
                 .collect(Collectors.toSet());
+
+        Set<String> historyAuthors = pozajmicaRepository.findByClan_Jmbg(jmbg)
+                .stream()
+                .map(p -> p.getPrimerakKnjige()
+                        .getFizickaKnjiga()
+                        .getKnjiga()
+                        .getAutor())
+                .filter(Objects::nonNull)
+                .map(String::toLowerCase)
+                .collect(Collectors.toSet());
+
         Set<String> pozajmljeniIsbns = pozajmicaRepository.findByClan_JmbgAndStatusPozTrue(jmbg)
                 .stream()
                 .map(p -> p.getPrimerakKnjige().getFizickaKnjiga().getIsbn())
@@ -116,8 +127,15 @@ public class KnjigaService {
             if (genreIsbnSet.contains(k.getIsbn())) {
                 score += 3;
             }
-            if (k.getAutor() != null && favAuthors.contains(k.getAutor().toLowerCase())) {
-                score += 2;
+            String autor = k.getAutor() != null ? k.getAutor().toLowerCase() : null;
+
+            if (autor != null) {
+                if (favAuthors.contains(autor)) {
+                    score += 2;
+                }
+                if (historyAuthors.contains(autor)) {
+                    score += 4;
+                }
             }
             if (score > 0) {
                 scored.add(Map.entry(k, score));

@@ -1,7 +1,9 @@
 package ftn.iis.controller;
 
 import ftn.iis.dto.ObavestenjeDto;
+import ftn.iis.dto.PozajmicaDto;
 import ftn.iis.dto.PozajmiceRezervacijeResponseDto;
+import ftn.iis.dto.ProduzenjePozajmiceRequestDto;
 import ftn.iis.service.PozajmicaService;
 import ftn.iis.utils.JwtService;
 import org.springframework.http.HttpStatus;
@@ -159,9 +161,45 @@ public class PozajmicaController {
     }
 
 
+    @GetMapping("/produzenja/na-cekanju")
+    public ResponseEntity<List<ProduzenjePozajmiceRequestDto>> getProduzenjaNaCekanju(
+            @RequestHeader("Authorization") String authHeader) {
+        String jmbg = extractJmbg(authHeader);
+        if (jmbg == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        return ResponseEntity.ok(pozajmicaService.getPendingExtensions());
+    }
+    @GetMapping("/sve-aktivne")
+    public ResponseEntity<List<PozajmicaDto>> getSveAktivne(
+            @RequestHeader("Authorization") String authHeader) {
+        String jmbg = extractJmbg(authHeader);
+        if (jmbg == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        return ResponseEntity.ok(pozajmicaService.getAllActivePozajmice());
+    }
 
+    @PostMapping("/vrati/{idP}")
+    public ResponseEntity<?> vratiKnjigu(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable Long idP) {
+        String jmbg = extractJmbg(authHeader);
+        if (jmbg == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        Map<String, Object> result = pozajmicaService.returnBookBibliotekar(idP);
+        return Boolean.TRUE.equals(result.get("success"))
+                ? ResponseEntity.ok(result)
+                : ResponseEntity.badRequest().body(result);
+    }
 
-
-
+    @PostMapping("/produzenja/{idPP}/obradi")
+    public ResponseEntity<?> obradiProduzenje(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable Long idPP,
+            @RequestParam boolean approve,
+            @RequestParam(required = false, defaultValue = "") String razlog) {
+        String jmbg = extractJmbg(authHeader);
+        if (jmbg == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        Map<String, Object> result = pozajmicaService.processExtension(idPP, jmbg, approve, razlog);
+        return Boolean.TRUE.equals(result.get("success"))
+                ? ResponseEntity.ok(result)
+                : ResponseEntity.badRequest().body(result);
+    }
 
 }

@@ -21,6 +21,9 @@ public class PozajmicaDto {
     private String putanjaNaslovna;
     private List<ProduzenjePozajmiceDto> produzenja;
     private String tipDigitalne;
+    private String imeClan;
+    private String jmbgClan;
+
 
     public PozajmicaDto() {}
 
@@ -39,6 +42,8 @@ public class PozajmicaDto {
         dto.produzenja = p.getProduzenja() != null ? p.getProduzenja().stream()
                 .map(ProduzenjePozajmiceDto::fromProduzenje)
                 .collect(Collectors.toList()) : null;
+        dto.imeClan = p.getClan().getFirstName() + " " + p.getClan().getLastName();
+        dto.jmbgClan = p.getClan().getJmbg();
         return dto;
     }
     public static PozajmicaDto fromCitanje(CitanjeEKnjige c) {
@@ -88,6 +93,11 @@ public class PozajmicaDto {
     public void setPutanjaNaslovna(String putanjaNaslovna) { this.putanjaNaslovna = putanjaNaslovna; }
     public List<ProduzenjePozajmiceDto> getProduzenja() { return produzenja; }
     public void setProduzenja(List<ProduzenjePozajmiceDto> produzenja) { this.produzenja = produzenja; }
+
+    public String getImeClan() { return imeClan; }
+    public void setImeClan(String imeClan) { this.imeClan = imeClan; }
+    public String getJmbgClan() { return jmbgClan; }
+    public void setJmbgClan(String jmbgClan) { this.jmbgClan = jmbgClan; }
 
     public String getTipDigitalne() {
         return tipDigitalne;

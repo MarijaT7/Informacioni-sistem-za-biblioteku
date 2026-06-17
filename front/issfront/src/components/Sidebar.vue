@@ -19,8 +19,9 @@
       <RouterLink class="nav-item" to="#">
         <span class="nav-icon"></span> Dugovanja
       </RouterLink>
-      <RouterLink class="nav-item" to="/obavestenja">
+      <RouterLink class="nav-item notif-item" to="/obavestenja">
         <span class="nav-icon"></span> Obaveštenja
+        <span v-if="unreadCount > 0" class="notif-dot"></span>
       </RouterLink>
       <RouterLink v-if="role === 'ADMINISTRATOR' || role === 'BIBLIOTEKAR'" class="nav-item" to="/katalog">
         <span class="nav-icon"></span> Katalog
@@ -41,10 +42,19 @@
       <RouterLink v-if="role === 'CLAN'" class="nav-item" to="/notifikacije">
         <span class="nav-icon"></span> Praćenje statusa predloga
       </RouterLink>
+      <RouterLink v-if="role === 'CLAN'" class="nav-item" to="/asistent">
+        <span class="nav-icon"></span> AI Asistent
+      </RouterLink>
 
       <!-- Samo za bibliotekara -->
       <RouterLink v-if="role === 'BIBLIOTEKAR'" class="nav-item" to="/predlozi-na-cekanju">
         <span class="nav-icon"></span> Predlozi naslova
+      </RouterLink>
+      <RouterLink v-if="role === 'BIBLIOTEKAR'" class="nav-item" to="/produzenja-na-cekanju">
+        Zahtevi za produženje
+      </RouterLink>
+      <RouterLink v-if="role === 'BIBLIOTEKAR'" class="nav-item" to="/vracanje-knjiga">
+        Vraćanje knjiga
       </RouterLink>
     </nav>
 
@@ -53,19 +63,20 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stroage/auth.js'
 import { pozajmicaApi } from '../services/api.js'
 
 const router    = useRouter()
 const authStore = useAuthStore()
-const unreadCount = ref(0)
+const unreadCount = computed(() => authStore.unreadCount)
 onMounted(async () => {
   if (authStore.isLoggedIn && authStore.getRole() === 'CLAN') {
     try {
       const res = await pozajmicaApi.getObavestenja()
-      unreadCount.value = (res.data || []).filter(o => !o.procitano).length
+      const count = (res.data || []).filter(o => !o.procitano).length
+            authStore.setUnreadCount(count)
     } catch {}
   }
 })
@@ -90,4 +101,18 @@ function handleLogout() {
   transition: background 0.2s;
 }
 .logout-btn:hover { background: rgba(255,255,255,0.1); }
+.notif-item {
+  position: relative;
+}
+
+.notif-dot {
+  width: 8px;
+  height: 8px;
+  background: red;
+  border-radius: 50%;
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+}
 </style>

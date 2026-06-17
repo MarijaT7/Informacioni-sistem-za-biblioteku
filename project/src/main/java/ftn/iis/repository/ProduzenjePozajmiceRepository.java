@@ -10,7 +10,7 @@ import java.util.List;
 @Repository
 public interface ProduzenjePozajmiceRepository extends JpaRepository<ProduzenjePozajmice, Long> {
 
-    List<ProduzenjePozajmice> findByPozajmica_IdP(Long pozajmicaId);
+    //List<ProduzenjePozajmice> findByPozajmica_IdP(Long pozajmicaId);
 
 
     @Query("SELECT pp FROM ProduzenjePozajmice pp WHERE pp.statusPP IS NULL ORDER BY pp.datKrePP ASC")

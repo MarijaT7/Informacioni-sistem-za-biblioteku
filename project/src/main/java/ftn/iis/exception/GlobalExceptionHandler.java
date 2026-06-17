@@ -143,4 +143,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
     }
 
+    @ExceptionHandler(NonManagerStartingAnalysisException.class)
+    public ResponseEntity<String> handleNonManagerStartingAnalysisException(NonManagerStartingAnalysisException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+    }
+
 }

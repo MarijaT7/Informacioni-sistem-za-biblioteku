@@ -24,12 +24,28 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/vracanje-knjiga',
+    component: () => import('../views/VracanjeKnjigaView.vue'),
+    beforeEnter: () => {
+      const auth = useAuthStore()
+      return auth.getRole() === 'BIBLIOTEKAR' ? true : '/'
+    }
+  },
+  {
     path: '/knjige/nova',
     component: () => import('../views/BookCreateView.vue'),
     beforeEnter: () => {
       const auth = useAuthStore()
       return auth.getRole() === 'BIBLIOTEKAR' ? true : '/'
     }
+  },
+  {
+      path: '/produzenja-na-cekanju',
+      component: () => import('../views/ProduzenjaNaCekanjuView.vue'),
+      beforeEnter: () => {
+          const auth = useAuthStore()
+          return auth.getRole() === 'BIBLIOTEKAR' ? true : '/'
+      }
   },
   {
     path: '/knjige/:isbn',
@@ -127,6 +143,11 @@ const routes = [
       return auth.isLibrarianOrAdmin() ? true : '/'
     }
     },
+      path: '/asistent',
+      component: () => import('../views/ChatAssistantView.vue'),
+      meta: { requiresAuth: true }
+    },
+
   {
   path: '/menadzer',
   component: () => import('../views/menadzer/AppLayout.vue'),
@@ -141,6 +162,7 @@ const routes = [
     { path: 'dobavljaci/:id/izmena', component: () => import('../views/menadzer/IzmenaDobavljacaView.vue') },
     { path: 'dobavljaci/:id/ugovor', component: () => import('../views/menadzer/DodajUgovorView.vue') },
     { path: 'predlozi',            component: () => import('../views/menadzer/OdobreniPredloziView.vue') },
+    { path: 'sistemske-preporuke', component: () => import('../views/menadzer/SistemskePreporukeView.vue') },
  
   ]
 },

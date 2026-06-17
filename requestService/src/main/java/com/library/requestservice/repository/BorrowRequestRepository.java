@@ -7,4 +7,6 @@ import java.util.List;
 @Repository
 public interface BorrowRequestRepository extends JpaRepository<BorrowRequest, String> {
     List<BorrowRequest> findAllByStatus(RequestStatus status);
+    List<BorrowRequest> findAllByReceiverLibraryIdOrderByCreatedAtDesc(String receiverLibraryId);
+    List<BorrowRequest> findAllBySenderLibraryIdOrderByCreatedAtDesc(String senderLibraryId);
 }

@@ -30,6 +30,18 @@ public class BorrowRequestController {
         List<BorrowRequest> requests = service.getAllRequests();
         return ResponseEntity.ok(requests);
     }
+    @GetMapping("/incoming/{libraryId}")
+    public ResponseEntity<List<BorrowRequest>> getIncoming(@PathVariable String libraryId) {
+        return ResponseEntity.ok(service.getIncomingForLibrary(libraryId));
+    }
+    @GetMapping("/outgoing/{libraryId}")
+    public ResponseEntity<List<BorrowRequest>> getOutgoing(@PathVariable String libraryId) {
+        return ResponseEntity.ok(service.getOutgoingForLibrary(libraryId));
+    }
+    @PostMapping("/{id}/cancel")
+    public ResponseEntity<BorrowRequest> cancelRequest(@PathVariable String id) {
+        return ResponseEntity.ok(service.cancelRequest(id));
+    }
     @PutMapping("/{id}")
     public ResponseEntity<BorrowRequest> updateRequest(
             @PathVariable String id,

@@ -48,6 +48,33 @@ public class BorrowRequestService {
     public List<BorrowRequest> getAllRequests() {
         return repository.findAll();
     }
+
+    public List<BorrowRequest> getIncomingForLibrary(String libraryId) {
+        return repository.findAllByReceiverLibraryIdOrderByCreatedAtDesc(libraryId);
+    }
+
+    public List<BorrowRequest> getOutgoingForLibrary(String libraryId) {
+        return repository.findAllBySenderLibraryIdOrderByCreatedAtDesc(libraryId);
+    }
+
+    @Transactional
+    public BorrowRequest cancelRequest(String id) {
+        BorrowRequest existing = repository.findById(id)
+                .orElseThrow(() -> new RequestNotFoundException(id));
+        if (existing.getStatus() == RequestStatus.EXPIRED) {
+            throw new InvalidStatusTransitionException(
+                    "Cannot cancel a request that has already expired.");
+        }
+        if (existing.getStatus() == RequestStatus.CANCELLED) {
+            throw new InvalidStatusTransitionException(
+                    "Request is already cancelled.");
+        }
+        existing.setStatus(RequestStatus.CANCELLED);
+        existing.setUpdatedAt(Instant.now());
+        BorrowRequest updated = repository.save(existing);
+        cache.put(updated);
+        return updated;
+    }
     @Transactional
     public BorrowRequest updateRequest(String id, UpdateBorrowRequestDto dto) {
         BorrowRequest existing = repository.findById(id)

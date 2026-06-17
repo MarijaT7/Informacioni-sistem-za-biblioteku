@@ -75,6 +75,9 @@ public class AuthService {
         res.setRole(user.getUloge().name());
         res.setFirstName(user.getFirstName());
         res.setLastName(user.getLastName());
+         if (user.getBiblioteka() != null) {
+            res.setBid(user.getBiblioteka().getBid());
+        }
         return res;
     }
 

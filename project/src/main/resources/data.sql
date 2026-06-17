@@ -657,6 +657,47 @@ VALUES ('2026-06-17', NULL, '2026-07-01', TRUE, 11, '1234567891236');
 INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
 VALUES ('2026-06-17', NULL, '2026-07-01', TRUE, 12, '1234567891235');
 
+-- Hazarski rečnik - dodatne pozajmice za potrebe analize trenda
+
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2026-05-25', '2026-06-05', '2026-06-08', FALSE, 4, '1234567891234');
+
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2026-05-28', '2026-06-10', '2026-06-11', FALSE, 5, '1234567891235');
+
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2026-06-01', '2026-06-12', '2026-06-15', FALSE, 11, '1234567891236');
+
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2026-06-03', '2026-06-14', '2026-06-17', FALSE, 12, '1234567891237');
+
+-- TVRĐAVA (9788617150007) - dodatne pozajmice za trend analizu
+
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2026-05-20', '2026-05-30', '2026-06-01', FALSE, 6, '1234567891234');
+
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2026-05-23', '2026-06-02', '2026-06-04', FALSE, 6, '1234567891235');
+
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2026-05-28', '2026-06-07', '2026-06-09', FALSE, 6, '1234567891236');
+
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2026-06-03', '2026-06-12', '2026-06-14', FALSE, 6, '1234567891237');
+
+-- GORSKI VIJENAC (9788617150004) - dodatne pozajmice za trend analizu
+
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2025-05-20', '2025-05-30', '2025-06-01', FALSE, 3, '1234567891236');
+
+
+-- NA DRINI CUPCIJA - dodatne pozajmice za trend analizu
+
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2025-01-10', '2025-01-22', '2025-01-24', FALSE, 1, '1234567891234');
+
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2024-01-10', '2024-01-22', '2024-01-24', FALSE, 1, '1234567891237');
 
 -- Prokleta avlija (Andrić) -> Domaći pisci, Klasici, Drama
 INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES

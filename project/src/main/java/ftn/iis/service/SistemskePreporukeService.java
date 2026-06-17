@@ -52,21 +52,29 @@ public class SistemskePreporukeService {
             Integer brPozajmica = pozajmicaRepository.countByIsbnAndDatPozAfter(isbn, od);
             Integer brPrimeraka = fizickaKnjigaRepository.countPrimerciByIsbn(isbn);
 
-            if (brPozajmica >= brPrimeraka/2 && brPrimeraka > 0) {
-                String predlog = generisiTekstPreporuke(brPozajmica, brPrimeraka);
+            Optional<SistemskaPreporuka> aktivna = sistemskePreporukeRepository
+                    .findByFizickaKnjigaIsbnAndStatus(isbn, StatusSistemskePreporuke.AKTIVNA);
 
-                Optional<SistemskaPreporuka> postojeca = sistemskePreporukeRepository
-                        .findByFizickaKnjigaIsbnAndStatus(isbn, StatusSistemskePreporuke.AKTIVNA);
+            if (brPozajmica >= brPrimeraka * 1.3 && brPrimeraka > 0) {
+                String predlog = "Knjiga beleži nagli porast pozajmica — preporučuje se nabavka dodatnih primeraka.";
+
+                Optional<SistemskaPreporuka> prihvacena = sistemskePreporukeRepository
+                        .findByFizickaKnjigaIsbnAndStatus(isbn, StatusSistemskePreporuke.PRIHVACENO);
+
+                Optional<SistemskaPreporuka> ignorisana = sistemskePreporukeRepository
+                        .findByFizickaKnjigaIsbnAndStatus(isbn, StatusSistemskePreporuke.IGNORISANO);
 
                 // ako postoji predlog, samo azuriram broj pozajmica i to
-                if (postojeca.isPresent()) {
-                    SistemskaPreporuka preporuka = postojeca.get();
+                if (aktivna.isPresent()) {
+                    SistemskaPreporuka preporuka = aktivna.get();
                     preporuka.setBrojPozajmica(brPozajmica);
                     preporuka.setTrenutniBrojPrimeraka(brPrimeraka);
                     preporuka.setPredlog(predlog);
                     preporuka.setDatumGenerisanja(LocalDateTime.now());
                     sistemskePreporukeRepository.save(preporuka);
-                } else {
+
+                // e ako uopste ne postoji kao preporuka, pravim je ~~~
+                } else if (!aktivna.isPresent() && !prihvacena.isPresent() && !ignorisana.isPresent()) {
                     SistemskaPreporuka preporuka = new SistemskaPreporuka();
                     preporuka.setStatus(StatusSistemskePreporuke.AKTIVNA);
                     preporuka.setDatumGenerisanja(LocalDateTime.now());
@@ -125,14 +133,6 @@ public class SistemskePreporukeService {
 
 
     // pomocne metodice ~~~
-
-    private String generisiTekstPreporuke(int pozajmice, int primerci) {
-        if (pozajmice == primerci) {
-            return "Jednak broj pozajmica i primeraka — preporučuje se hitna nabavka.";
-        } else {
-            return "Knjiga beleži nagli porast pozajmica — preporučuje se nabavka dodatnih primeraka.";
-        }
-    }
 
     private SistemskaPreporukaResponseDto mapirajUDto(SistemskaPreporuka p) {
         SistemskaPreporukaResponseDto dto = new SistemskaPreporukaResponseDto();

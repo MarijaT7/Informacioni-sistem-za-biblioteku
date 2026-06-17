@@ -23,4 +23,7 @@ public interface RezervacijaRepository extends JpaRepository<Rezervacija, Long> 
 
     @Query("SELECT MIN(p.datOcVrac) FROM Pozajmica p WHERE p.primerakKnjige.fizickaKnjiga.isbn = :isbn AND p.statusPoz = true")
     Optional<LocalDate> findFirstActivePozajmicaReturnDate(@Param("isbn") String isbn);
+
+    @Query("SELECT COUNT(r) FROM Rezervacija r WHERE r.fizickaKnjiga.isbn = :isbn AND r.datR >= :od")
+    Integer countByFizickaKnjigaIsbnAndDatRAfter(@Param("isbn") String isbn, @Param("od") LocalDate od);
 }

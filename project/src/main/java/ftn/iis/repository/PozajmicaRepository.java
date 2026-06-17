@@ -20,6 +20,9 @@ public interface PozajmicaRepository extends JpaRepository<Pozajmica, Long> {
     boolean hasOverduePozajmica(@Param("jmbg") String jmbg, @Param("today") LocalDate today);
     @Query("SELECT p FROM Pozajmica p WHERE p.statusPoz = true AND p.datOcVrac = :targetDate")
     List<Pozajmica> findPozajmiceDueOn(@Param("targetDate") LocalDate targetDate);
+    @Query("SELECT COUNT(p) FROM Pozajmica p WHERE p.primerakKnjige.fizickaKnjiga.isbn = :isbn AND p.datPoz >= :od")
+    Integer countByIsbnAndDatPozAfter(@Param("isbn") String isbn, @Param("od") LocalDate od);
+
     @Query("SELECT p FROM Pozajmica p " +
             "JOIN FETCH p.primerakKnjige pk " +
             "JOIN FETCH pk.fizickaKnjiga fk " +

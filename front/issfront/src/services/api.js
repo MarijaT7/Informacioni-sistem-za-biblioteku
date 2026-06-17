@@ -162,4 +162,11 @@ export const notifikacijaApi = {
   brojNeprocitanih:    ()    => api.get('/notifikacije/broj-neprocitanih'),
 }
 
+// ── Sistemske preporuke ───────────────────────────────────────────────
+export const sistemskePreporukeApi = {
+  pokreniAnalizu:  ()          => api.post('/sistemske-preporuke/pokreni-analizu'),
+  getAktivne:      ()          => api.get('/sistemske-preporuke/aktivne'),
+  azurirajStatus:  (id, status) => api.patch(`/sistemske-preporuke/${id}/status`, null, { params: { status } }),
+}
+
 export default api

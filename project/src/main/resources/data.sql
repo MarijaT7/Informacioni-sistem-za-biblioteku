@@ -278,6 +278,63 @@ INSERT INTO korisnik (
     NULL
 );
 
+INSERT INTO korisnik (
+    jmbg,
+    imeK,
+    przK,
+    dat_rodj,
+    sifraK,
+    email,
+    brojt,
+    tipk,
+    bid,
+    idkc,
+    tip_pretplate,
+    putanja_slike
+) VALUES (
+    '1234567896934',
+    'SrdjanXXX',
+    'Sancanin',
+    '1995-02-25',
+    '$2a$10$MxNR56RCAjGZjfexyE7ThuOVZKtmsHBU5tABCp9T3lylkG4FVJpX.',
+    'check@not2.here',
+    '0611636913',
+    'BIBLIOTEKAR',
+    'BIB002',
+    NULL,
+    NULL,
+    NULL
+);
+
+INSERT INTO korisnik (
+    jmbg,
+    imeK,
+    przK,
+    dat_rodj,
+    sifraK,
+    email,
+    brojt,
+    tipk,
+    bid,
+    idkc,
+    tip_pretplate,
+    putanja_slike
+) VALUES (
+    '1234567896934',
+    'SrdjanXXXXX',
+    'Sancanin',
+    '1995-02-25',
+    '$2a$10$MxNR56RCAjGZjfexyE7ThuOVZKtmsHBU5tABCp9T3lylkG4FVJpX.',
+    'check@not3.here',
+    '0611636913',
+    'ADMIN',
+    'BIB002',
+    NULL,
+    NULL,
+    NULL
+);
+
+
 -- =============================================================
 -- ELEKTRONSKI ČASOPISI
 -- =============================================================

@@ -130,6 +130,16 @@
             </template>
 
             <!-- LIBRARIAN VIEW -->
+            <section v-if="isLibrarian" class="ocr-panel">
+              <div class="ocr-row">
+                <div>
+                  <h3>OCR skeniranje</h3>
+                  <p class="helper-text">Skenirajte fizički primerak i izvucite tekst pomoću OCR-a.</p>
+                </div>
+                <button class="btn-secondary" type="button" @click="goToOcr">Pokreni OCR</button>
+              </div>
+            </section>
+
             <section v-if="isLibrarian" class="marc-panel">
               <div class="marc-header">
                 <h3>MARC zapis</h3>
@@ -469,6 +479,10 @@ function formatDate(dateStr) {
 
 function backToList() { router.push('/knjige') }
 
+function goToOcr() {
+  router.push({ path: '/ocr', query: { isbn: isbn.value } })
+}
+
 async function toggleMarc() {
   if (marcVisible.value) {
     marcVisible.value = false
@@ -676,6 +690,10 @@ async function deleteAudio() {
 /* Librarian */
 .librarian-panel { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); text-align: left; }
 .marc-panel { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); text-align: left; }
+.ocr-panel { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); text-align: left; }
+.ocr-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.ocr-row h3 { margin-bottom: 0.3rem; }
+.ocr-row .helper-text { margin: 0; }
 .marc-header { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
 .marc-body { margin-top: 1rem; background: #fff; border-radius: 12px; padding: 1rem; box-shadow: var(--shadow); }
 .marc-leader { margin-bottom: 0.75rem; font-family: var(--mono); font-size: 0.9rem; }

@@ -116,7 +116,7 @@ const routes = [
     component: () => import('../views/OcrView.vue'),
     beforeEnter: () => {
       const auth = useAuthStore()
-      return auth.getRole() === 'BIBLIOTEKAR' ? true : '/'
+      return auth.isLibrarianOrAdmin() ? true : '/'
     }
   },
   {

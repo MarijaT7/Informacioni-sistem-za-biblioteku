@@ -28,6 +28,32 @@ api.interceptors.response.use(
   }
 )
 
+// ── Klijenti za nezavisne mikroservise (search, requestService) ────────
+function attachInterceptors(instance) {
+  instance.interceptors.request.use(config => {
+    const token = localStorage.getItem('token')
+    if (token) config.headers.Authorization = `Bearer ${token}`
+    return config
+  })
+  instance.interceptors.response.use(
+    response => response,
+    error => Promise.reject(error)
+  )
+  return instance
+}
+
+// Elastic/OCR search servis (videti docker-compose: search -> port 8081)
+const searchApi_ = attachInterceptors(axios.create({
+  baseURL: '/searchapi/api',
+  headers: { 'Content-Type': 'application/json' }
+}))
+
+// Servis za medjubibliotecke zahteve (videti docker-compose: request-service -> port 8086)
+const requestApi_ = attachInterceptors(axios.create({
+  baseURL: '/requestapi/api',
+  headers: { 'Content-Type': 'application/json' }
+}))
+
 export const authApi = {
   login:          (data)         => api.post('/auth/login', data),
   registerStep1:  (data)         => api.post('/auth/register/step1', data),

@@ -133,7 +133,7 @@ const routes = [
     { path: 'dobavljaci/:id',      component: () => import('../views/menadzer/DobavljacDetaljiView.vue') },
     { path: 'dobavljaci/:id/izmena', component: () => import('../views/menadzer/IzmenaDobavljacaView.vue') },
     { path: 'dobavljaci/:id/ugovor', component: () => import('../views/menadzer/DodajUgovorView.vue') },
-    //{ path: 'predlozi',            component: () => import('../views/menadzer/OdobreniPredloziView.vue') },
+    { path: 'predlozi',            component: () => import('../views/menadzer/OdobreniPredloziView.vue') },
  
   ]
 },

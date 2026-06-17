@@ -28,8 +28,15 @@ public class PredlogZaNabavku {
     @Column(name = "status", nullable = false)
     private StatusPredloga status;
 
-    @Column(name = "obrazlozenje")
-    private String obrazlozenje;                 // popunjava bibliotekar samo pri odbijanju
+    @Column(name = "obrazlozenje_bibliotekara")
+    private String obrazlozenje_bibliotekara;                 // popunjava bibliotekar samo pri odbijanju
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "zanr_id")
+    private Genre zanr;
+
+    @Column(name = "okvirna_cena")
+    private Double okvirnaCena;
 
     public PredlogZaNabavku() {}
 
@@ -89,12 +96,27 @@ public class PredlogZaNabavku {
         this.status = status;
     }
 
-    public String getObrazlozenje() {
-        return obrazlozenje;
+    public String getObrazlozenje_bibliotekara() {
+        return obrazlozenje_bibliotekara;
     }
 
-    public void setObrazlozenje(String obrazlozenje) {
-        this.obrazlozenje = obrazlozenje;
+    public void setObrazlozenje_bibliotekara(String obrazlozenje) {
+        this.obrazlozenje_bibliotekara = obrazlozenje;
     }
 
+    public Genre getZanr() {
+        return zanr;
+    }
+
+    public void setZanr(Genre zanr) {
+        this.zanr = zanr;
+    }
+
+    public Double getOkvirnaCena() {
+        return okvirnaCena;
+    }
+
+    public void setOkvirnaCena(Double okvirnaCena) {
+        this.okvirnaCena = okvirnaCena;
+    }
 }

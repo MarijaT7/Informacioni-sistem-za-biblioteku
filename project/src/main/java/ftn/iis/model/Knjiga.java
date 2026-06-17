@@ -43,6 +43,16 @@ public class Knjiga {
     @JsonBackReference("katalog-knjiga")
     private Katalog katalog;
 
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "knjiga_zanr",
+            joinColumns = @JoinColumn(name = "isbn"),
+            inverseJoinColumns = @JoinColumn(name = "zanr_id")
+    )
+    @JsonIgnore
+    private java.util.List<Genre> zanrovi = new java.util.ArrayList<>();
+
+
     @Column
     private boolean deleted;
 
@@ -170,5 +180,12 @@ public class Knjiga {
         if (this.eKnjiga != null)       f[1] = '1';
         if (this.audioKnjiga != null)  f[2] = '1';
         this.tipKnjige = new String(f);
+    }
+    public java.util.List<Genre> getZanrovi() {
+        return zanrovi;
+    }
+
+    public void setZanrovi(java.util.List<Genre> zanrovi) {
+        this.zanrovi = zanrovi;
     }
 }

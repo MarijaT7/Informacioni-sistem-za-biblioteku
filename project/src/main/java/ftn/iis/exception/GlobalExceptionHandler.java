@@ -118,4 +118,29 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 
+    @ExceptionHandler(NonClanGivingSuggestions.class)
+    public ResponseEntity<String> handleNonClanGivingSuggestions(NonClanGivingSuggestions ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(NonClanViewingSuggestions.class)
+    public ResponseEntity<String> handleNonClanViewingSuggestions(NonClanViewingSuggestions ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(NonManagerViewingSuggestionsException.class)
+    public ResponseEntity<String> handleNonManagerViewingSuggestionsException(NonManagerViewingSuggestionsException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(NonBiblotekarViewingSuggestionsException.class)
+    public ResponseEntity<String> handleNonBiblotekarViewingSuggestionsException(NonBiblotekarViewingSuggestionsException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(NonClanRecievingNotification.class)
+    public ResponseEntity<String> handleNonClanRecievingNotification(NonClanRecievingNotification ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+    }
+
 }

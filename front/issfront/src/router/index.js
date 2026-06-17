@@ -9,6 +9,11 @@ const routes = [
   { path: '/register/step3',component: () => import('../views/RegisterStep3.vue') },
   { path: '/register/genres',component: () => import('../views/FavouriteGenres.vue') },
   {
+      path: '/home',
+      component: () => import('../views/HomeView.vue'),
+      meta: { requiresAuth: true }
+  },
+  {
     path: '/profile',
     component: () => import('../views/UserProfile.vue'),
     meta: { requiresAuth: true }
@@ -42,6 +47,16 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/pozajmice',
+    component: () => import('../views/PozajmiceView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/obavestenja',
+    component: () => import('../views/ObavestenjaView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/baze-podataka',
     component: () => import('../views/ElektronskeBazeView.vue'),
     meta: { requiresAuth: true }
@@ -66,6 +81,21 @@ const routes = [
       const auth = useAuthStore()
       return auth.getRole() === 'BIBLIOTEKAR' ? true : '/'
     }},
+    {
+      path: '/moji-predlozi',
+      component: () => import('../views/MojiPredloziView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/notifikacije',
+      component: () => import('../views/NotifikacijeView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/predlozi-na-cekanju',
+      component: () => import('../views/PredloziNaCekanjuView.vue'),
+      meta: { requiresAuth: true }
+    },
   {
       path: '/genres/edit',
       component: () => import('../views/FavouriteGenresEdit.vue'),
@@ -95,7 +125,8 @@ const routes = [
     { path: 'dobavljaci/:id',      component: () => import('../views/menadzer/DobavljacDetaljiView.vue') },
     { path: 'dobavljaci/:id/izmena', component: () => import('../views/menadzer/IzmenaDobavljacaView.vue') },
     { path: 'dobavljaci/:id/ugovor', component: () => import('../views/menadzer/DodajUgovorView.vue') },
-
+    { path: 'predlozi',            component: () => import('../views/menadzer/OdobreniPredloziView.vue') },
+ 
   ]
 },
 ]

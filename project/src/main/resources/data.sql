@@ -231,6 +231,8 @@ INSERT INTO korisnik (
     'MESECNA',
     NULL
 );
+
+
 --clanarina za Petra
 INSERT INTO clanarina (
     datup,
@@ -387,3 +389,129 @@ VALUES ('1234567891234', '00278232', 2, '2026-03-15');
 -- Pristupio Savremena tehnika br.1
 INSERT INTO pristup_broju_casopisa (jmbg_clana, issn_casopisa, broj_izdanja, datum_pristupanja_pbc)
 VALUES ('1234567891234', '18207995', 1, '2026-02-20');
+
+--na drini cuprija
+INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2010, '9788617150001');
+INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2015, '9788617150001');
+
+--gorski vijenac
+INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2012, '9788617150004');
+
+-- hazarski recnik
+INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2018, '9788617150005');
+INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2020, '9788617150005');
+
+-- tvrdjava
+INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2016, '9788617150007');
+
+-- dervis i smrt
+--INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2014, '9788617150008');
+
+-- necista krv
+INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2019, '9788617150010');
+
+--sve su pozajmice za petra
+-- Pozajmica 1: "Na Drini ćuprija" – vraćena na vreme (januar 2026)
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2026-01-10', '2026-01-22', '2026-01-24', FALSE, 1, '1234567891234');
+
+-- Pozajmica 2: "Gorski vijenac" – vraćena na vreme (februar 2026)
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2026-02-01', '2026-02-13', '2026-02-15', FALSE, 3, '1234567891234');
+
+-- Pozajmica 3: "Hazarski rečnik" – vraćena sa zakašnjenjem (mart 2026)
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2026-03-05', '2026-03-28', '2026-03-19', FALSE, 4, '1234567891234');
+
+-- Pozajmica 4: "Tvrđava" – vraćena na vreme (april 2026)
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2026-04-02', '2026-04-14', '2026-04-16', FALSE, 6, '1234567891234');
+
+-- Pozajmica 5: "Derviš i smrt" – vraćena na vreme (april 2026)
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2026-04-20', '2026-04-30', '2026-05-04', FALSE, 7, '1234567891234');
+
+-- Pozajmica 6: "Na Drini ćuprija" (drugi primerak) – aktivna pozajmica (maj 2026, rok jun 2026)
+INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
+VALUES ('2026-05-30', NULL, '2026-06-18', TRUE, 2, '1234567891234');
+-- Na Drini ćuprija (Andrić) -> Istorijski romani, Domaći pisci, Klasici
+INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
+('9788617150001', 9), ('9788617150001', 4), ('9788617150001', 10);
+
+-- Prokleta avlija (Andrić) -> Domaći pisci, Klasici, Drama
+INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
+('9788617150002', 4), ('9788617150002', 10), ('9788617150002', 5);
+
+-- Seobe (Crnjanski) -> Istorijski romani, Domaći pisci, Klasici
+INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
+('9788617150003', 9), ('9788617150003', 4), ('9788617150003', 10);
+
+-- Gorski vijenac (Njegoš) -> Epska fantastika, Poezija, Domaći pisci, Klasici
+INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
+('9788617150004', 6), ('9788617150004', 13), ('9788617150004', 4), ('9788617150004', 10);
+
+-- Hazarski rečnik (Pavić) -> Domaći pisci, Epska fantastika, Klasici
+INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
+('9788617150005', 4), ('9788617150005', 6), ('9788617150005', 10);
+
+-- Koreni (Ćosić) -> Istorijski romani, Domaći pisci
+INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
+('9788617150006', 9), ('9788617150006', 4);
+
+-- Tvrđava (Selimović) -> Domaći pisci, Popularna psihologija, Klasici
+INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
+('9788617150007', 4), ('9788617150007', 14), ('9788617150007', 10);
+
+-- Derviš i smrt (Selimović) -> Domaći pisci, Popularna psihologija, Klasici
+INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
+('9788617150008', 4), ('9788617150008', 14), ('9788617150008', 10);
+
+-- Znakovi pored puta (Andrić) -> Domaći pisci, Klasici, Poezija
+INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
+('9788617150009', 4), ('9788617150009', 10), ('9788617150009', 13);
+
+-- Nečista krv (Stanković) -> Domaći pisci, Drama, Klasici
+INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
+('9788617150010', 4), ('9788617150010', 5), ('9788617150010', 10);
+
+
+-- zan
+
+-- Predlozi za nabavku
+INSERT INTO predlog_za_nabavku (korisnik_jmbg, naslov, autor, datum_podnosenja, status)
+VALUES ('1234567891234', 'Duna', 'Frank Herbert', '2026-01-10', 'NA_CEKANJU');
+
+INSERT INTO predlog_za_nabavku (korisnik_jmbg, naslov, autor, datum_podnosenja, status, obrazlozenje_bibliotekara, zanr_id, okvirna_cena)
+VALUES ('1234567891234', 'Majstor i Margarita', 'Mihail Bulgakov', '2026-02-15', 'ODOBRENO_BIBLIOTEKAR', NULL, 10, 1200.00);
+
+INSERT INTO predlog_za_nabavku (korisnik_jmbg, naslov, autor, datum_podnosenja, status)
+VALUES ('1234567891234', '1984', 'Dzordz Orvel', '2026-02-22', 'NA_CEKANJU');
+
+INSERT INTO predlog_za_nabavku (korisnik_jmbg, naslov, autor, datum_podnosenja, status, obrazlozenje_bibliotekara, zanr_id, okvirna_cena)
+VALUES ('1234567891234', 'Zlocin i kazna', 'Fjodor Mihailovič Dostojevski', '2025-10-20', 'ODOBRENO_BIBLIOTEKAR', NULL, 10, 1500.00);
+
+INSERT INTO predlog_za_nabavku (korisnik_jmbg, naslov, autor, datum_podnosenja, status, obrazlozenje_bibliotekara)
+VALUES ('1234567891234', 'Fifty Shades of Grey', 'E.L. James', '2026-03-01', 'ODBIJENO_BIBLIOTEKAR', 'Knjiga nije primerena za biblioteku.');
+
+-- Notifikacije
+INSERT INTO notifikacija (korisnik_jmbg, poruka, datum, procitana)
+VALUES ('1234567891234', 'Vaš predlog za nabavku knjige "Majstor i Margarita" je odobren i uvršten u plan nabavke.', '2026-02-16 10:00:00', false);
+
+INSERT INTO notifikacija (korisnik_jmbg, poruka, datum, procitana)
+VALUES ('1234567891234', 'Vaš predlog za nabavku knjige "Fifty Shades of Grey" je odbijen. Razlog: Knjiga nije primerena za biblioteku.', '2026-03-02 09:30:00', false);
+
+INSERT INTO notifikacija (korisnik_jmbg, poruka, datum, procitana)
+VALUES ('1234567891234', 'Vaš predlog za nabavku knjige "Zlocin i kazna" je odobren i uvršten u plan nabavke.', '2026-02-11 10:00:00', false);
+
+
+-- Budzeti po zanru
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno) VALUES (1, 10000.00, 2000.00 );
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno) VALUES (2, 15000.00, 4500.50);
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno) VALUES (3, 8000.00, 1200.00);
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno) VALUES (4, 25000.00, 18750.00);
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno) VALUES (5, 12000.00, 0.00);
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno) VALUES (6, 6500.00, 3100.25);
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno) VALUES (7, 18500.00, 9200.00);
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno) VALUES (8, 5000.00, 4800.00);
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno) VALUES (9, 30000.00, 11500.75);
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno) VALUES (10, 14000.00, 5600.00);

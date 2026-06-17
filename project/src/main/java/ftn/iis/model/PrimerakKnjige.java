@@ -1,5 +1,6 @@
 package ftn.iis.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -18,6 +19,7 @@ public class PrimerakKnjige {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "isbn_fizicka", nullable = false)
+    @JsonBackReference("fizicka-primerak")
     private FizickaKnjiga fizickaKnjiga;
     @OneToMany(mappedBy = "primerakKnjige", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Pozajmica> pozajmice = new ArrayList<>();

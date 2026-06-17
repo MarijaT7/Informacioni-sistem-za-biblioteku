@@ -1,6 +1,7 @@
 package ftn.iis.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -18,9 +19,11 @@ public class FizickaKnjiga {
     @JsonIgnore
     private Knjiga knjiga;
     @OneToMany(mappedBy = "fizickaKnjiga", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference("fizicka-primerak")
     private List<PrimerakKnjige> primerci = new ArrayList<>();
 
     @OneToMany(mappedBy = "fizickaKnjiga", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference("fizicka-rezervacija")
     private List<Rezervacija> rezervacije = new ArrayList<>();
 
 

@@ -1,9 +1,7 @@
 package ftn.iis.enums;
 
 public enum StatusSistemskePreporuke {
-    CEKA_ODLUKU,
-
-    PRIHVACENO,
-
-    ARHIVIRANO
+    AKTIVNA,       // sistem generisao, menadžer nije odgovorio
+    PRIHVACENO,    // menadžer prihvatio
+    IGNORISANO     // menadžer ignorisao
 }

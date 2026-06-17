@@ -221,6 +221,7 @@ export const requestApi = {
   kreiraj:   (data) => requestApi_.post('/requests', data),
   azuriraj:  (id, data) => requestApi_.put(`/requests/${id}`, data),
   otkazi:    (id) => requestApi_.post(`/requests/${id}/cancel`),
+}
 // ── Sistemske preporuke ───────────────────────────────────────────────
 export const sistemskePreporukeApi = {
   pokreniAnalizu:  ()          => api.post('/sistemske-preporuke/pokreni-analizu'),

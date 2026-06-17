@@ -141,8 +141,9 @@ const routes = [
     beforeEnter: () => {
       const auth = useAuthStore()
       return auth.isLibrarianOrAdmin() ? true : '/'
-    }
+        }
     },
+{
       path: '/asistent',
       component: () => import('../views/ChatAssistantView.vue'),
       meta: { requiresAuth: true }

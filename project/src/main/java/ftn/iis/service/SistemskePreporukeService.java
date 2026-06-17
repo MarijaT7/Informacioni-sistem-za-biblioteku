@@ -2,33 +2,40 @@ package ftn.iis.service;
 
 import ftn.iis.dto.SistemskaPreporukaResponseDto;
 import ftn.iis.enums.StatusSistemskePreporuke;
+import ftn.iis.exception.NonManagerCreatingContractException;
+import ftn.iis.exception.NonManagerStartingAnalysisException;
 import ftn.iis.model.FizickaKnjiga;
 import ftn.iis.model.SistemskaPreporuka;
 import ftn.iis.repository.FizickaKnjigaRepository;
 import ftn.iis.repository.PozajmicaRepository;
 import ftn.iis.repository.RezervacijaRepository;
 import ftn.iis.repository.SistemskePreporukeRepository;
+import ftn.iis.utils.JwtService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class SistemskePreporukeService {
     private final SistemskePreporukeRepository sistemskePreporukeRepository;
     private final FizickaKnjigaRepository fizickaKnjigaRepository;
     private final PozajmicaRepository pozajmicaRepository;
+    private final JwtService jwtService;
 
     private static final int BROJ_DANA_ANALIZE = 30;
 
     public SistemskePreporukeService(SistemskePreporukeRepository sistemskePreporukeRepository, FizickaKnjigaRepository fizickaKnjigaRepository,
-                                     PozajmicaRepository pozajmicaRepository) {
+                                     PozajmicaRepository pozajmicaRepository, JwtService jwtService) {
         this.sistemskePreporukeRepository = sistemskePreporukeRepository;
         this.fizickaKnjigaRepository = fizickaKnjigaRepository;
         this.pozajmicaRepository = pozajmicaRepository;
+        this.jwtService = jwtService;
     }
 
     // rucno pokretanje analize trendova
@@ -46,10 +53,20 @@ public class SistemskePreporukeService {
             Integer brPrimeraka = fizickaKnjigaRepository.countPrimerciByIsbn(isbn);
 
             if (brPozajmica >= brPrimeraka/2 && brPrimeraka > 0) {
-                boolean vecPostojiPreporuka = sistemskePreporukeRepository.existsByFizickaKnjigaIsbnAndStatus(isbn, StatusSistemskePreporuke.AKTIVNA);
-                if (!vecPostojiPreporuka) {
-                    String predlog = generisiTekstPreporuke(brPozajmica, brPrimeraka);
+                String predlog = generisiTekstPreporuke(brPozajmica, brPrimeraka);
 
+                Optional<SistemskaPreporuka> postojeca = sistemskePreporukeRepository
+                        .findByFizickaKnjigaIsbnAndStatus(isbn, StatusSistemskePreporuke.AKTIVNA);
+
+                // ako postoji predlog, samo azuriram broj pozajmica i to
+                if (postojeca.isPresent()) {
+                    SistemskaPreporuka preporuka = postojeca.get();
+                    preporuka.setBrojPozajmica(brPozajmica);
+                    preporuka.setTrenutniBrojPrimeraka(brPrimeraka);
+                    preporuka.setPredlog(predlog);
+                    preporuka.setDatumGenerisanja(LocalDateTime.now());
+                    sistemskePreporukeRepository.save(preporuka);
+                } else {
                     SistemskaPreporuka preporuka = new SistemskaPreporuka();
                     preporuka.setStatus(StatusSistemskePreporuke.AKTIVNA);
                     preporuka.setDatumGenerisanja(LocalDateTime.now());
@@ -63,15 +80,48 @@ public class SistemskePreporukeService {
         }
     }
 
-
-
-
     // automatsko pokretanje analize svakog ponedeljka u ponoc ~~~
     @Scheduled(cron = "0 */3 * * * *")
     public void automatskaAnaliza() {
         generisiPreporuke();
     }
 
+
+    @Transactional
+    public List<SistemskaPreporukaResponseDto> pribaviAktivne(String token) {
+        String role = jwtService.extractRole(token);
+        if (!role.equalsIgnoreCase("MENADZER")) {
+            throw new NonManagerStartingAnalysisException();
+        }
+
+        List<SistemskaPreporuka> preporuke = sistemskePreporukeRepository
+                .findAllByStatusOrderByDatumGenerisanjaDesc(StatusSistemskePreporuke.AKTIVNA);
+
+        List<SistemskaPreporukaResponseDto> dtos = new ArrayList<>();
+        for (SistemskaPreporuka p : preporuke) {
+            dtos.add(mapirajUDto(p));
+        }
+        return dtos;
+    }
+
+    @Transactional
+    public SistemskaPreporukaResponseDto azurirajStatus(Long id, StatusSistemskePreporuke noviStatus, String token) {
+        String role = jwtService.extractRole(token);
+        if (!role.equalsIgnoreCase("MENADZER")) {
+            throw new NonManagerStartingAnalysisException();
+        }
+
+        SistemskaPreporuka preporuka = sistemskePreporukeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Preporuka nije pronađena."));
+
+        if (preporuka.getStatus() != StatusSistemskePreporuke.AKTIVNA) {
+            throw new RuntimeException("Preporuka je već obrađena.");
+        }
+
+        preporuka.setStatus(noviStatus);
+        sistemskePreporukeRepository.save(preporuka);
+        return mapirajUDto(preporuka);
+    }
 
 
     // pomocne metodice ~~~

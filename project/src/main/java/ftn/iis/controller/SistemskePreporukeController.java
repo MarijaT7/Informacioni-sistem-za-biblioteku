@@ -1,5 +1,7 @@
 package ftn.iis.controller;
 
+import ftn.iis.dto.SistemskaPreporukaResponseDto;
+import ftn.iis.enums.StatusSistemskePreporuke;
 import ftn.iis.enums.Uloge;
 import ftn.iis.service.SistemskePreporukeService;
 import ftn.iis.utils.JwtService;
@@ -7,9 +9,9 @@ import io.jsonwebtoken.Jwt;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Controller
 @RequestMapping("api/sistemske-preporuke")
@@ -22,6 +24,7 @@ public class SistemskePreporukeController {
         this.jwtService = jwtService;
     }
 
+    //rucno pokretanje
     @PostMapping("/pokreni-analizu")
     public ResponseEntity<?> pokreniAnalizu(@RequestHeader("Authorization") String authHeader ){
         String token = authHeader.substring(7);
@@ -31,6 +34,23 @@ public class SistemskePreporukeController {
         }
         sistemskePreporukeService.generisiPreporuke();
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/aktivne")
+    public ResponseEntity<List<SistemskaPreporukaResponseDto>> pribaviAktivne(
+            @RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.substring(7);
+        return ResponseEntity.ok(sistemskePreporukeService.pribaviAktivne(token));
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<SistemskaPreporukaResponseDto> azurirajStatus(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable Long id,
+            @RequestParam String status) {
+        String token = authHeader.substring(7);
+        StatusSistemskePreporuke noviStatus = StatusSistemskePreporuke.valueOf(status.toUpperCase());
+        return ResponseEntity.ok(sistemskePreporukeService.azurirajStatus(id, noviStatus, token));
     }
 
 }

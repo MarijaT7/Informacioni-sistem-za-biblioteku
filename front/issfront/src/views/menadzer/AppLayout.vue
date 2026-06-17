@@ -19,7 +19,12 @@
 
         <RouterLink to="/menadzer/predlozi" class="nav-item" active-class="nav-item--active">
           <span class="nav-icon">📑</span>
-          <span class="nav-label">Predlozi</span>
+          <span class="nav-label">Korisnički predlozi</span>
+        </RouterLink>
+
+        <RouterLink to="/menadzer/sistemske-preporuke" class="nav-item" active-class="nav-item--active">
+          <span class="nav-icon">📈</span>
+          <span class="nav-label">Sistemske preporuke</span>
         </RouterLink>
       </nav>
 

@@ -21,20 +21,31 @@
             <nav v-else class="session-list">
               <p v-if="!sessions.length" class="empty-state">Još nemate nijedan čet.</p>
 
-              <button
-                v-for="s in sessions"
-                :key="s.id"
-                class="session-item"
-                :class="{ active: s.id === activeSessionId && viewMode === 'conversation' }"
-                @click="selectSession(s.id)"
-              >
-                <span class="session-name" :class="{ 'session-name-pending': s._pending }">
-                  {{ sessionLabel(s) }}
-                </span>
-                <span class="agent-pill" :class="agentPillClass(s.tipAgentaCS)">
-                  {{ agentLabel(s.tipAgentaCS) }}
-                </span>
-              </button>
+              <div
+  v-for="s in sessions"
+  :key="s.id"
+  class="session-item"
+  :class="{ active: s.id === activeSessionId && viewMode === 'conversation' }"
+  @click="selectSession(s.id)"
+>
+  <span class="session-name" :class="{ 'session-name-pending': s._pending }">
+    {{ sessionLabel(s) }}
+  </span>
+  <div class="session-right">
+    <span class="agent-pill" :class="agentPillClass(s.tipAgentaCS)">
+      {{ agentLabel(s.tipAgentaCS) }}
+    </span>
+    <button
+      class="btn-delete-session"
+      :disabled="s._pending || deletingSessionId === s.id"
+      @click.stop="deleteSession(s)"
+      aria-label="Obriši čet"
+      title="Obriši čet"
+    >
+      {{ deletingSessionId === s.id ? '…' : '✕' }}
+    </button>
+  </div>
+</div>
             </nav>
           </aside>
 
@@ -224,6 +235,7 @@ const draft = ref('')
 const sending = ref(false)
 
 const creatingSession = ref(false)
+const deletingSessionId = ref(null)
 const newSessionError = ref('')
 const newSessionForm = ref({
   tipAgentaCS: 'AGENT_KNJIGE',
@@ -485,6 +497,30 @@ async function createSession() {
     }
   } finally {
     creatingSession.value = false
+  }
+}
+
+async function deleteSession(session) {
+  if (session._pending) return
+  if (!confirm(`Obrisati čet "${sessionLabel(session)}"?`)) return
+
+  deletingSessionId.value = session.id
+  try {
+    await cetSesijaApi.obrisi(session.id)
+    sessions.value = sessions.value.filter((s) => s.id !== session.id)
+
+    // Ako je obrisana aktivna sesija, vrati na compose ekran
+    if (activeSessionId.value === session.id) {
+      activeSessionId.value = null
+      viewMode.value = 'compose'
+      messages.value = []
+    }
+  } catch (e) {
+    sessionsError.value = e.response?.status === 404
+      ? 'Čet sesija nije pronađena.'
+      : 'Greška pri brisanju. Pokušajte ponovo.'
+  } finally {
+    deletingSessionId.value = null
   }
 }
 </script>
@@ -848,4 +884,27 @@ async function createSession() {
   font-weight: bold;
 }
 .btn-secondary2:hover { background: #8fa870; }
+
+.session-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.btn-delete-session {
+  background: transparent;
+  border: none;
+  color: var(--text-mid);
+  cursor: pointer;
+  padding: 0.2rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  transition: opacity 0.15s, color 0.15s, background 0.15s;
+  color: #c0392b;
+}
+.session-item:hover .btn-delete-session { opacity: 1; }
+.btn-delete-session:hover { color: #c0392b; background: #fdecea; }
+.btn-delete-session:disabled { opacity: 0.4; cursor: not-allowed; }
 </style>

@@ -129,7 +129,7 @@ const routes = [
     },
     {
       path: '/asistent',
-      component: () => import('../views/ChatAsistentView.vue'),
+      component: () => import('../views/ChatAssistantView.vue'),
       meta: { requiresAuth: true }
     },
 

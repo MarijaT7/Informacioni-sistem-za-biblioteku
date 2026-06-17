@@ -23,11 +23,16 @@
         <span class="nav-icon"></span> Obaveštenja
         <span v-if="unreadCount > 0" class="notif-dot"></span>
       </RouterLink>
-      <RouterLink class="nav-item" to="/katalog">
+      <RouterLink v-if="role === 'ADMINISTRATOR' || role === 'BIBLIOTEKAR'" class="nav-item" to="/katalog">
         <span class="nav-icon"></span> Katalog
       </RouterLink>
       <RouterLink class="nav-item" to="/baze-podataka">
         <span class="nav-icon"></span> Elektronske baze podataka
+      </RouterLink>
+
+      <!-- Samo za bibliotekara i administratora -->
+      <RouterLink v-if="role === 'ADMINISTRATOR' || role === 'BIBLIOTEKAR'" class="nav-item" to="/zahtevi">
+        <span class="nav-icon"></span> Međubibliotečki zahtevi
       </RouterLink>
 
       <!-- Samo za clana -->

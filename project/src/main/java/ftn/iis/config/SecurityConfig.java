@@ -39,7 +39,8 @@ public class SecurityConfig {
                                 "/api/biblioteka",
                                 "/api/genres",
                                 "/api/kategorije",
-                                "/api/knjiga/sve/osnovno"
+                                "/api/knjiga/sve/osnovno",
+                                "/api/marc/**"
                         ).permitAll()
 
                         .anyRequest().authenticated()

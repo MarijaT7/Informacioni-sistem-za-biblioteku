@@ -1,5 +1,6 @@
 package ftn.iis.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
@@ -34,6 +35,7 @@ public class Rezervacija {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "isbn_fizicka", nullable = false)
+    @JsonBackReference("fizicka-rezervacija")
     private FizickaKnjiga fizickaKnjiga;
 
     @ManyToOne(fetch = FetchType.LAZY)

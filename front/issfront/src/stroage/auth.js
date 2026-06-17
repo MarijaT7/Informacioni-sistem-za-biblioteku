@@ -17,6 +17,7 @@ const unreadCount= ref(0)
       role:      authResponse.role,
       firstName: authResponse.firstName,
       lastName:  authResponse.lastName,
+      bid:       authResponse.bid,
     }
     localStorage.setItem('token', token.value)
     localStorage.setItem('user',  JSON.stringify(user.value))
@@ -42,5 +43,18 @@ function setUnreadCount(count) {
     return user.value ? user.value.role : null
   }
 
-  return { token, user, regJmbg, isLoggedIn,unreadCount, setUnreadCount, setAuth, setRegJmbg, logout, getRole }
+  function getBid() {
+    return user.value ? user.value.bid : null
+  }
+
+  function isAdmin() {
+    return getRole() === 'ADMINISTRATOR'
+  }
+
+  function isLibrarianOrAdmin() {
+    return getRole() === 'BIBLIOTEKAR' || getRole() === 'ADMINISTRATOR'
+  }
+
+  return { token, user, regJmbg, isLoggedIn, setAuth, setRegJmbg, logout, getRole, getBid, isAdmin, isLibrarianOrAdmin, unreadCount, setUnreadCount }
+
 })

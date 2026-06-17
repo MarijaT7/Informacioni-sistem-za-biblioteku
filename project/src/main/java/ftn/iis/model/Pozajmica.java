@@ -1,10 +1,12 @@
 package ftn.iis.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
 @Table(name="pozajmica")
@@ -28,6 +30,7 @@ public class Pozajmica {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_pk_fk", nullable = false)
+    @JsonManagedReference("knjiga-poz")
     private PrimerakKnjige primerakKnjige;
 
     @ManyToOne(fetch = FetchType.LAZY)

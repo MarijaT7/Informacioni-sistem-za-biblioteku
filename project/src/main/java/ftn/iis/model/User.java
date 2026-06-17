@@ -1,5 +1,6 @@
 package ftn.iis.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import ftn.iis.enums.TipPretplate;
 import ftn.iis.enums.Uloge;
 import jakarta.persistence.*;
@@ -66,9 +67,11 @@ public class User implements UserDetails {
     private List<Genre> favouriteGenres = new ArrayList<>();
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference("user-clan")
     private Clanarina clanarina;
 
     @OneToMany(mappedBy = "clan", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference("user-citanja")
     private List<CitanjeEKnjige> citanja = new ArrayList<>();
 
     @OneToMany(mappedBy = "clan", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

@@ -37,6 +37,9 @@
       <RouterLink v-if="role === 'CLAN'" class="nav-item" to="/notifikacije">
         <span class="nav-icon"></span> Praćenje statusa predloga
       </RouterLink>
+      <RouterLink v-if="role === 'CLAN'" class="nav-item" to="/asistent">
+        <span class="nav-icon"></span> AI Asistent
+      </RouterLink>
 
       <!-- Samo za bibliotekara -->
       <RouterLink v-if="role === 'BIBLIOTEKAR'" class="nav-item" to="/predlozi-na-cekanju">

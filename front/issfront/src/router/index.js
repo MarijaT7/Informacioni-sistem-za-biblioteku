@@ -127,6 +127,11 @@ const routes = [
       component: () => import('../views/KatalogDetaljiView.vue'),
       meta: { requiresAuth: true }
     },
+    {
+      path: '/asistent',
+      component: () => import('../views/ChatAsistentView.vue'),
+      meta: { requiresAuth: true }
+    },
 
   {
   path: '/menadzer',

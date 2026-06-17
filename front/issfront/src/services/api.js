@@ -169,4 +169,41 @@ export const sistemskePreporukeApi = {
   azurirajStatus:  (id, status) => api.patch(`/sistemske-preporuke/${id}/status`, null, { params: { status } }),
 }
 
+// ── AI Asistent: čet sesije ──────────────────────────────────────────
+// Napomena: POST /cet-sesija/nova očekuje multipart/form-data sa jednim
+// poljem "podaci" čiji je sadržaj JSON string (vidi Postman kolekciju).
+export const cetSesijaApi = {
+  sve:      ()                          => api.get('/cet-sesija/sve'),
+  jedna:    (id)                        => api.get(`/cet-sesija/${id}`),
+  nova: (tipAgentaCS, sadrzajPoruke) => {
+    const formData = new FormData()
+    const podaciBlob = new Blob(
+      [JSON.stringify({ tipAgentaCS, sadrzajPoruke })],
+      { type: 'application/json' }
+    )
+    formData.append('podaci', podaciBlob)
+    return api.post('/cet-sesija/nova', formData, {
+    headers: { 'Content-Type': undefined }
+  })
+  },
+  obrisi:   (id)                        => api.delete(`/cet-sesija/${id}`),
+}
+
+// ── AI Asistent: čet poruke ───────────────────────────────────────────
+export const cetPorukaApi = {
+  nova:        (idCetSesije, sadrzajPoruke) =>
+    api.post(`/cet-poruka/cet-sesija/${idCetSesije}`, { sadrzajPoruke }),
+  ocena:       (idCetPoruke)                => api.get(`/cet-poruka/${idCetPoruke}/ocena`),
+  oceni:       (idCetPoruke, ocenaCP, komentarCP) =>
+    api.post(`/cet-poruka/${idCetPoruke}/ocena`, { ocenaCP, komentarCP }),
+}
+
+// ── AI Asistent: health check (poseban servis, port 8000) ────────────
+const CHAT_HEALTH_URL = 'http://localhost:8000/api/v1/chat/health'
+export const chatHealthApi = {
+  // Zaseban axios pozив bez baseURL/interceptora jer servis radi na
+  // drugom portu (8000) i nije iza istog /api proxy-ja kao Spring backend.
+  provera: () => axios.get(CHAT_HEALTH_URL),
+}
+
 export default api

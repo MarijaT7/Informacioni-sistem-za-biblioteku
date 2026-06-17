@@ -143,9 +143,13 @@ input:focus, select:focus { border-color: var(--btn-primary); }
 }
 
 /* ── Sidebar layout ──────────────────────── */
+html, body, #app {
+  height: 100%;
+}
+
 .app-layout {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
   background: var(--bg-main);
 }
 .sidebar {
@@ -189,6 +193,9 @@ input:focus, select:focus { border-color: var(--btn-primary); }
 
 .main-content {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   background: var(--card-bg-alt);
   padding: 2.5rem 3rem;
   overflow-y: auto;

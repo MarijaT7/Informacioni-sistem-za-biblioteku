@@ -382,16 +382,25 @@ public class PozajmicaService {
         return result;
     }
 
+    public List<PozajmicaDto> getAllActivePozajmice() {
+        return pozajmicaRepository.findAllActivePozajmice()
+                .stream()
+                .map(PozajmicaDto::fromPozajmica)
+                .collect(Collectors.toList());
+    }
+
     // Vracanje knjige
     @Transactional
-    public Map<String, Object> returnBook(Long pozajmicaId, String jmbg) {
+    public Map<String, Object> returnBookBibliotekar(Long pozajmicaId) {
         Map<String, Object> result = new HashMap<>();
+
         Pozajmica pozajmica = pozajmicaRepository.findById(pozajmicaId).orElse(null);
-        if (pozajmica == null || !pozajmica.getClan().getJmbg().equals(jmbg)) {
+        if (pozajmica == null || !Boolean.TRUE.equals(pozajmica.getStatusPoz())) {
             result.put("success", false);
-            result.put("message", "Pozajmica nije pronađena.");
+            result.put("message", "Pozajmica nije pronađena ili je već završena.");
             return result;
         }
+
         pozajmica.setStatusPoz(false);
         pozajmica.setDatVrac(LocalDate.now());
         pozajmicaRepository.save(pozajmica);

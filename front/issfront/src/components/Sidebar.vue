@@ -45,6 +45,9 @@
       <RouterLink v-if="role === 'BIBLIOTEKAR'" class="nav-item" to="/produzenja-na-cekanju">
         Zahtevi za produženje
       </RouterLink>
+      <RouterLink v-if="role === 'BIBLIOTEKAR'" class="nav-item" to="/vracanje-knjiga">
+        Vraćanje knjiga
+      </RouterLink>
     </nav>
 
     <button class="logout-btn" @click="handleLogout">Odjavi se</button>

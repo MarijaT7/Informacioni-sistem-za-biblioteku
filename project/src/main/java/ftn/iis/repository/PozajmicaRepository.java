@@ -20,5 +20,12 @@ public interface PozajmicaRepository extends JpaRepository<Pozajmica, Long> {
     boolean hasOverduePozajmica(@Param("jmbg") String jmbg, @Param("today") LocalDate today);
     @Query("SELECT p FROM Pozajmica p WHERE p.statusPoz = true AND p.datOcVrac = :targetDate")
     List<Pozajmica> findPozajmiceDueOn(@Param("targetDate") LocalDate targetDate);
-
+    @Query("SELECT p FROM Pozajmica p " +
+            "JOIN FETCH p.primerakKnjige pk " +
+            "JOIN FETCH pk.fizickaKnjiga fk " +
+            "JOIN FETCH fk.knjiga k " +
+            "JOIN FETCH p.clan c " +
+            "WHERE p.statusPoz = true " +
+            "ORDER BY p.datOcVrac ASC")
+    List<Pozajmica> findAllActivePozajmice();
 }

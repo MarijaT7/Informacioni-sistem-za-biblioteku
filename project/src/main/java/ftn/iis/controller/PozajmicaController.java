@@ -1,6 +1,7 @@
 package ftn.iis.controller;
 
 import ftn.iis.dto.ObavestenjeDto;
+import ftn.iis.dto.PozajmicaDto;
 import ftn.iis.dto.PozajmiceRezervacijeResponseDto;
 import ftn.iis.dto.ProduzenjePozajmiceRequestDto;
 import ftn.iis.service.PozajmicaService;
@@ -166,6 +167,25 @@ public class PozajmicaController {
         String jmbg = extractJmbg(authHeader);
         if (jmbg == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         return ResponseEntity.ok(pozajmicaService.getPendingExtensions());
+    }
+    @GetMapping("/sve-aktivne")
+    public ResponseEntity<List<PozajmicaDto>> getSveAktivne(
+            @RequestHeader("Authorization") String authHeader) {
+        String jmbg = extractJmbg(authHeader);
+        if (jmbg == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        return ResponseEntity.ok(pozajmicaService.getAllActivePozajmice());
+    }
+
+    @PostMapping("/vrati/{idP}")
+    public ResponseEntity<?> vratiKnjigu(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable Long idP) {
+        String jmbg = extractJmbg(authHeader);
+        if (jmbg == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        Map<String, Object> result = pozajmicaService.returnBookBibliotekar(idP);
+        return Boolean.TRUE.equals(result.get("success"))
+                ? ResponseEntity.ok(result)
+                : ResponseEntity.badRequest().body(result);
     }
 
     @PostMapping("/produzenja/{idPP}/obradi")

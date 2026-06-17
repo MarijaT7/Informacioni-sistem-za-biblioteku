@@ -167,6 +167,11 @@ const routes = [
  
   ]
 },
+{
+    path:   '/searchpoc',
+    name:   'fulltextsearch',
+    component: () => import('../views/SearchPOC.vue')
+},
 ]
 
 const router = createRouter({

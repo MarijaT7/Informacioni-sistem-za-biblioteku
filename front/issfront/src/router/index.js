@@ -24,12 +24,28 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/vracanje-knjiga',
+    component: () => import('../views/VracanjeKnjigaView.vue'),
+    beforeEnter: () => {
+      const auth = useAuthStore()
+      return auth.getRole() === 'BIBLIOTEKAR' ? true : '/'
+    }
+  },
+  {
     path: '/knjige/nova',
     component: () => import('../views/BookCreateView.vue'),
     beforeEnter: () => {
       const auth = useAuthStore()
       return auth.getRole() === 'BIBLIOTEKAR' ? true : '/'
     }
+  },
+  {
+      path: '/produzenja-na-cekanju',
+      component: () => import('../views/ProduzenjaNaCekanjuView.vue'),
+      beforeEnter: () => {
+          const auth = useAuthStore()
+          return auth.getRole() === 'BIBLIOTEKAR' ? true : '/'
+      }
   },
   {
     path: '/knjige/:isbn',

@@ -1,9 +1,6 @@
 package ftn.iis.service;
 
-import ftn.iis.dto.ObavestenjeDto;
-import ftn.iis.dto.PozajmicaDto;
-import ftn.iis.dto.PozajmiceRezervacijeResponseDto;
-import ftn.iis.dto.RezervacijaDto;
+import ftn.iis.dto.*;
 import ftn.iis.enums.StatusCitanja;
 import ftn.iis.enums.StatusSlusanja;
 import ftn.iis.model.*;
@@ -319,7 +316,9 @@ public class PozajmicaService {
         }
 
         User bibliotekar = userRepository.findByJmbg(bibliotekarJmbg).orElse(null);
-
+        String naslovKnjige = pp.getPozajmica().getPrimerakKnjige()
+                .getFizickaKnjiga().getKnjiga().getNaslov();
+        User clan = pp.getPozajmica().getClan();
         if (approve) {
             LocalDate noviDatVrac = pp.getPozajmica().getDatOcVrac().plusDays(14);
             pp.setStatusPP(true);
@@ -331,6 +330,16 @@ public class PozajmicaService {
             pozajmica.setDatOcVrac(noviDatVrac);
             pozajmicaRepository.save(pozajmica);
 
+            Obavestenje o = new Obavestenje();
+            o.setTipO("PRODUZENJE_ODOBRENO");
+            o.setTekstO("Vaš zahtev za produženje pozajmice knjige '" + naslovKnjige +
+                    "' je odobren. Novi rok vraćanja: " +
+                    String.format("%02d.%02d.%d", noviDatVrac.getDayOfMonth(),
+                            noviDatVrac.getMonthValue(), noviDatVrac.getYear()) + ".");
+            o.setDatKreiran(LocalDate.now());
+            o.setClan(clan);
+            obavestenjeRepository.save(o);
+
             result.put("success", true);
             result.put("noviDatVrac", noviDatVrac.toString());
         } else {
@@ -338,6 +347,17 @@ public class PozajmicaService {
             pp.setRazlogOdb(razlog);
             pp.setBibliotekar(bibliotekar);
             produzenjePozajmiceRepository.save(pp);
+
+            Obavestenje o = new Obavestenje();
+            o.setTipO("PRODUZENJE_ODBIJENO");
+            String tekst = "Vaš zahtev za produženje pozajmice knjige '" + naslovKnjige + "' je odbijen.";
+            if (razlog != null && !razlog.isBlank()) {
+                tekst += " Razlog: " + razlog;
+            }
+            o.setTekstO(tekst);
+            o.setDatKreiran(LocalDate.now());
+            o.setClan(clan);
+            obavestenjeRepository.save(o);
             result.put("success", true);
         }
         return result;
@@ -362,16 +382,25 @@ public class PozajmicaService {
         return result;
     }
 
+    public List<PozajmicaDto> getAllActivePozajmice() {
+        return pozajmicaRepository.findAllActivePozajmice()
+                .stream()
+                .map(PozajmicaDto::fromPozajmica)
+                .collect(Collectors.toList());
+    }
+
     // Vracanje knjige
     @Transactional
-    public Map<String, Object> returnBook(Long pozajmicaId, String jmbg) {
+    public Map<String, Object> returnBookBibliotekar(Long pozajmicaId) {
         Map<String, Object> result = new HashMap<>();
+
         Pozajmica pozajmica = pozajmicaRepository.findById(pozajmicaId).orElse(null);
-        if (pozajmica == null || !pozajmica.getClan().getJmbg().equals(jmbg)) {
+        if (pozajmica == null || !Boolean.TRUE.equals(pozajmica.getStatusPoz())) {
             result.put("success", false);
-            result.put("message", "Pozajmica nije pronađena.");
+            result.put("message", "Pozajmica nije pronađena ili je već završena.");
             return result;
         }
+
         pozajmica.setStatusPoz(false);
         pozajmica.setDatVrac(LocalDate.now());
         pozajmicaRepository.save(pozajmica);
@@ -485,7 +514,12 @@ public class PozajmicaService {
     public int getAvailableCopiesCount(String isbn) {
         return primerakKnjigeRepository.findAvailablePrimerciByIsbn(isbn).size();
     }
-
+    public List<ProduzenjePozajmiceRequestDto> getPendingExtensions() {
+        return produzenjePozajmiceRepository.findPendingExtensions()
+                .stream()
+                .map(ProduzenjePozajmiceRequestDto::from)
+                .collect(java.util.stream.Collectors.toList());
+    }
 
     @Transactional
     public void expireDigitalLoans() {

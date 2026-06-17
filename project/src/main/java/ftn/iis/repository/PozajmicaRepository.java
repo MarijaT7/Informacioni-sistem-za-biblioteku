@@ -23,4 +23,12 @@ public interface PozajmicaRepository extends JpaRepository<Pozajmica, Long> {
     @Query("SELECT COUNT(p) FROM Pozajmica p WHERE p.primerakKnjige.fizickaKnjiga.isbn = :isbn AND p.datPoz >= :od")
     Integer countByIsbnAndDatPozAfter(@Param("isbn") String isbn, @Param("od") LocalDate od);
 
+    @Query("SELECT p FROM Pozajmica p " +
+            "JOIN FETCH p.primerakKnjige pk " +
+            "JOIN FETCH pk.fizickaKnjiga fk " +
+            "JOIN FETCH fk.knjiga k " +
+            "JOIN FETCH p.clan c " +
+            "WHERE p.statusPoz = true " +
+            "ORDER BY p.datOcVrac ASC")
+    List<Pozajmica> findAllActivePozajmice();
 }

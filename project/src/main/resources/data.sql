@@ -405,7 +405,7 @@ INSERT INTO korisnik (
     'Srdjan',
     'Sancanin',
     '1995-02-25',
-    '$2a$10$MxNR56RCAjGZjfexyE7ThuOVZKtmsHBU5tABCp9T3lylkG4FVJpX.',
+    '$2a$10$MxNR56RCAjGZjfexyE7ThuOVZKtmsHBU5tABCp9T3lylkG4FVJpX.', --testtest
     'check@not.here',
     '0611636913',
     'BIBLIOTEKAR',
@@ -709,6 +709,8 @@ VALUES ('1234567891234', 'Vaš predlog za nabavku knjige "Majstor i Margarita" j
 INSERT INTO notifikacija (korisnik_jmbg, poruka, datum, procitana)
 VALUES ('1234567891234', 'Vaš predlog za nabavku knjige "Fifty Shades of Grey" je odbijen. Razlog: Knjiga nije primerena za biblioteku.', '2026-03-02 09:30:00', false);
 
+--INSERT INTO obavestenje (tip_o, tekst_o, dat_kreiran,procitano, jmbg_clana)
+--VALUES ('VRACANJE', 'Podsetnik: knjiga Na Drini ćuprija treba da bude vraćena do 18.06.2026.', CURRENT_DATE, FALSE, '1234567891234');
 INSERT INTO notifikacija (korisnik_jmbg, poruka, datum, procitana)
 VALUES ('1234567891234', 'Vaš predlog za nabavku knjige "Zlocin i kazna" je odobren i uvršten u plan nabavke.', '2026-02-11 10:00:00', false);
 

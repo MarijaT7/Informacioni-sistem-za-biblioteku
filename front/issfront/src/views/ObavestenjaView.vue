@@ -25,6 +25,19 @@
             <button class="btn-obrisi" @click="obrisi(o.idO)">Obrišite</button>
           </div>
         </section>
+        <section v-if="produzenja.length > 0" class="notif-section">
+          <h2 class="section-title">Produženje pozajmice</h2>
+          <div
+            v-for="o in produzenja"
+            :key="o.idO"
+            class="notif-card"
+            :class="o.tipO === 'PRODUZENJE_ODOBRENO' ? 'notif-odobreno' : 'notif-odbijeno'"
+          >
+            <p class="notif-text">{{ o.tekstO }}</p>
+            <p class="notif-date">{{ formatDate(o.datKreiran) }}</p>
+            <button class="btn-obrisi" @click="obrisi(o.idO)">Obrišite</button>
+          </div>
+        </section>
 
 
         <section v-if="ostala.length > 0" class="notif-section">
@@ -50,16 +63,32 @@
 import { computed, onMounted, ref } from 'vue'
 import SidebarNav from '../components/Sidebar.vue'
 import { pozajmicaApi } from '../services/api.js'
+import { useAuthStore } from '../stroage/auth.js'
+const authStore = useAuthStore()
 
 const loading = ref(true)
 const obavestenja = ref([])
 
 const vracanja = computed(() => obavestenja.value.filter(o => o.tipO === 'VRACANJE'))
 const dostupne = computed(() => obavestenja.value.filter(o => o.tipO === 'REZERVACIJA_DOSTUPNA'))
-const ostala = computed(() => obavestenja.value.filter(o => o.tipO !== 'VRACANJE' && o.tipO !== 'REZERVACIJA_DOSTUPNA'))
 
+const produzenja = computed(() =>
+  obavestenja.value.filter(o =>
+    o.tipO === 'PRODUZENJE_ODOBRENO' || o.tipO === 'PRODUZENJE_ODBIJENO'
+  )
+)
+const ostala = computed(() =>
+  obavestenja.value.filter(o =>
+    o.tipO !== 'VRACANJE' &&
+    o.tipO !== 'REZERVACIJA_DOSTUPNA' &&
+    o.tipO !== 'PRODUZENJE_ODOBRENO' &&
+    o.tipO !== 'PRODUZENJE_ODBIJENO'
+  )
+)
 onMounted(async () => {
   await loadObavestenja()
+  authStore.setUnreadCount(0)
+  obavestenja.value.forEach(o => o.procitano = true)
 })
 
 async function loadObavestenja() {
@@ -117,6 +146,8 @@ function formatDate(dateStr) {
   color: #7a5c48; font-size: 0.78rem; padding: 0.3rem 0.85rem; cursor: pointer;
   white-space: nowrap; transition: background 0.15s;
 }
+.notif-odobreno { background: #eaf3e8; }
+.notif-odbijeno { background: #f9eaea; }
 .btn-obrisi:hover { background: #f0ded4; }
 .btn-obrisi-sve {
   background: transparent; border: 1.5px solid #7a5c48; border-radius: 50px;

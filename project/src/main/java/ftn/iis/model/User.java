@@ -67,6 +67,7 @@ public class User implements UserDetails {
     private List<Genre> favouriteGenres = new ArrayList<>();
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference("user-clan")
     private Clanarina clanarina;
 
     @OneToMany(mappedBy = "clan", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

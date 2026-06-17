@@ -1,5 +1,7 @@
 package ftn.iis.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import ftn.iis.enums.NacinUplate;
 import jakarta.persistence.*;
 import java.time.LocalDate;
@@ -33,6 +35,8 @@ public class Clanarina {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "jmbg", nullable = false)
+    @JsonManagedReference("user-clan")
+    @JsonIgnore
     private User user;
 
     public Clanarina() {

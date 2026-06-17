@@ -20,6 +20,7 @@ public class FizickaKnjiga {
     private Knjiga knjiga;
     @OneToMany(mappedBy = "fizickaKnjiga", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference("fizicka-primerak")
+    @JsonIgnore
     private List<PrimerakKnjige> primerci = new ArrayList<>();
 
     @OneToMany(mappedBy = "fizickaKnjiga", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

@@ -130,6 +130,39 @@
             </template>
 
             <!-- LIBRARIAN VIEW -->
+            <section v-if="isLibrarian" class="marc-panel">
+              <div class="marc-header">
+                <h3>MARC zapis</h3>
+                <button class="btn-secondary" type="button" :disabled="marcLoading" @click="toggleMarc">
+                  {{ marcVisible ? 'Sakrij MARC zapis' : 'Prikazi MARC zapis' }}
+                </button>
+              </div>
+              <p v-if="marcError" class="error-msg">{{ marcError }}</p>
+              <div v-if="marcVisible && marc" class="marc-body">
+                <p class="marc-leader"><strong>Leader:</strong> {{ marc.leader }}</p>
+                <table class="marc-table">
+                  <thead>
+                    <tr>
+                      <th>Tag</th>
+                      <th>Indikatori</th>
+                      <th>Podpolja</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(field, idx) in marc.fields" :key="idx">
+                      <td>{{ field.tag }}</td>
+                      <td>{{ field.indicator1 }}{{ field.indicator2 }}</td>
+                      <td>
+                        <span v-for="(value, code) in field.subfields" :key="code" class="marc-subfield">
+                          <strong>${{ code }}</strong> {{ value }}
+                        </span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
             <section v-if="isLibrarian" class="librarian-panel">
               <h3>Upravljanje knjigom</h3>
               <p class="helper-text">Izmenite osnovne podatke ili dodajte medije koji nedostaju.</p>
@@ -227,7 +260,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import SidebarNav from '../components/Sidebar.vue'
 import { useAuthStore } from '../stroage/auth.js'
-import { katalogApi, knjigaApi, pozajmicaApi } from '../services/api.js'
+import { katalogApi, knjigaApi, pozajmicaApi, marcApi } from '../services/api.js'
 
 const authStore = useAuthStore()
 const route = useRoute()
@@ -255,6 +288,10 @@ const mp3File = ref(null)
 const catalogs = ref([])
 const catalogsLoading = ref(false)
 const catalogError = ref('')
+const marc = ref(null)
+const marcVisible = ref(false)
+const marcLoading = ref(false)
+const marcError = ref('')
 const form = ref({
   naslov: '', autor: '', sinopsis: '', katId: '', brojStranaEK: '', trajanjeSekundeAK: ''
 })
@@ -431,6 +468,30 @@ function formatDate(dateStr) {
 }
 
 function backToList() { router.push('/knjige') }
+
+async function toggleMarc() {
+  if (marcVisible.value) {
+    marcVisible.value = false
+    return
+  }
+  marcError.value = ''
+  if (marc.value) {
+    marcVisible.value = true
+    return
+  }
+  marcLoading.value = true
+  try {
+    const res = await marcApi.zapis(isbn.value)
+    marc.value = res.data
+    marcVisible.value = true
+  } catch (e) {
+    marcError.value = e.response?.status === 404
+      ? 'MARC zapis ne postoji za ovu knjigu.'
+      : (e.response?.data || 'Greska pri ucitavanju MARC zapisa.')
+  } finally {
+    marcLoading.value = false
+  }
+}
 
 function setFormFromBook() {
   if (!book.value) return
@@ -614,6 +675,13 @@ async function deleteAudio() {
 
 /* Librarian */
 .librarian-panel { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); text-align: left; }
+.marc-panel { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); text-align: left; }
+.marc-header { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
+.marc-body { margin-top: 1rem; background: #fff; border-radius: 12px; padding: 1rem; box-shadow: var(--shadow); }
+.marc-leader { margin-bottom: 0.75rem; font-family: var(--mono); font-size: 0.9rem; }
+.marc-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.marc-table th, .marc-table td { text-align: left; padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+.marc-subfield { display: inline-block; margin-right: 0.75rem; }
 .helper-text { color: var(--text-mid); margin-bottom: 1rem; }
 .librarian-form { display: grid; gap: 1.25rem; }
 .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }

@@ -80,8 +80,8 @@ const isLibrarian = ref(false)
 
 onMounted(() => {
   const role = authStore.getRole()
-  authorized.value = role === 'CLAN' || role === 'BIBLIOTEKAR'
-  isLibrarian.value = role === 'BIBLIOTEKAR'
+  authorized.value = role === 'CLAN' || role === 'BIBLIOTEKAR' || role === 'ADMINISTRATOR'
+  isLibrarian.value = role === 'BIBLIOTEKAR' || role === 'ADMINISTRATOR'
   if (authorized.value) {
     loadBooks()
   }

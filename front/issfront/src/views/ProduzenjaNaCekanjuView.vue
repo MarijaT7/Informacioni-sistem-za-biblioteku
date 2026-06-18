@@ -22,7 +22,7 @@
           </div>
 
           <div class="zahtev-akcije">
-            <button class="btn-odobri" @click="obradi(z.idPP, true, '')">✓ Odobri</button>
+            <button class="btn-odobri" @click="obradi(z.idPP, true, '')"> Odobri</button>
             <div class="odbij-section">
               <input
                 v-model="razlozi[z.idPP]"
@@ -30,7 +30,7 @@
                 placeholder="Razlog odbijanja (opciono)"
                 class="input-razlog"
               />
-              <button class="btn-odbij" @click="obradi(z.idPP, false, razlozi[z.idPP] || '')">✗ Odbij</button>
+              <button class="btn-odbij" @click="obradi(z.idPP, false, razlozi[z.idPP] || '')"> Odbij</button>
             </div>
           </div>
         </div>

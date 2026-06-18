@@ -24,7 +24,7 @@ public class PozajmicaNotificationScheduler {
         this.obavestenjeRepository = obavestenjeRepository;
         this.pozajmicaService=pozajmicaService;
     }
-    @Scheduled(cron = "0 */5 * * * *")
+    @Scheduled(cron = "0 0 5 * * *")
     @Transactional
     public void sendReturnReminders() {
         LocalDate targetDate = LocalDate.now().plusDays(2);

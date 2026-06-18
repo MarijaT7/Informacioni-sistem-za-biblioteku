@@ -22,30 +22,30 @@
               <p v-if="!sessions.length" class="empty-state">Još nemate nijedan čet.</p>
 
               <div
-  v-for="s in sessions"
-  :key="s.id"
-  class="session-item"
-  :class="{ active: s.id === activeSessionId && viewMode === 'conversation' }"
-  @click="selectSession(s.id)"
->
-  <span class="session-name" :class="{ 'session-name-pending': s._pending }">
-    {{ sessionLabel(s) }}
-  </span>
-  <div class="session-right">
-    <span class="agent-pill" :class="agentPillClass(s.tipAgentaCS)">
-      {{ agentLabel(s.tipAgentaCS) }}
-    </span>
-    <button
-      class="btn-delete-session"
-      :disabled="s._pending || deletingSessionId === s.id"
-      @click.stop="deleteSession(s)"
-      aria-label="Obriši čet"
-      title="Obriši čet"
-    >
-      {{ deletingSessionId === s.id ? '…' : '✕' }}
-    </button>
-  </div>
-</div>
+                v-for="s in sessions"
+                :key="s.id"
+                class="session-item"
+                :class="{ active: s.id === activeSessionId && viewMode === 'conversation' }"
+                @click="selectSession(s.id)"
+              >
+                <span class="session-name" :class="{ 'session-name-pending': s._pending }">
+                  {{ sessionLabel(s) }}
+                </span>
+                <div class="session-right">
+                  <span class="agent-pill" :class="agentPillClass(s.tipAgentaCS)">
+                    {{ agentLabel(s.tipAgentaCS) }}
+                  </span>
+                  <button
+                    class="btn-delete-session"
+                    :disabled="s._pending || deletingSessionId === s.id"
+                    @click.stop="deleteSession(s)"
+                    aria-label="Obriši čet"
+                    title="Obriši čet"
+                  >
+                    {{ deletingSessionId === s.id ? '…' : '✕' }}
+                  </button>
+                </div>
+              </div>
             </nav>
           </aside>
 

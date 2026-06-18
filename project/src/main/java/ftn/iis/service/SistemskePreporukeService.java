@@ -89,7 +89,7 @@ public class SistemskePreporukeService {
     }
 
     // automatsko pokretanje analize svakog ponedeljka u ponoc ~~~
-    @Scheduled(cron = "0 */3 * * * *")
+    @Scheduled(cron = "0 */4 * * * *")
     public void automatskaAnaliza() {
         generisiPreporuke();
     }

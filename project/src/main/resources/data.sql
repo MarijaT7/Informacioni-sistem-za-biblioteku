@@ -795,7 +795,7 @@ INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
 
 -- zan
 
--- Predlozi za nabavku
+-- Predlozi vza nabavku
 INSERT INTO predlog_za_nabavku (korisnik_jmbg, naslov, autor, datum_podnosenja, status)
 VALUES ('1234567891234', 'Duna', 'Frank Herbert', '2026-01-10', 'NA_CEKANJU');
 

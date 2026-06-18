@@ -43,7 +43,7 @@
               <div class="book-cover">
                 <img v-if="coverUrls[p.isbn]" :src="coverUrls[p.isbn]" alt="" />
                 <div v-else class="cover-placeholder"></div>
-                <span class="format-badge">📖 e-knjiga</span>
+                <span class="format-badge"> e-knjiga</span>
               </div>
               <div class="book-meta">
                 <p class="book-title">{{ p.naslovKnjige }}</p>
@@ -60,7 +60,7 @@
               <div class="book-cover">
                 <img v-if="coverUrls[p.isbn]" :src="coverUrls[p.isbn]" alt="" />
                 <div v-else class="cover-placeholder"></div>
-                <span class="format-badge">🎧 audio</span>
+                <span class="format-badge"> audio</span>
               </div>
               <div class="book-meta">
                 <p class="book-title">{{ p.naslovKnjige }}</p>
@@ -90,7 +90,7 @@
                 <p class="book-date" v-if="r.datIspR">
                   dostupno za preuzimanje<br>{{ formatDate(r.datIspR) }}
                 </p>
-                <p class="book-date available" v-if="r.datObavR">✓ dostupno odmah</p>
+                <p class="book-date available" v-if="r.datObavR"> dostupno odmah</p>
                 <button
                   v-if="r.datObavR"
                   class="btn-borrow"
@@ -324,7 +324,7 @@ function formatDate(dateStr) {
 .btn-borrow:hover { background: #5e4436; }
 .btn-borrow:disabled { opacity: 0.6; cursor: not-allowed; }
 
-/* Modal */
+
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 1000; }
 .modal-box { background: #f9f0ea; border-radius: 16px; padding: 2rem 2.5rem; max-width: 460px; width: 90%; text-align: center; box-shadow: 0 8px 30px rgba(0,0,0,0.2); position: relative; }
 .modal-box h2 { margin-bottom: 0.5rem; }

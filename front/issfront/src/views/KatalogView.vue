@@ -99,7 +99,7 @@ const editForm = ref({ naziv: '', standard: '' })
 const editError = ref('')
 
 onMounted(() => {
-  authorized.value = auth.getRole() === 'BIBLIOTEKAR'
+  authorized.value = auth.getRole() === 'BIBLIOTEKAR' || auth.getRole() === 'ADMINISTRATOR'
   error.value = ''
   if (authorized.value) loadCatalogs()
 })

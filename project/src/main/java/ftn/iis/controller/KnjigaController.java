@@ -512,4 +512,24 @@ public class KnjigaController {
                     .body("Greška prilikom ažuriranja knjige: " + e.getMessage());
         }
     }
+    @GetMapping("/preporucene")
+    public ResponseEntity<?> getPreporucene(
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        try {
+            String jmbg = safeExtractJmbg(authHeader);
+            java.util.List<KnjigaOsnovnoDto> result;
+            if (jmbg != null) {
+                result = knjigaService.getPreporuceneForUser(jmbg);
+                if (result.isEmpty()) {
+                    result = knjigaService.ispisiSveKnjige();
+                }
+            } else {
+                result = knjigaService.ispisiSveKnjige();
+            }
+            return ResponseEntity.ok(result);
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Greška: " + e.getMessage());
+        }
+    }
 }

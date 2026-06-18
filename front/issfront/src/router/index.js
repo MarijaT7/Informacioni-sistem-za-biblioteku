@@ -9,6 +9,11 @@ const routes = [
   { path: '/register/step3',component: () => import('../views/RegisterStep3.vue') },
   { path: '/register/genres',component: () => import('../views/FavouriteGenres.vue') },
   {
+      path: '/home',
+      component: () => import('../views/HomeView.vue'),
+      meta: { requiresAuth: true }
+  },
+  {
     path: '/profile',
     component: () => import('../views/UserProfile.vue'),
     meta: { requiresAuth: true }
@@ -19,12 +24,28 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/vracanje-knjiga',
+    component: () => import('../views/VracanjeKnjigaView.vue'),
+    beforeEnter: () => {
+      const auth = useAuthStore()
+      return auth.getRole() === 'BIBLIOTEKAR' ? true : '/'
+    }
+  },
+  {
     path: '/knjige/nova',
     component: () => import('../views/BookCreateView.vue'),
     beforeEnter: () => {
       const auth = useAuthStore()
       return auth.getRole() === 'BIBLIOTEKAR' ? true : '/'
     }
+  },
+  {
+      path: '/produzenja-na-cekanju',
+      component: () => import('../views/ProduzenjaNaCekanjuView.vue'),
+      beforeEnter: () => {
+          const auth = useAuthStore()
+          return auth.getRole() === 'BIBLIOTEKAR' ? true : '/'
+      }
   },
   {
     path: '/knjige/:isbn',
@@ -39,6 +60,16 @@ const routes = [
   {
     path: '/knjige/:isbn/slusaj',
     component: () => import('../views/BookListenView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/pozajmice',
+    component: () => import('../views/PozajmiceView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/obavestenja',
+    component: () => import('../views/ObavestenjaView.vue'),
     meta: { requiresAuth: true }
   },
   {
@@ -66,6 +97,21 @@ const routes = [
       const auth = useAuthStore()
       return auth.getRole() === 'BIBLIOTEKAR' ? true : '/'
     }},
+    {
+      path: '/moji-predlozi',
+      component: () => import('../views/MojiPredloziView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/notifikacije',
+      component: () => import('../views/NotifikacijeView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/predlozi-na-cekanju',
+      component: () => import('../views/PredloziNaCekanjuView.vue'),
+      meta: { requiresAuth: true }
+    },
   {
       path: '/genres/edit',
       component: () => import('../views/FavouriteGenresEdit.vue'),
@@ -79,6 +125,27 @@ const routes = [
     {
       path: '/katalog/:id',
       component: () => import('../views/KatalogDetaljiView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+    path: '/ocr',
+    component: () => import('../views/OcrView.vue'),
+    beforeEnter: () => {
+      const auth = useAuthStore()
+      return auth.isLibrarianOrAdmin() ? true : '/'
+    }
+  },
+  {
+    path: '/zahtevi',
+    component: () => import('../views/RequestInboxView.vue'),
+    beforeEnter: () => {
+      const auth = useAuthStore()
+      return auth.isLibrarianOrAdmin() ? true : '/'
+        }
+    },
+{
+      path: '/asistent',
+      component: () => import('../views/ChatAssistantView.vue'),
       meta: { requiresAuth: true }
     },
 
@@ -95,8 +162,15 @@ const routes = [
     { path: 'dobavljaci/:id',      component: () => import('../views/menadzer/DobavljacDetaljiView.vue') },
     { path: 'dobavljaci/:id/izmena', component: () => import('../views/menadzer/IzmenaDobavljacaView.vue') },
     { path: 'dobavljaci/:id/ugovor', component: () => import('../views/menadzer/DodajUgovorView.vue') },
-
+    { path: 'predlozi',            component: () => import('../views/menadzer/OdobreniPredloziView.vue') },
+    { path: 'sistemske-preporuke', component: () => import('../views/menadzer/SistemskePreporukeView.vue') },
+ 
   ]
+},
+{
+    path:   '/searchpoc',
+    name:   'fulltextsearch',
+    component: () => import('../views/SearchPOC.vue')
 },
 ]
 

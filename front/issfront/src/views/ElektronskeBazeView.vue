@@ -82,7 +82,7 @@ const isClan = computed(() => authStore.getRole() === 'CLAN')
 
 onMounted(() => {
   const role = authStore.getRole()
-  authorized.value = role === 'CLAN' || role === 'BIBLIOTEKAR'
+  authorized.value = role === 'CLAN' || role === 'BIBLIOTEKAR' || role === 'ADMINISTRATOR'
   if (authorized.value) {
     loadBaze()
   }

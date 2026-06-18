@@ -1,0 +1,39 @@
+package ftn.iis.model;
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "budzet_po_zanru")
+public class BudzetPoZanru {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "zanr_id", nullable = false, unique = true)
+    private Genre zanr;
+
+    @Column(name = "ukupan_budzet", nullable = false)
+    private Double ukupanBudzet;
+
+    @Column(name = "potroseno", nullable = false)
+    private Double potroseno = 0.0;
+
+    public BudzetPoZanru() {}
+
+    public BudzetPoZanru(Genre zanr, Double ukupanBudzet) {
+        this.zanr = zanr;
+        this.ukupanBudzet = ukupanBudzet;
+        this.potroseno = 0.0;
+    }
+
+    public Double getDostupno() { return ukupanBudzet - potroseno; }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public Genre getZanr() { return zanr; }
+    public void setZanr(Genre zanr) { this.zanr = zanr; }
+    public Double getUkupanBudzet() { return ukupanBudzet; }
+    public void setUkupanBudzet(Double ukupanBudzet) { this.ukupanBudzet = ukupanBudzet; }
+    public Double getPotroseno() { return potroseno; }
+    public void setPotroseno(Double potroseno) { this.potroseno = potroseno; }
+}

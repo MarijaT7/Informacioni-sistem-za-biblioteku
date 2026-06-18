@@ -12,6 +12,48 @@ api.interceptors.request.use(config => {
   return config
 })
 
+api.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response?.status === 401) {
+      const config = error.config || {}
+      const isMediaRequest = config.responseType === 'blob'
+      if (!isMediaRequest) {
+        const auth = useAuthStore()
+        auth.logout()
+        window.location.href = '/login'
+      }
+    }
+    return Promise.reject(error)
+  }
+)
+
+// ── Klijenti za nezavisne mikroservise (search, requestService) ────────
+function attachInterceptors(instance) {
+  instance.interceptors.request.use(config => {
+    const token = localStorage.getItem('token')
+    if (token) config.headers.Authorization = `Bearer ${token}`
+    return config
+  })
+  instance.interceptors.response.use(
+    response => response,
+    error => Promise.reject(error)
+  )
+  return instance
+}
+
+// Elastic/OCR search servis (videti docker-compose: search -> port 8081)
+const searchApi_ = attachInterceptors(axios.create({
+  baseURL: '/searchapi/api',
+  headers: { 'Content-Type': 'application/json' }
+}))
+
+// Servis za medjubibliotecke zahteve (videti docker-compose: request-service -> port 8086)
+const requestApi_ = attachInterceptors(axios.create({
+  baseURL: '/requestapi/api',
+  headers: { 'Content-Type': 'application/json' }
+}))
+
 export const authApi = {
   login:          (data)         => api.post('/auth/login', data),
   registerStep1:  (data)         => api.post('/auth/register/step1', data),
@@ -79,6 +121,7 @@ export const knjigaApi = {
     api.put(`/knjiga/${isbn}/kompletna`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     }),
+  preporucene:      ()             => api.get('/knjiga/preporucene'),
 }
 
 // ── Elektronske baze podataka ────────────────────────────────────────
@@ -101,6 +144,126 @@ export const bazePodatakaApi = {
 // ── Izdavaci ─────────────────────────────────────────────────────────
 export const izdavaciApi = {
   ispisiSve: () => api.get('/izdavaci/sve')
+}
+export const pozajmicaApi = {
+  pozajmiFizicku:    (isbn)      => api.post(`/pozajmice/pozajmi/${isbn}`),
+  pozajmiDigitalno:  (isbn, tip) => api.post(`/pozajmice/pozajmi-digitalno/${isbn}`, null, { params: { tip } }),
+  mozePozajmiti:     ()          => api.get('/pozajmice/mozePozajmiti'),
+  rezervisi:         (isbn)      => api.post(`/pozajmice/rezervisi/${isbn}`),
+  getMoje:           ()          => api.get('/pozajmice/moje'),
+  sveAktivne:         ()      => api.get('/pozajmice/sve-aktivne'),
+  vratiKnjigu:        (idP)   => api.post(`/pozajmice/vrati/${idP}`),
+  produzenje:        (idP)       => api.post(`/pozajmice/produzenje/${idP}`),
+  produzenjaNaCekanju:    ()                    => api.get('/pozajmice/produzenja/na-cekanju'),
+  obradiProduzenje:       (idPP, approve, razlog) => api.post(`/pozajmice/produzenja/${idPP}/obradi`, null, {
+      params: { approve, razlog: razlog || '' }
+  }),
+  izgubljena:        (idP)       => api.post(`/pozajmice/izgubljena/${idP}`),
+  izRezervacije:     (idR)       => api.post(`/pozajmice/iz-rezervacije/${idR}`),
+  getDostupno:       (isbn)      => api.get(`/pozajmice/dostupno/${isbn}`),
+  imamPozajmicu:     (isbn)      => api.get(`/pozajmice/imam-pozajmicu/${isbn}`),
+  getObavestenja:    ()          => api.get('/pozajmice/obavestenja'),
+  markRead:          (idO)       => api.put(`/pozajmice/obavestenja/${idO}/procitano`),
+  deleteObavestenje: (idO)       => api.delete(`/pozajmice/obavestenja/${idO}`),
+}
+
+// ── Predlozi za nabavku ──────────────────────────────────────────────
+export const predlogApi = {
+  kreiraj:          (data) => api.post('/predlozi/kreiraj', data),
+  mojiPredlozi:     ()     => api.get('/predlozi/moji-zahtevi'),
+  predloziNaCekanju: ()    => api.get('/predlozi/na-cekanju'),
+  odobreniPredlozi: ()     => api.get('/predlozi/odobreni'),
+  obradiPredlog:    (id, data) => api.patch(`/predlozi/obradi/${id}`, data),
+  obradiPredlogMenadzer(id, odobren) {
+    return api.put(`/predlozi/${id}/obrada-menadzer`, {
+        odobren
+    })
+  }
+}
+
+// ── Notifikacije ─────────────────────── ───────────────────────────
+export const notifikacijaApi = {
+  mojeNotifikacije:    ()    => api.get('/notifikacije/moje'),
+  oznаciKaoProcitanu:  (id)  => api.patch(`/notifikacije/procitana/${id}`),
+  brojNeprocitanih:    ()    => api.get('/notifikacije/broj-neprocitanih'),
+}
+
+// ── MARC ─────────────────────────────────────────────────────────────
+export const marcApi = {
+  zapis: (isbn) => api.get(`/marc/${isbn}`),
+}
+
+// ── Autokatalogizacija (BIBLIOTEKAR) ────────────────────────────────────
+export const autokatalogApi = {
+  katalogizuj: (data) => api.post('/knjiga/autokatalog', data),
+}
+
+// ── Pretraga / Elastic (OCR + fulltext) ─────────────────────────────────
+export const searchApi = {
+  poIsbn:        (isbn) => searchApi_.get(`/books/by-isbn/${isbn}`),
+  poRecordId:    (recordId) => searchApi_.get(`/books/${recordId}`),
+  fulltext:      (query) => searchApi_.get('/books/fulltext-search', { params: { query } }),
+  pokreniOcr:    (recordId, file, force = false) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    return searchApi_.post(`/books/${recordId}/ocr`, formData, {
+      params: { force },
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+  },
+}
+
+// ── Medjubibliotecke pozajmice (ILL requests) ───────────────────────────
+export const requestApi = {
+  incoming:  (libraryId) => requestApi_.get(`/requests/incoming/${libraryId}`),
+  outgoing:  (libraryId) => requestApi_.get(`/requests/outgoing/${libraryId}`),
+  jedan:     (id) => requestApi_.get(`/requests/${id}`),
+  kreiraj:   (data) => requestApi_.post('/requests', data),
+  azuriraj:  (id, data) => requestApi_.put(`/requests/${id}`, data),
+  otkazi:    (id) => requestApi_.post(`/requests/${id}/cancel`),
+}
+// ── Sistemske preporuke ───────────────────────────────────────────────
+export const sistemskePreporukeApi = {
+  pokreniAnalizu:  ()          => api.post('/sistemske-preporuke/pokreni-analizu'),
+  getAktivne:      ()          => api.get('/sistemske-preporuke/aktivne'),
+  azurirajStatus:  (id, status) => api.patch(`/sistemske-preporuke/${id}/status`, null, { params: { status } }),
+}
+
+// ── AI Asistent: čet sesije ──────────────────────────────────────────
+// Napomena: POST /cet-sesija/nova očekuje multipart/form-data sa jednim
+// poljem "podaci" čiji je sadržaj JSON string (vidi Postman kolekciju).
+export const cetSesijaApi = {
+  sve:      ()                          => api.get('/cet-sesija/sve'),
+  jedna:    (id)                        => api.get(`/cet-sesija/${id}`),
+  nova: (tipAgentaCS, sadrzajPoruke) => {
+    const formData = new FormData()
+    const podaciBlob = new Blob(
+      [JSON.stringify({ tipAgentaCS, sadrzajPoruke })],
+      { type: 'application/json' }
+    )
+    formData.append('podaci', podaciBlob)
+    return api.post('/cet-sesija/nova', formData, {
+    headers: { 'Content-Type': undefined }
+  })
+  },
+  obrisi:   (id)                        => api.delete(`/cet-sesija/${id}`),
+}
+
+// ── AI Asistent: čet poruke ───────────────────────────────────────────
+export const cetPorukaApi = {
+  nova:        (idCetSesije, sadrzajPoruke) =>
+    api.post(`/cet-poruka/cet-sesija/${idCetSesije}`, { sadrzajPoruke }),
+  ocena:       (idCetPoruke)                => api.get(`/cet-poruka/${idCetPoruke}/ocena`),
+  oceni:       (idCetPoruke, ocenaCP, komentarCP) =>
+    api.post(`/cet-poruka/${idCetPoruke}/ocena`, { ocenaCP, komentarCP }),
+}
+
+// ── AI Asistent: health check (poseban servis, port 8000) ────────────
+const CHAT_HEALTH_URL = 'http://localhost:8000/api/v1/chat/health'
+export const chatHealthApi = {
+  // Zaseban axios pozив bez baseURL/interceptora jer servis radi na
+  // drugom portu (8000) i nije iza istog /api proxy-ja kao Spring backend.
+  provera: () => axios.get(CHAT_HEALTH_URL),
 }
 
 export default api

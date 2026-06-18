@@ -1,5 +1,6 @@
 package ftn.iis.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import ftn.iis.enums.StatusCitanja;
 import ftn.iis.model.id.CitanjeEKnjigeId;
 import jakarta.persistence.*;
@@ -15,6 +16,7 @@ public class CitanjeEKnjige {
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("jmbgClana")
     @JoinColumn(name = "jmbg_clana")
+    @JsonBackReference("user-citanja")
     private User clan;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -108,7 +108,7 @@ INSERT INTO fizicka_knjiga (isbn)
 VALUES ('9788617150010');
 
 --zanrovi
-INSERT INTO zanr (id, name) VALUES
+INSERT INTO zanr (zanr_id, zanr_name) VALUES
 (1, 'Autobiografije'), (2, 'Avanturistički'), (3, 'Biografije'),
 (4, 'Domaći pisci'), (5, 'Drama'), (6, 'Epska fantastika'),
 (7, 'Film'), (8, 'Horor'), (9, 'Istorijski romani'),
@@ -823,20 +823,6 @@ VALUES ('1234567891234', 'Vaš predlog za nabavku knjige "Fifty Shades of Grey" 
 INSERT INTO notifikacija (korisnik_jmbg, poruka, datum, procitana)
 VALUES ('1234567891234', 'Vaš predlog za nabavku knjige "Zlocin i kazna" je odobren i uvršten u plan nabavke.', '2026-02-11 10:00:00', false);
 
-
--- Budzeti po zanru
-INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno) VALUES (1, 10000.00, 2000.00 );
-INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno) VALUES (2, 15000.00, 4500.50);
-INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno) VALUES (3, 8000.00, 1200.00);
-INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno) VALUES (4, 25000.00, 18750.00);
-INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno) VALUES (5, 12000.00, 0.00);
-INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno) VALUES (6, 6500.00, 3100.25);
-INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno) VALUES (7, 18500.00, 9200.00);
-INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno) VALUES (8, 5000.00, 4800.00);
-INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno) VALUES (9, 30000.00, 11500.75);
-INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno) VALUES (10, 14000.00, 5600.00);
-
-
 -- Podaci vezani za AI asistenta
 -- Čet sesije
 INSERT INTO cet_sesija (naslov_cs, datum_kreiranja_cs, datum_azuriranja_cs, tip_agenta_cs, jmbg_clana)
@@ -877,3 +863,23 @@ VALUES ('Slažem se, i smatram da predstavlja postojanost kroz vekove.', '2026-0
 -- Lajk na komentar (id_k = 1, lajkovao isti korisnik radi testa)
 INSERT INTO komentar_lajk (id_k, jmbg_clana)
 VALUES (1, '1234567891234');
+
+-- Budzeti
+INSERT INTO budzet (godina , ukupan_iznos) VALUES ( 2026 , 251000.00);
+
+-- Budzeti po zanru
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id) VALUES (1, 10000.00, 2000.00, 1);
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id) VALUES (2, 15000.00, 4500.50, 1);
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id) VALUES (3, 8000.00, 1200.00, 1);
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id) VALUES (4, 25000.00, 18750.00, 1);
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id) VALUES (5, 12000.00, 0.00, 1);
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id) VALUES (6, 6500.00, 3100.25, 1);
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id) VALUES (7, 18500.00, 9200.00, 1);
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id) VALUES (8, 5000.00, 4800.00, 1);
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id) VALUES (9, 30000.00, 11500.75, 1);
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id) VALUES (10, 14000.00, 13600.00, 1);
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id) VALUES (11, 16500.00, 3100.25, 1);
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id) VALUES (12, 11500.00, 9200.00, 1);
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id) VALUES (13, 5000.00, 4800.00, 1);
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id) VALUES (14, 30000.00, 11500.75, 1);
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id) VALUES (15, 14000.00, 13600.00, 1);

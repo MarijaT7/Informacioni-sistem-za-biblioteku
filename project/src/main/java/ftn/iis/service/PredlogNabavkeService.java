@@ -30,15 +30,17 @@ public class PredlogNabavkeService {
     private final UserRepository userRepository;
     private final NotifikacijaRepository notifikacijaRepository;
     private final GenreRepository genreRepository;
+    private final BudzetService budzetService;
 
     public PredlogNabavkeService(PredlogNabavkaRepository predlogNabavkaRepository, JwtService jwtService,
                                  UserRepository userRepository, NotifikacijaRepository notifikacijaRepository,
-                                 GenreRepository genreRepository){
+                                 GenreRepository genreRepository,BudzetService budzetService){
         this.predlogNabavkaRepository = predlogNabavkaRepository;
         this.jwtService = jwtService;
         this.userRepository = userRepository;
         this.notifikacijaRepository = notifikacijaRepository;
         this.genreRepository= genreRepository;
+        this.budzetService = budzetService;
     }
 
     @Transactional
@@ -210,6 +212,12 @@ public class PredlogNabavkeService {
         }
 
         if(dto.getOdobren()){
+            // Pre nego sto stvarno dozvolim izmenu statusa, konsultujem se sa budzetom
+            if (!budzetService.imaDovoljnoSredstava(
+                    predlog.getZanr().getId(), predlog.getOkvirnaCena())) {
+                throw new RuntimeException("Nedovoljno sredstava u budžetu za žanr '"
+                        + predlog.getZanr().getName() + "'.");
+            }
             predlog.setStatus(StatusPredloga.ODOBRENO_MENADZER);
         }
         else{

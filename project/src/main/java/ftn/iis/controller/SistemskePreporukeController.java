@@ -1,5 +1,6 @@
 package ftn.iis.controller;
 
+import ftn.iis.dto.PrihvatiSistemskuPreporukuDto;
 import ftn.iis.dto.SistemskaPreporukaResponseDto;
 import ftn.iis.enums.StatusSistemskePreporuke;
 import ftn.iis.enums.Uloge;
@@ -47,10 +48,11 @@ public class SistemskePreporukeController {
     public ResponseEntity<SistemskaPreporukaResponseDto> azurirajStatus(
             @RequestHeader("Authorization") String authHeader,
             @PathVariable Long id,
-            @RequestParam String status) {
+            @RequestParam String status,
+            @RequestBody(required = false) PrihvatiSistemskuPreporukuDto dto) {
         String token = authHeader.substring(7);
         StatusSistemskePreporuke noviStatus = StatusSistemskePreporuke.valueOf(status.toUpperCase());
-        return ResponseEntity.ok(sistemskePreporukeService.azurirajStatus(id, noviStatus, token));
+        return ResponseEntity.ok(sistemskePreporukeService.azurirajStatus(id, noviStatus, token, dto));
     }
 
 }

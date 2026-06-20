@@ -1,10 +1,12 @@
 package ftn.iis.service;
 
+import ftn.iis.dto.PrihvatiSistemskuPreporukuDto;
 import ftn.iis.dto.SistemskaPreporukaResponseDto;
 import ftn.iis.enums.StatusSistemskePreporuke;
 import ftn.iis.exception.NonManagerCreatingContractException;
 import ftn.iis.exception.NonManagerStartingAnalysisException;
 import ftn.iis.model.FizickaKnjiga;
+import ftn.iis.model.Genre;
 import ftn.iis.model.SistemskaPreporuka;
 import ftn.iis.repository.FizickaKnjigaRepository;
 import ftn.iis.repository.PozajmicaRepository;
@@ -27,15 +29,17 @@ public class SistemskePreporukeService {
     private final FizickaKnjigaRepository fizickaKnjigaRepository;
     private final PozajmicaRepository pozajmicaRepository;
     private final JwtService jwtService;
+    private final BudzetService budzetService;
 
     private static final int BROJ_DANA_ANALIZE = 30;
 
     public SistemskePreporukeService(SistemskePreporukeRepository sistemskePreporukeRepository, FizickaKnjigaRepository fizickaKnjigaRepository,
-                                     PozajmicaRepository pozajmicaRepository, JwtService jwtService) {
+                                     PozajmicaRepository pozajmicaRepository, JwtService jwtService, BudzetService budzetService) {
         this.sistemskePreporukeRepository = sistemskePreporukeRepository;
         this.fizickaKnjigaRepository = fizickaKnjigaRepository;
         this.pozajmicaRepository = pozajmicaRepository;
         this.jwtService = jwtService;
+        this.budzetService = budzetService;
     }
 
     // rucno pokretanje analize trendova
@@ -113,7 +117,8 @@ public class SistemskePreporukeService {
     }
 
     @Transactional
-    public SistemskaPreporukaResponseDto azurirajStatus(Long id, StatusSistemskePreporuke noviStatus, String token) {
+    public SistemskaPreporukaResponseDto azurirajStatus(Long id, StatusSistemskePreporuke noviStatus,
+                                                        String token, PrihvatiSistemskuPreporukuDto dto) {
         String role = jwtService.extractRole(token);
         if (!role.equalsIgnoreCase("MENADZER")) {
             throw new NonManagerStartingAnalysisException();
@@ -126,13 +131,24 @@ public class SistemskePreporukeService {
             throw new RuntimeException("Preporuka je već obrađena.");
         }
 
-        Long idZanraPreporuke = preporuka.getFizickaKnjiga().getKnjiga().getZanr().getId();
+        if (noviStatus == StatusSistemskePreporuke.PRIHVACENO) {
+            if (dto == null || dto.getOkvirnaCena() == null) {
+                throw new RuntimeException("Okvirna cena je obavezna pri prihvatanju.");
+            }
 
-        if(noviStatus == StatusSistemskePreporuke.PRIHVACENO){
-            // provera da li imam dovoljno sredstava
+            Genre zanr = preporuka.getFizickaKnjiga().getKnjiga().getZanr();
+            if (zanr == null) {
+                throw new RuntimeException("Knjiga nema definisan žanr.");
+            }
 
+            if (!budzetService.imaDovoljnoSredstava(zanr.getId(), dto.getOkvirnaCena())) {
+                throw new RuntimeException("Nedovoljno sredstava u budžetu za žanr '" + zanr.getName() + "'.");
+            }
 
+            budzetService.potrosi(zanr.getId(), dto.getOkvirnaCena());
+            preporuka.setOkvirnaCena(dto.getOkvirnaCena());
         }
+
         preporuka.setStatus(noviStatus);
         sistemskePreporukeRepository.save(preporuka);
         return mapirajUDto(preporuka);
@@ -152,6 +168,12 @@ public class SistemskePreporukeService {
         dto.setPredlog(p.getPredlog());
         dto.setDatumGenerisanja(p.getDatumGenerisanja());
         dto.setStatus(p.getStatus());
+        dto.setOkvirnaCena(p.getOkvirnaCena());
+        Genre zanr = p.getFizickaKnjiga().getKnjiga().getZanr();
+        if (zanr != null) {
+            dto.setZanrId(zanr.getId());
+            dto.setZanrNaziv(zanr.getName());
+        }
         return dto;
     }
 

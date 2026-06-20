@@ -226,7 +226,7 @@ export const requestApi = {
 export const sistemskePreporukeApi = {
   pokreniAnalizu:  ()          => api.post('/sistemske-preporuke/pokreni-analizu'),
   getAktivne:      ()          => api.get('/sistemske-preporuke/aktivne'),
-  azurirajStatus:  (id, status) => api.patch(`/sistemske-preporuke/${id}/status`, null, { params: { status } }),
+  azurirajStatus:  (id, status, body)    => api.patch(`/sistemske-preporuke/${id}/status`, body, { params: { status }}),
 }
 
 // ── AI Asistent: čet sesije ──────────────────────────────────────────

@@ -67,6 +67,23 @@ public class BudzetService {
                     + budzetPoZanru.getPotroseno() + " RSD).");
         }
 
+        // Suma svih ostalih budžeta po žanru (isključujući trenutni žanr) ne sme prevazići krovni budžet
+        Double sumaOstalihBudzeta = 0.0;
+        List<BudzetPoZanru> sviBudzeti = budzetPoZanruRepository.findAllByOrderByZanrNameAsc();
+
+        for (BudzetPoZanru b : sviBudzeti) {
+            if (!b.getZanr().getId().equals(dto.getZanrId())) {
+                sumaOstalihBudzeta += b.getUkupanBudzet();
+            }
+        }
+
+        if (sumaOstalihBudzeta + dto.getUkupanBudzet() > krovniBudzet.getUkupanIznos()) {
+            double dostupno = krovniBudzet.getUkupanIznos() - sumaOstalihBudzeta;
+            throw new RuntimeException(
+                    "Prekoračen krovni budžet! Za ovaj žanr možete dodeliti najviše "
+                            + dostupno + " RSD.");
+        }
+
         budzetPoZanru.setUkupanBudzet(dto.getUkupanBudzet());
         budzetPoZanruRepository.save(budzetPoZanru);
         return mapirajUDto(budzetPoZanru);
@@ -138,6 +155,7 @@ public class BudzetService {
         dto.setUkupanBudzet(b.getUkupanBudzet());
         dto.setPotroseno(b.getPotroseno());
         dto.setDostupno(b.getDostupno());
+        dto.setBudzetId(b.getBudzet().getId());
         return dto;
     }
 

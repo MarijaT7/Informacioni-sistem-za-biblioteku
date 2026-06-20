@@ -266,4 +266,11 @@ export const chatHealthApi = {
   provera: () => axios.get(CHAT_HEALTH_URL),
 }
 
+// ── Budžet ────────────────────────────────────────────────────────────
+export const budzetApi = {
+  getSviBudzeti:  ()      => api.get('/budzet/sve-po-zanrovima'),
+  postaviBudzet:  (data)  => api.post('/budzet/postavi', data),
+  prerasporedi:   (data)  => api.post('/budzet/prerasporedi', data),
+}
+
 export default api

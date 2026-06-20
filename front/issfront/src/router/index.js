@@ -164,6 +164,7 @@ const routes = [
     { path: 'dobavljaci/:id/ugovor', component: () => import('../views/menadzer/DodajUgovorView.vue') },
     { path: 'predlozi',            component: () => import('../views/menadzer/OdobreniPredloziView.vue') },
     { path: 'sistemske-preporuke', component: () => import('../views/menadzer/SistemskePreporukeView.vue') },
+    { path: 'budzet', component: () => import('../views/menadzer/BudzetView.vue') },
  
   ]
 },

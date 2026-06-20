@@ -43,15 +43,9 @@ public class Knjiga {
     @JsonBackReference("katalog-knjiga")
     private Katalog katalog;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "knjiga_zanr",
-            joinColumns = @JoinColumn(name = "isbn"),
-            inverseJoinColumns = @JoinColumn(name = "zanr_id")
-    )
-    @JsonIgnore
-    private java.util.List<Genre> zanrovi = new java.util.ArrayList<>();
-
+    @ManyToOne
+    @JoinColumn(name = "zanr_id")
+    private Genre zanr;
 
     @Column
     private boolean deleted;
@@ -70,7 +64,7 @@ public class Knjiga {
         this.sinopsis = sinopsis;
     }
 
-    public Knjiga(String isbn, String putanjaNaslovna, String naslov, String sinopsis, FizickaKnjiga fizickaKnjiga, EKnjiga eKnjiga, AudioKnjiga audioKnjiga, Katalog katalog, String autor, String tipKnjige) {
+    public Knjiga(String isbn, String putanjaNaslovna, String naslov, String sinopsis, FizickaKnjiga fizickaKnjiga, EKnjiga eKnjiga, AudioKnjiga audioKnjiga, Katalog katalog, String autor, String tipKnjige, Genre zanr) {
         this.isbn = isbn;
         this.putanjaNaslovna = putanjaNaslovna;
         this.naslov = naslov;
@@ -181,11 +175,11 @@ public class Knjiga {
         if (this.audioKnjiga != null)  f[2] = '1';
         this.tipKnjige = new String(f);
     }
-    public java.util.List<Genre> getZanrovi() {
-        return zanrovi;
+    public Genre getZanr() {
+        return zanr;
     }
 
-    public void setZanrovi(java.util.List<Genre> zanrovi) {
-        this.zanrovi = zanrovi;
+    public void setZanr(Genre zanr) {
+        this.zanr = zanr;
     }
 }

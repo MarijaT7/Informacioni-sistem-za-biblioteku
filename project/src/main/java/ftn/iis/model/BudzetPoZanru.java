@@ -1,4 +1,6 @@
 package ftn.iis.model;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 @Entity
@@ -11,6 +13,7 @@ public class BudzetPoZanru {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "zanr_id", nullable = false, unique = true)
+    @JsonBackReference("zanr-budzet")
     private Genre zanr;
 
     @Column(name = "ukupan_budzet", nullable = false)
@@ -19,12 +22,18 @@ public class BudzetPoZanru {
     @Column(name = "potroseno", nullable = false)
     private Double potroseno = 0.0;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "budzet_id", nullable = false)
+    @JsonBackReference("budzet-stavke")
+    private Budzet budzet;
+
     public BudzetPoZanru() {}
 
-    public BudzetPoZanru(Genre zanr, Double ukupanBudzet) {
+    public BudzetPoZanru(Genre zanr, Double ukupanBudzet, Budzet budzet) {
         this.zanr = zanr;
         this.ukupanBudzet = ukupanBudzet;
         this.potroseno = 0.0;
+        this.budzet = budzet;
     }
 
     public Double getDostupno() { return ukupanBudzet - potroseno; }
@@ -32,6 +41,8 @@ public class BudzetPoZanru {
     public void setId(Long id) { this.id = id; }
     public Genre getZanr() { return zanr; }
     public void setZanr(Genre zanr) { this.zanr = zanr; }
+    public Budzet getBudzet() { return budzet; }
+    public void setBudzet(Budzet budzet) { this.budzet = budzet; }
     public Double getUkupanBudzet() { return ukupanBudzet; }
     public void setUkupanBudzet(Double ukupanBudzet) { this.ukupanBudzet = ukupanBudzet; }
     public Double getPotroseno() { return potroseno; }

@@ -226,7 +226,7 @@ export const requestApi = {
 export const sistemskePreporukeApi = {
   pokreniAnalizu:  ()          => api.post('/sistemske-preporuke/pokreni-analizu'),
   getAktivne:      ()          => api.get('/sistemske-preporuke/aktivne'),
-  azurirajStatus:  (id, status) => api.patch(`/sistemske-preporuke/${id}/status`, null, { params: { status } }),
+  azurirajStatus:  (id, status, body)    => api.patch(`/sistemske-preporuke/${id}/status`, body, { params: { status }}),
 }
 
 // ── AI Asistent: čet sesije ──────────────────────────────────────────
@@ -264,6 +264,13 @@ export const chatHealthApi = {
   // Zaseban axios pozив bez baseURL/interceptora jer servis radi na
   // drugom portu (8000) i nije iza istog /api proxy-ja kao Spring backend.
   provera: () => axios.get(CHAT_HEALTH_URL),
+}
+
+// ── Budžet ────────────────────────────────────────────────────────────
+export const budzetApi = {
+  getSviBudzeti:  ()      => api.get('/budzet/sve-po-zanrovima'),
+  postaviBudzet:  (data)  => api.post('/budzet/postavi', data),
+  prerasporedi:   (data)  => api.post('/budzet/prerasporedi', data),
 }
 
 export default api

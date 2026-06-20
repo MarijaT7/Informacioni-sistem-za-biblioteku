@@ -58,6 +58,32 @@
           </tr>
         </tbody>
       </table>
+      <!-- Modal za unos cene pri prihvatanju -->
+      <div v-if="preporukaZaPrihvatanje" class="modal-overlay" @click.self="preporukaZaPrihvatanje = null">
+        <div class="modal animated-scale-up">
+          <h2>Prihvatanje preporuke</h2>
+          <p>Unesite okvirnu cenu za nabavku dodatnih primeraka knjige
+            <strong>{{ preporukaZaPrihvatanje.naslov }}</strong>
+            <span v-if="preporukaZaPrihvatanje.zanrNaziv">
+              (žanr: <em>{{ preporukaZaPrihvatanje.zanrNaziv }}</em>)
+            </span>
+          </p>
+
+          <div class="form-group">
+            <label>Okvirna cena (RSD)</label>
+            <input v-model="okvirnaCena" type="number" min="0.01" step="100" placeholder="npr. 3000" />
+          </div>
+
+          <div v-if="modalError" class="alert alert--error">⚠️ {{ modalError }}</div>
+
+          <div class="modal-akcije">
+            <button class="btn-prihvati-modal" @click="potvrdiPrihvatanje" :disabled="obradaUTokuId !== null">
+              ✓ Prihvati
+            </button>
+            <button class="btn-sekundarni" @click="preporukaZaPrihvatanje = null">Odustani</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -72,6 +98,10 @@ const error = ref('')
 const poruka = ref('')
 const analizaUTo = ref(false)
 const obradaUTokuId = ref(null)
+const preporukaZaPrihvatanje = ref(null)
+const okvirnaCena = ref('')
+const modalError = ref('')
+
 
 async function ucitaj() {
   loading.value = true
@@ -102,13 +132,46 @@ async function pokreniAnalizu() {
 }
 
 async function obradi(preporuka, noviStatus) {
+  if (noviStatus === 'PRIHVACENO') {
+    // Otvori modal umesto direktnog poziva
+    preporukaZaPrihvatanje.value = preporuka
+    okvirnaCena.value = ''
+    modalError.value = ''
+    return
+  }
+
+  // IGNORISANO — direktno
   obradaUTokuId.value = preporuka.id
   error.value = ''
   try {
-    await sistemskePreporukeApi.azurirajStatus(preporuka.id, noviStatus)
+    await sistemskePreporukeApi.azurirajStatus(preporuka.id, noviStatus, null)
     preporuke.value = preporuke.value.filter(p => p.id !== preporuka.id)
   } catch (e) {
     error.value = e.response?.data?.message || 'Greška pri ažuriranju preporuke.'
+  } finally {
+    obradaUTokuId.value = null
+  }
+}
+
+async function potvrdiPrihvatanje() {
+  modalError.value = ''
+
+  if (!okvirnaCena.value || okvirnaCena.value <= 0) {
+    modalError.value = 'Unesite validnu cenu.'
+    return
+  }
+
+  obradaUTokuId.value = preporukaZaPrihvatanje.value.id
+  try {
+    await sistemskePreporukeApi.azurirajStatus(
+      preporukaZaPrihvatanje.value.id,
+      'PRIHVACENO',
+      { okvirnaCena: Number(okvirnaCena.value) }
+    )
+    preporuke.value = preporuke.value.filter(p => p.id !== preporukaZaPrihvatanje.value.id)
+    preporukaZaPrihvatanje.value = null
+  } catch (e) {
+    modalError.value = e.response?.data?.message || 'Greška pri prihvatanju preporuke.'
   } finally {
     obradaUTokuId.value = null
   }
@@ -151,6 +214,50 @@ onMounted(ucitaj)
   margin: 0;
   opacity: 0.85;
 }
+
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(63, 78, 55, 0.4);
+  backdrop-filter: blur(4px); display: flex; align-items: center;
+  justify-content: center; z-index: 100;
+}
+.modal {
+  background: #ffffff; border-radius: 20px; padding: 2.25rem;
+  max-width: 460px; width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+.modal h2 { margin: 0 0 0.5rem; color: #3f4e37; font-size: 1.5rem; font-weight: 700; }
+.modal p { color: #556644; margin-bottom: 1.25rem; line-height: 1.5; }
+
+.form-group { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1rem; }
+.form-group label { font-size: 0.9rem; color: #556644; font-weight: 500; }
+.form-group input {
+  padding: 0.65rem 1rem; border: 1px solid #e2e8f0; border-radius: 12px;
+  font-size: 0.95rem; color: #333; background: #f8fafc;
+  font-family: inherit; outline: none; transition: all 0.2s;
+}
+.form-group input:focus { border-color: #7a8f6e; background: #fff; }
+
+.modal-akcije { display: flex; gap: 0.75rem; margin-top: 1.25rem; }
+
+.btn-prihvati-modal {
+  background: #7a8f6e; color: #fff; border: none; border-radius: 12px;
+  padding: 0.7rem 1.4rem; font-size: 0.9rem; font-weight: 600;
+  cursor: pointer; font-family: inherit; transition: background 0.2s;
+}
+.btn-prihvati-modal:hover:not(:disabled) { background: #6b7e60; }
+.btn-prihvati-modal:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-sekundarni {
+  background: transparent; color: #556644; border: 1px solid #e2e8f0;
+  border-radius: 12px; padding: 0.7rem 1.4rem; font-size: 0.9rem;
+  cursor: pointer; font-family: inherit; transition: background 0.2s;
+}
+.btn-sekundarni:hover { background: #f4f6f0; }
+
+.alert { padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.9rem; }
+.alert--error { background: rgba(220,38,38,0.08); color: #dc2626; }
+
+.animated-scale-up { animation: scaleUp 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes scaleUp { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
 .btn-pokreni {
   display: flex;

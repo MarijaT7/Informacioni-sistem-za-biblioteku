@@ -3,6 +3,8 @@ package ftn.iis.model;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
+import java.util.List;
+
 @Entity
 @Table(name = "zanr")
 public class Genre {
@@ -19,6 +21,9 @@ public class Genre {
     @OneToOne(mappedBy = "zanr", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference("zanr-budzet")
     private BudzetPoZanru budzetPoZanru;
+
+    @OneToMany(mappedBy = "zanr")
+    private List<Knjiga> knjige;
 
     public Long getId() {
         return id;

@@ -126,6 +126,13 @@ public class SistemskePreporukeService {
             throw new RuntimeException("Preporuka je već obrađena.");
         }
 
+        Long idZanraPreporuke = preporuka.getFizickaKnjiga().getKnjiga().getZanr().getId();
+
+        if(noviStatus == StatusSistemskePreporuke.PRIHVACENO){
+            // provera da li imam dovoljno sredstava
+
+
+        }
         preporuka.setStatus(noviStatus);
         sistemskePreporukeRepository.save(preporuka);
         return mapirajUDto(preporuka);

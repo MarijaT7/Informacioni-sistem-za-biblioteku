@@ -12,9 +12,19 @@ INSERT INTO katalog (kat_ime, standard, bib_id, deleted) VALUES ('Jugoslovenska 
 INSERT INTO katalog (kat_ime, standard, bib_id, deleted) VALUES ('Savremena proza', 'MARC', 'BIB003', FALSE);
 
 
+
+--zanrovi
+INSERT INTO zanr (zanr_id, zanr_name) VALUES
+                                          (1, 'Autobiografije'), (2, 'Avanturistički'), (3, 'Biografije'),
+                                          (4, 'Domaći pisci'), (5, 'Drama'), (6, 'Epska fantastika'),
+                                          (7, 'Film'), (8, 'Horor'), (9, 'Istorijski romani'),
+                                          (10, 'Klasici'), (11, 'Komedija'), (12, 'Naučna fantastika'),
+                                          (13, 'Poezija'), (14, 'Popularna psihologija'), (15, 'Trileri');
+
+
 -- KNJIGA 1: Samo Fizička knjiga
-INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis, katalog_id, deleted, tip_knjige, autor)
-VALUES ('9788617150001', 'Na Drini ćuprija', './src/main/resources/knjige/naslovne/cuprija.jpg', 'Roman o istoriji višegradskog mosta.', 1, FALSE, '100', 'Ivo Andrić');
+INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis, katalog_id, deleted, tip_knjige, autor, zanr_id)
+VALUES ('9788617150001', 'Na Drini ćuprija', './src/main/resources/knjige/naslovne/cuprija.jpg', 'Roman o istoriji višegradskog mosta.', 1, FALSE, '100', 'Ivo Andrić', 10);
 
 INSERT INTO fizicka_knjiga (isbn)
 VALUES ('9788617150001');
@@ -22,24 +32,24 @@ VALUES ('9788617150001');
 
 
 -- KNJIGA 2: Samo E-Knjiga
-INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis, katalog_id, deleted, tip_knjige, autor)
-VALUES ('9788617150002', 'Prokleta avlija', './src/main/resources/knjige/naslovne/avlija.jpg', 'Priča o zatvorenicima u istanbulskom zatvoru.', 1, FALSE, '010', 'Ivo Andrić');
+INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis, katalog_id, deleted, tip_knjige, autor, zanr_id)
+VALUES ('9788617150002', 'Prokleta avlija', './src/main/resources/knjige/naslovne/avlija.jpg', 'Priča o zatvorenicima u istanbulskom zatvoru.', 1, FALSE, '010', 'Ivo Andrić', 10);
 
 INSERT INTO e_knjiga (isbn, format_ek, datum_dodavanja_ek, broj_strana_ek, putanja_ek)
 VALUES ('9788617150002', 'PDF', '2026-01-15', 116, './src/main/resources/knjige/eknjige/avlija.pdf');
 
 
 -- KNJIGA 3: Samo Audio knjiga
-INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis, katalog_id, deleted, tip_knjige, autor)
-VALUES ('9788617150003', 'Seobe', './src/main/resources/knjige/naslovne/seobe.jpg', 'Istorijski roman o seobama Srba.', 1, FALSE, '001', 'Miloš Crnjanski');
+INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis, katalog_id, deleted, tip_knjige, autor, zanr_id)
+VALUES ('9788617150003', 'Seobe', './src/main/resources/knjige/naslovne/seobe.jpg', 'Istorijski roman o seobama Srba.', 1, FALSE, '001', 'Miloš Crnjanski', 9);
 
 INSERT INTO audio_knjiga (isbn, trajanje_sek_ak, format_ak, datum_dodavanja_ak, putanja_ak)
 VALUES ('9788617150003', 10, 'MP3', '2026-02-10', './src/main/resources/knjige/audioknjige/seobe.mp3');
 
 
 -- KNJIGA 4: Sva tri formata
-INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis, katalog_id, deleted, tip_knjige, autor)
-VALUES ('9788617150004', 'Gorski vijenac', './src/main/resources/knjige/naslovne/gorski.jpg', 'Poem epske fantastike i filozofije.', 2, FALSE, '111', 'Petar Petrović Njegoš');
+INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis, katalog_id, deleted, tip_knjige, autor, zanr_id)
+VALUES ('9788617150004', 'Gorski vijenac', './src/main/resources/knjige/naslovne/gorski.jpg', 'Poem epske fantastike i filozofije.', 2, FALSE, '111', 'Petar Petrović Njegoš', 13);
 
 INSERT INTO fizicka_knjiga (isbn)
 VALUES ('9788617150004');
@@ -52,8 +62,8 @@ VALUES ('9788617150004', 10, 'MP3', '2026-03-01', './src/main/resources/knjige/a
 
 
 -- KNJIGA 5: Kombinacija: Fizička i E-Knjiga
-INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis, katalog_id, deleted, tip_knjige, autor)
-VALUES ('9788617150005', 'Hazarski rečnik', './src/main/resources/knjige/naslovne/hazari.jpg', 'Roman leksikon u ženskom i muškom primerku.', 2, FALSE, '110', 'Milorad Pavić');
+INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis, katalog_id, deleted, tip_knjige, autor, zanr_id)
+VALUES ('9788617150005', 'Hazarski rečnik', './src/main/resources/knjige/naslovne/hazari.jpg', 'Roman leksikon u ženskom i muškom primerku.', 2, FALSE, '110', 'Milorad Pavić', 10);
 
 INSERT INTO fizicka_knjiga (isbn)
 VALUES ('9788617150005');
@@ -63,8 +73,8 @@ VALUES ('9788617150005', 'PDF', '2026-04-12', 13, './src/main/resources/knjige/e
 
 
 -- KNJIGA 6: Kombinacija: E-Knjiga i Audio knjiga
-INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis, katalog_id, deleted, tip_knjige, autor)
-VALUES ('9788617150006', 'Koreni', './src/main/resources/knjige/naslovne/koreni.jpg', 'Roman o porodici Katić.', 2, FALSE, '011', 'Dobrica Ćosić');
+INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis, katalog_id, deleted, tip_knjige, autor, zanr_id)
+VALUES ('9788617150006', 'Koreni', './src/main/resources/knjige/naslovne/koreni.jpg', 'Roman o porodici Katić.', 2, FALSE, '011', 'Dobrica Ćosić', 9);
 
 INSERT INTO e_knjiga (isbn, format_ek, datum_dodavanja_ek, broj_strana_ek, putanja_ek)
 VALUES ('9788617150006', 'PDF', '2026-04-20', 248, './src/main/resources/knjige/eknjige/koreni.pdf');
@@ -74,8 +84,8 @@ VALUES ('9788617150006', 10, 'MP3', '2026-04-22', './src/main/resources/knjige/a
 
 
 -- KNJIGA 7: Kombinacija: Fizička i Audio knjiga
-INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis, katalog_id, deleted, tip_knjige, autor)
-VALUES ('9788617150007', 'Tvrđava', './src/main/resources/knjige/naslovne/tvrdjava.jpg', 'Priča o Ahmetu Šabi i njegovom mjestu u svijetu.', 3, FALSE, '101', 'Meša Selimović');
+INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis, katalog_id, deleted, tip_knjige, autor, zanr_id)
+VALUES ('9788617150007', 'Tvrđava', './src/main/resources/knjige/naslovne/tvrdjava.jpg', 'Priča o Ahmetu Šabi i njegovom mjestu u svijetu.', 3, FALSE, '101', 'Meša Selimović', 10);
 
 INSERT INTO fizicka_knjiga (isbn)
 VALUES ('9788617150007');
@@ -85,35 +95,34 @@ VALUES ('9788617150007', 10, 'MP3', '2026-05-01', './src/main/resources/knjige/a
 
 
 -- KNJIGA 8: Samo Fizička knjiga
-INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis, katalog_id, deleted, tip_knjige, autor)
-VALUES ('9788617150008', 'Derviš i smrt', './src/main/resources/knjige/naslovne/dervis.jpg', 'Psihološko-filozofski roman Meše Selimovića.', 3, FALSE, '100', 'Meša Selimović');
+INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis, katalog_id, deleted, tip_knjige, autor, zanr_id)
+VALUES ('9788617150008', 'Derviš i smrt', './src/main/resources/knjige/naslovne/dervis.jpg', 'Psihološko-filozofski roman Meše Selimovića.', 3, FALSE, '100', 'Meša Selimović', 10);
 
 INSERT INTO fizicka_knjiga (isbn)
 VALUES ('9788617150008');
 
 
 -- KNJIGA 9: Samo E-Knjiga
-INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis, katalog_id, deleted, tip_knjige, autor)
-VALUES ('9788617150009', 'Znakovi pored puta', './src/main/resources/knjige/naslovne/znakovi.jpg', 'Zbirka aforizama, zapisa i meditacija.', 3, FALSE, '010', 'Ivo Andrić');
+INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis, katalog_id, deleted, tip_knjige, autor, zanr_id)
+VALUES ('9788617150009', 'Znakovi pored puta', './src/main/resources/knjige/naslovne/znakovi.jpg', 'Zbirka aforizama, zapisa i meditacija.', 3, FALSE, '010', 'Ivo Andrić', 10);
 
 INSERT INTO e_knjiga (isbn, format_ek, datum_dodavanja_ek, broj_strana_ek, putanja_ek)
 VALUES ('9788617150009', 'PDF', '2026-05-10', 307, './src/main/resources/knjige/eknjige/znakovi.pdf');
 
 
 -- KNJIGA 10: Samo Fizička knjiga
-INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis, katalog_id, deleted, tip_knjige, autor)
-VALUES ('9788617150010', 'Nečista krv', './src/main/resources/knjige/naslovne/krv.jpg', 'Tragična priča o propadanju vranjanskih čorbadžija.', 3, FALSE, '100', 'Borisav Stanković');
+INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis, katalog_id, deleted, tip_knjige, autor, zanr_id)
+VALUES ('9788617150010', 'Nečista krv', './src/main/resources/knjige/naslovne/krv.jpg', 'Tragična priča o propadanju vranjanskih čorbadžija.', 3, FALSE, '100', 'Borisav Stanković', 10);
 
 INSERT INTO fizicka_knjiga (isbn)
 VALUES ('9788617150010');
 
---zanrovi
-INSERT INTO zanr (zanr_id, zanr_name) VALUES
-(1, 'Autobiografije'), (2, 'Avanturistički'), (3, 'Biografije'),
-(4, 'Domaći pisci'), (5, 'Drama'), (6, 'Epska fantastika'),
-(7, 'Film'), (8, 'Horor'), (9, 'Istorijski romani'),
-(10, 'Klasici'), (11, 'Komedija'), (12, 'Naučna fantastika'),
-(13, 'Poezija'), (14, 'Popularna psihologija'), (15, 'Trileri');
+-- Knjiga 11
+INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis, katalog_id, deleted, tip_knjige, autor, zanr_id)
+VALUES ('4588617150001', 'Gospodar Prstenova', './src/main/resources/knjige/naslovne/tolkin.png', 'Fantastican serijal', 1, FALSE, '100', 'Dz. R. R. Tolkin', 6);
+INSERT INTO fizicka_knjiga (isbn)
+VALUES ('4588617150001');
+
 
 --kategorija clana
 INSERT INTO kategorija_clana (idkc, tip_kc, cena_kc) VALUES
@@ -612,7 +621,7 @@ INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2019, '9788617150010'
 
 -- dodatni primerci jer nema smisla da imate vecinski po jedan primerak ...
 
-
+INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2010, '4588617150001');
 
 INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2000, '9788617150001');
 INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2005, '9788617150001');
@@ -670,18 +679,6 @@ VALUES ('2026-06-17', NULL, '2026-07-01', TRUE, 3, '1234567891234');
 -- Pozajmica 9: "Hazarski rečnik"
 INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
 VALUES ('2026-06-17', NULL, '2026-07-01', TRUE, 4, '1234567891234');
-
--- Na Drini ćuprija (Andrić) -> Istorijski romani, Domaći pisci, Klasici
-INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
-('9788617150001', 9), ('9788617150001', 4), ('9788617150001', 10);
-INSERT INTO knjiga (isbn, naslov, putanja_naslovna, sinopsis, katalog_id, deleted, tip_knjige, autor)
-VALUES ('4588617150001', 'Gospodar Prstenova', './src/main/resources/knjige/naslovne/tolkin.png', 'Fantastican serijal', 1, FALSE, '100', 'Dz. R. R. Tolkin');
-INSERT INTO fizicka_knjiga (isbn)
-VALUES ('4588617150001');
-
-INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
-('4588617150001', 6);
-INSERT INTO primerak_knjige (god_iz, isbn_fizicka) VALUES (2010, '4588617150001');
 
 
 -- sve pozajmice za Mariju
@@ -756,44 +753,6 @@ VALUES ('2025-01-10', '2025-01-22', '2025-01-24', FALSE, 1, '1234567891234');
 INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
 VALUES ('2024-01-10', '2024-01-22', '2024-01-24', FALSE, 1, '1234567891237');
 
--- Prokleta avlija (Andrić) -> Domaći pisci, Klasici, Drama
-INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
-('9788617150002', 4), ('9788617150002', 10), ('9788617150002', 5);
-
--- Seobe (Crnjanski) -> Istorijski romani, Domaći pisci, Klasici
-INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
-('9788617150003', 9), ('9788617150003', 4), ('9788617150003', 10);
-
--- Gorski vijenac (Njegoš) -> Epska fantastika, Poezija, Domaći pisci, Klasici
-INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
-('9788617150004', 6), ('9788617150004', 13), ('9788617150004', 4), ('9788617150004', 10);
-
--- Hazarski rečnik (Pavić) -> Domaći pisci, Epska fantastika, Klasici
-INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
-('9788617150005', 4), ('9788617150005', 6), ('9788617150005', 10);
-
--- Koreni (Ćosić) -> Istorijski romani, Domaći pisci
-INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
-('9788617150006', 9), ('9788617150006', 4);
-
--- Tvrđava (Selimović) -> Domaći pisci, Popularna psihologija, Klasici
-INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
-('9788617150007', 4), ('9788617150007', 14), ('9788617150007', 10);
-
--- Derviš i smrt (Selimović) -> Domaći pisci, Popularna psihologija, Klasici
-INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
-('9788617150008', 4), ('9788617150008', 14), ('9788617150008', 10);
-
--- Znakovi pored puta (Andrić) -> Domaći pisci, Klasici, Poezija
-INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
-('9788617150009', 4), ('9788617150009', 10), ('9788617150009', 13);
-
--- Nečista krv (Stanković) -> Domaći pisci, Drama, Klasici
-INSERT INTO knjiga_zanr (isbn, zanr_id) VALUES
-('9788617150010', 4), ('9788617150010', 5), ('9788617150010', 10);
-
-
--- zan
 
 -- Predlozi vza nabavku
 INSERT INTO predlog_za_nabavku (korisnik_jmbg, naslov, autor, datum_podnosenja, status)

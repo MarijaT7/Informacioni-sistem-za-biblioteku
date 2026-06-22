@@ -32,6 +32,29 @@ public class BudzetService {
         this.budzetRepository = budzetRepository ;
     }
 
+    @Transactional
+    public void rezervisi(Long zanrId, Double iznos) {
+        BudzetPoZanru budzet = budzetPoZanruRepository.findByZanrId(zanrId)
+                .orElseThrow(() -> new RuntimeException("Budžet za žanr nije pronađen."));
+
+        if (budzet.getDostupno() < iznos) {
+            throw new RuntimeException("Nedovoljno dostupnih sredstava za rezervaciju.");
+        }
+
+        budzet.setRezervisano(budzet.getRezervisano() + iznos);
+        budzetPoZanruRepository.save(budzet);
+    }
+
+    @Transactional
+    public void oslobodiRezervaciju(Long zanrId, Double iznos) {
+        BudzetPoZanru budzet = budzetPoZanruRepository.findByZanrId(zanrId)
+                .orElseThrow(() -> new RuntimeException("Budžet za žanr nije pronađen."));
+
+        double novoRezervisano = Math.max(0, budzet.getRezervisano() - iznos);
+        budzet.setRezervisano(novoRezervisano);
+        budzetPoZanruRepository.save(budzet);
+    }
+
     public List<BudzetPoZanruResponseDto> getSviBudzetiPoZanrovima(String token) {
         proveriMenadzera(token);
 
@@ -124,15 +147,15 @@ public class BudzetService {
         return rezultat;
     }
 
-    // Trošenje budzeta ->> poziva se kad menadžer odobri predlog
+    // Trošenje budzeta
     @Transactional
     public void potrosi(Long zanrId, Double iznos) {
         BudzetPoZanru budzet = budzetPoZanruRepository.findByZanrId(zanrId)
                 .orElseThrow(() -> new RuntimeException("Budžet za žanr nije pronađen."));
 
-        if (budzet.getDostupno() < iznos) {
-            throw new RuntimeException("Nedovoljno sredstava u budžetu za ovaj žanr.");
-        }
+        // Oslobodi rezervaciju i dodaj u potrošeno
+        double novoRezervovano = Math.max(0, budzet.getRezervisano() - iznos);
+        budzet.setRezervisano(novoRezervovano);
 
         budzet.setPotroseno(budzet.getPotroseno() + iznos);
         budzetPoZanruRepository.save(budzet);
@@ -156,6 +179,7 @@ public class BudzetService {
         dto.setPotroseno(b.getPotroseno());
         dto.setDostupno(b.getDostupno());
         dto.setBudzetId(b.getBudzet().getId());
+        dto.setRezervisano(b.getRezervisano());
         return dto;
     }
 

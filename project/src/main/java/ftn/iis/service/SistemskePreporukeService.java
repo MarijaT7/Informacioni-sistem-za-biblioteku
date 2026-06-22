@@ -141,11 +141,16 @@ public class SistemskePreporukeService {
                 throw new RuntimeException("Knjiga nema definisan žanr.");
             }
 
-            if (!budzetService.imaDovoljnoSredstava(zanr.getId(), dto.getOkvirnaCena())) {
-                throw new RuntimeException("Nedovoljno sredstava u budžetu za žanr '" + zanr.getName() + "'.");
+            Genre zanrPreporuke = preporuka.getFizickaKnjiga().getKnjiga().getZanr();
+
+            // Pre nego sto stvarno dozvolim izmenu statusa, konsultujem se sa budzetom
+            if (!budzetService.imaDovoljnoSredstava(
+                    zanrPreporuke.getId(), preporuka.getOkvirnaCena())) {
+                throw new RuntimeException("Nedovoljno sredstava u budžetu za žanr '"
+                        + zanrPreporuke.getName() + "'.");
             }
 
-            budzetService.potrosi(zanr.getId(), dto.getOkvirnaCena());
+            budzetService.rezervisi(zanr.getId(), dto.getOkvirnaCena());
             preporuka.setOkvirnaCena(dto.getOkvirnaCena());
         }
 

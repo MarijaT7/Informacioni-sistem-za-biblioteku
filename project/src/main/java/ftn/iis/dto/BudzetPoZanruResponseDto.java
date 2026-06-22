@@ -7,6 +7,7 @@ public class BudzetPoZanruResponseDto {
     private Double ukupanBudzet;
     private Double potroseno;
     private Double dostupno;
+    private Double rezervisano;
     private Long budzetId;
 
     public Long getId() {
@@ -15,6 +16,14 @@ public class BudzetPoZanruResponseDto {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public void setRezervisano(Double rezervisano) {
+        this.rezervisano = rezervisano;
+    }
+
+    public Double getRezervisano() {
+        return rezervisano;
     }
 
     public Long getBudzetId() {

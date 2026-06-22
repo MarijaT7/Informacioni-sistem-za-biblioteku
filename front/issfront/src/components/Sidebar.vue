@@ -16,7 +16,7 @@
       <RouterLink class="nav-item" to="/pozajmice">
         <span class="nav-icon"></span> Pozajmice
       </RouterLink>
-      <RouterLink class="nav-item" to="#">
+      <RouterLink class="nav-item" to="/dugovanja">
         <span class="nav-icon"></span> Dugovanja
       </RouterLink>
       <RouterLink class="nav-item notif-item" to="/obavestenja">

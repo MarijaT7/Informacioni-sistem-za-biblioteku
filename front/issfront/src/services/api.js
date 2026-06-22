@@ -197,6 +197,11 @@ export const marcApi = {
 export const autokatalogApi = {
   katalogizuj: (data) => api.post('/knjiga/autokatalog', data),
 }
+export const kaznaApi = {
+  moje:  ()                          => api.get('/kazne/moje'),
+  plati: (idK, nacinPlacanja)        => api.post(`/kazne/${idK}/plati`, null, { params: { nacinPlacanja } }),
+}
+
 
 // ── Pretraga / Elastic (OCR + fulltext) ─────────────────────────────────
 export const searchApi = {

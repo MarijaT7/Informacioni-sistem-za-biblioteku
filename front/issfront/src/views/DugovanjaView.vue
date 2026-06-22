@@ -29,17 +29,40 @@
                 <p>Datum uzimanja: {{ formatDate(k.datPoz) }}</p>
                 <p>Datum očekivanog vraćanja: {{ formatDate(k.datOcVrac) }}</p>
                 <p>Iznos kazne: <strong>{{ k.iznosK }} dinara</strong></p>
-                <p v-if="k.placena" class="paid-badge"> Plaćeno ({{ k.nacinPlacanja === 'ONLINE' ? 'online' : 'uživo' }})</p>
-                <div v-else class="pay-actions">
-                  <button class="btn-pay" @click="plati(k, 'FIZICKI')" :disabled="paying === k.idK">
-                    Platite online
-                  </button>
 
+                <p v-if="k.placena" class="paid-badge">✓ Plaćeno ({{ k.nacinPlacanja === 'ONLINE' ? 'online' : 'uživo' }})</p>
+                <div v-else class="pay-actions">
+                  <button
+                    class="btn-pay"
+                    @click="togglePanel(k.idK)"
+                    :disabled="paying === k.idK"
+                  >
+                    {{ activePanelId === k.idK ? 'Otkažite' : 'Platite online' }}
+                  </button>
                 </div>
+
+                <!-- Payment panel -->
+                <transition name="slide">
+                  <div v-if="activePanelId === k.idK && !k.placena" class="card-form">
+                    <p class="card-note">Unesite podatke kartice za plaćanje</p>
+                    <input v-model="card.number" placeholder="Broj kartice" maxlength="19" />
+                    <div class="card-row">
+                      <input v-model="card.expiry" placeholder="MM/GG" maxlength="5" />
+                      <input v-model="card.cvv" placeholder="CVV" maxlength="3" type="password" />
+                    </div>
+                    <p v-if="payError" class="pay-error">{{ payError }}</p>
+                    <button
+                      class="btn-pay btn-confirm"
+                      @click="plati(k)"
+                      :disabled="paying === k.idK"
+                    >
+                      {{ paying === k.idK ? 'Obrada...' : 'Potvrdite plaćanje' }}
+                    </button>
+                  </div>
+                </transition>
               </div>
             </div>
           </section>
-
 
           <section v-if="izgubljene.length > 0" :class="{ 'mt-section': prekoracene.length > 0 }">
             <h2 class="section-heading">Izgubljena knjiga</h2>
@@ -55,16 +78,40 @@
                 <p>Naziv knjige: {{ k.naslovKnjige }}</p>
                 <p>Datum uzimanja: {{ formatDate(k.datPoz) }}</p>
                 <p>Iznos kazne: <strong>{{ k.iznosK }} dinara</strong></p>
-                <p v-if="k.placena" class="paid-badge"> Plaćeno ({{ k.nacinPlacanja === 'ONLINE' ? 'online' : 'uživo' }})</p>
+
+                <p v-if="k.placena" class="paid-badge">✓ Plaćeno ({{ k.nacinPlacanja === 'ONLINE' ? 'online' : 'uživo' }})</p>
                 <div v-else class="pay-actions">
-                  <button class="btn-pay" @click="plati(k, 'FIZICKI')" :disabled="paying === k.idK">
-                    Platite online
+                  <button
+                    class="btn-pay"
+                    @click="togglePanel(k.idK)"
+                    :disabled="paying === k.idK"
+                  >
+                    {{ activePanelId === k.idK ? 'Otkažite' : 'Platite online' }}
                   </button>
                 </div>
+
+                <!-- Payment panel -->
+                <transition name="slide">
+                  <div v-if="activePanelId === k.idK && !k.placena" class="card-form">
+                    <p class="card-note">Unesite podatke kartice za plaćanje</p>
+                    <input v-model="card.number" placeholder="Broj kartice" maxlength="19" />
+                    <div class="card-row">
+                      <input v-model="card.expiry" placeholder="MM/GG" maxlength="5" />
+                      <input v-model="card.cvv" placeholder="CVV" maxlength="3" type="password" />
+                    </div>
+                    <p v-if="payError" class="pay-error">{{ payError }}</p>
+                    <button
+                      class="btn-pay btn-confirm"
+                      @click="plati(k)"
+                      :disabled="paying === k.idK"
+                    >
+                      {{ paying === k.idK ? 'Obrada...' : 'Potvrdite plaćanje' }}
+                    </button>
+                  </div>
+                </transition>
               </div>
             </div>
           </section>
-
 
         </template>
       </template>
@@ -78,20 +125,23 @@
 </template>
 
 <script setup>
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, ref, computed, reactive } from 'vue'
 import SidebarNav from '../components/Sidebar.vue'
 import { kaznaApi, knjigaApi } from '../services/api.js'
 
-const loading = ref(true)
-const kazne = ref([])
-const coverUrls = ref({})
-const paying = ref(null)
-const snackMsg = ref('')
-const snackErr = ref(false)
+const loading     = ref(true)
+const kazne       = ref([])
+const coverUrls   = ref({})
+const paying      = ref(null)
+const snackMsg    = ref('')
+const snackErr    = ref(false)
+const activePanelId = ref(null)
+const payError    = ref('')
+
+const card = reactive({ number: '', expiry: '', cvv: '' })
 
 const prekoracene = computed(() => kazne.value.filter(k => !k.izgubljena && !k.placena))
-const izgubljene = computed(() => kazne.value.filter(k => k.izgubljena && !k.placena))
-const placene = computed(() => kazne.value.filter(k => k.placena))
+const izgubljene  = computed(() => kazne.value.filter(k =>  k.izgubljena && !k.placena))
 
 onMounted(async () => {
   await loadData()
@@ -122,14 +172,41 @@ async function loadCovers() {
   }
 }
 
-async function plati(k, nacinPlacanja) {
+function togglePanel(idK) {
+  if (activePanelId.value === idK) {
+    activePanelId.value = null
+  } else {
+    activePanelId.value = idK
+    card.number  = ''
+    card.expiry  = ''
+    card.cvv     = ''
+    payError.value = ''
+  }
+}
+
+async function plati(k) {
+  payError.value = ''
+
+  if (!card.number.trim() || !card.expiry.trim() || !card.cvv.trim()) {
+    payError.value = 'Popunite sva polja kartice.'
+    return
+  }
+  if (card.cvv.length < 3) {
+    payError.value = 'CVV mora imati 3 cifre.'
+    return
+  }
+
   paying.value = k.idK
   try {
-    await kaznaApi.plati(k.idK, nacinPlacanja)
+    await kaznaApi.plati(k.idK, 'ONLINE')
+    activePanelId.value = null
+    card.number = ''
+    card.expiry = ''
+    card.cvv    = ''
     showSnack('Kazna uspešno plaćena.', false)
     await loadData()
   } catch (e) {
-    showSnack(e.response?.data || 'Greška pri plaćanju.', true)
+    payError.value = e.response?.data || 'Greška pri plaćanju.'
   } finally {
     paying.value = null
   }
@@ -149,13 +226,13 @@ function formatDate(dateStr) {
 </script>
 
 <style scoped>
-.page-title { margin-bottom: 1.5rem; font-size: 1.8rem; }
-.loading-msg { color: var(--text-mid); }
-.empty-state { text-align: center; padding: 3rem 0; color: var(--text-mid); }
-.mt-section { margin-top: 2rem; }
+.page-title   { margin-bottom: 1.5rem; font-size: 1.8rem; }
+.loading-msg  { color: var(--text-mid); }
+.empty-state  { text-align: center; padding: 3rem 0; color: var(--text-mid); }
+.mt-section   { margin-top: 2rem; }
 
 .section-heading { font-size: 1.3rem; margin-bottom: 0.3rem; color: var(--text-dark); }
-.section-sub { font-size: 0.85rem; color: var(--text-mid); margin-bottom: 1rem; }
+.section-sub     { font-size: 0.85rem; color: var(--text-mid); margin-bottom: 1rem; }
 
 .dugovanje-card {
   display: flex;
@@ -163,10 +240,6 @@ function formatDate(dateStr) {
   align-items: flex-start;
   margin-bottom: 1.5rem;
   background: transparent;
-}
-
-.dugovanje-card--paid {
-  opacity: 0.75;
 }
 
 .book-cover-wrap {
@@ -188,40 +261,13 @@ function formatDate(dateStr) {
   background: linear-gradient(135deg, #c8b9ae, #a89080);
 }
 
-.cover-title {
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-align: center;
-  margin: 0.3rem 0 0;
-  line-height: 1.2;
-}
+.cover-title  { font-size: 0.75rem; font-weight: 600; text-align: center; margin: 0.3rem 0 0; line-height: 1.2; }
+.cover-author { font-size: 0.7rem;  color: var(--text-mid); text-align: center; margin: 0; }
 
-.cover-author {
-  font-size: 0.7rem;
-  color: var(--text-mid);
-  text-align: center;
-  margin: 0;
-}
-
-.info-box {
-  flex: 1;
-}
-
-.info-box h3 {
-  font-size: 1.1rem;
-  margin-bottom: 0.6rem;
-  color: var(--text-dark);
-}
-
-.info-box p {
-  font-size: 0.88rem;
-  color: var(--text-mid);
-  margin: 0.25rem 0;
-}
-
-.info-box strong {
-  color: var(--text-dark);
-}
+.info-box { flex: 1; }
+.info-box h3 { font-size: 1.1rem; margin-bottom: 0.6rem; color: var(--text-dark); }
+.info-box p  { font-size: 0.88rem; color: var(--text-mid); margin: 0.25rem 0; }
+.info-box strong { color: var(--text-dark); }
 
 .pay-actions {
   display: flex;
@@ -238,17 +284,72 @@ function formatDate(dateStr) {
   padding: 0.45rem 1.2rem;
   font-size: 0.85rem;
   cursor: pointer;
+  transition: background 0.15s;
 }
-
-.btn-pay:hover { background: #5e4436; }
+.btn-pay:hover    { background: #5e4436; }
 .btn-pay:disabled { opacity: 0.6; cursor: not-allowed; }
 
+.btn-confirm {
+  margin-top: 0.5rem;
+  border-radius: 6px;
+  width: 100%;
+}
+
+/* Payment panel */
+.card-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.9rem;
+  background: #faf8f6;
+  border: 1.5px solid var(--border, #ddd);
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+  max-width: 320px;
+}
+
+.card-form input {
+  padding: 0.45rem 0.6rem;
+  border: 1.5px solid var(--border, #ddd);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  background: white;
+  outline: none;
+}
+
+.card-form input:focus {
+  border-color: #7a5c48;
+}
+
+.card-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.card-row input { flex: 1; }
+
+.card-note {
+  font-size: 0.82rem;
+  color: var(--text-mid, #777);
+  font-style: italic;
+  margin: 0 0 0.2rem !important;
+}
+
+.pay-error {
+  color: #7a1e1e;
+  font-size: 0.82rem;
+  margin: 0 !important;
+}
 
 .paid-badge {
   color: #1d5a26;
   font-weight: 600;
   margin-top: 0.6rem !important;
 }
+
+/* Slide animation */
+.slide-enter-active, .slide-leave-active { transition: all 0.2s ease; }
+.slide-enter-from, .slide-leave-to       { opacity: 0; transform: translateY(-6px); }
 
 .snack {
   position: fixed;
@@ -262,6 +363,6 @@ function formatDate(dateStr) {
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
-.snack--ok { background: #d8f1dd; color: #1d5a26; }
+.snack--ok  { background: #d8f1dd; color: #1d5a26; }
 .snack--err { background: #f8d7d7; color: #7a1e1e; }
 </style>

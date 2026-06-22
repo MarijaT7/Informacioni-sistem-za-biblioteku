@@ -39,7 +39,10 @@ public class KaznaService {
     public List<KaznaDto> getMojeKazne(String jmbg){
         List<Pozajmica> overdue = pozajmicaRepository.findOverduePozajmiceByJmbg(jmbg, LocalDate.now());
         for (Pozajmica p : overdue) {
-            kreirajIliAzurirajKaznaPrekoracenje(p);
+            boolean hasPaidKazna = kaznaRepository.existsByPozajmica_IdPAndPlacenaTrueAndBrojDanaPrekoracenjaIsNotNull(p.getIdP());
+            if(!hasPaidKazna) {
+                kreirajIliAzurirajKaznaPrekoracenje(p);
+            }
         }
         return kaznaRepository.findByClanJmbgOrderByDatNastankaDesc(jmbg).stream().map(KaznaDto::from).collect(Collectors.toList());
     }

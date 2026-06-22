@@ -22,4 +22,6 @@ public interface KaznaRepository extends JpaRepository<Kazna, Long> {
     Optional<Kazna> findLostBookKaznaForPozajmica(@Param("idP") Long idP);
 
     boolean existsByPozajmica_IdPAndPlacenaFalseAndBrojDanaPrekoracenjaIsNotNull(Long idP);
+    boolean existsByPozajmica_IdPAndPlacenaTrueAndBrojDanaPrekoracenjaIsNotNull(Long idP);
+
 }

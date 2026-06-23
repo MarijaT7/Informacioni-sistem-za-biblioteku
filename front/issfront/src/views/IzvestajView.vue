@@ -8,7 +8,7 @@
       </p>
 
       <div class="report-card">
-        <h2 class="card-title">Parametri izveštaja o aktivnostima članova, popularnost naslova i trendove čitanja za izabrani period </h2>
+        <h2 class="card-title">Izveštaji o aktivnostima članova, popularnosti naslova i trendovima čitanja za izabrani period </h2>
 
         <div class="form-row">
           <div class="form-group">

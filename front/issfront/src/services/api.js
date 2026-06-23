@@ -278,4 +278,13 @@ export const budzetApi = {
   prerasporedi:   (data)  => api.post('/budzet/prerasporedi', data),
 }
 
+//izvestaji
+export const izvestajApi = {
+  generiši: (od, datDo) =>
+    api.get('/izvestaj/aktivnosti', {
+      params: { od, do: datDo },
+      responseType: 'blob'
+    }),
+}
+
 export default api

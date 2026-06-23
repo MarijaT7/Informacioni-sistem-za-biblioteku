@@ -4,6 +4,7 @@ import ftn.iis.model.Pozajmica;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -34,4 +35,7 @@ public interface PozajmicaRepository extends JpaRepository<Pozajmica, Long> {
             "WHERE p.statusPoz = true " +
             "ORDER BY p.datOcVrac ASC")
     List<Pozajmica> findAllActivePozajmice();
+
+    @Query("SELECT DISTINCT p from Pozajmica p JOIN FETCH p.primerakKnjige pk JOIN FETCH pk.fizickaKnjiga fk JOIN FETCH fk.knjiga k LEFT JOIN FETCH k.zanr z JOIN FETCH p.clan c LEFT JOIN FETCH c.kategorijaClana kc WHERE p.datPoz BETWEEN :od AND :datDo ORDER BY p.datPoz")
+    List<Pozajmica> findAllInPeriodWithDetails(@Param("od") LocalDate od, @Param("datDo") LocalDate datDo);
 }

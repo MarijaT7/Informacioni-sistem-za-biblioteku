@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stroage/auth.js'
-
 const routes = [
   { path: '/',              redirect: '/login' },
   { path: '/login',         component: () => import('../views/LoginView.vue')     },
@@ -178,6 +177,12 @@ const routes = [
     name:   'fulltextsearch',
     component: () => import('../views/SearchPOC.vue')
 },
+{
+    path: '/izvestaj',
+    name: 'izvestaj',
+    component: () => import('../views/IzvestajView.vue'),
+    meta: { requiresAuth: true, roles: ['BIBLIOTEKAR', 'MENADZER', 'ADMINISTRATOR'] }
+  },
 ]
 
 const router = createRouter({

@@ -197,6 +197,11 @@ export const marcApi = {
 export const autokatalogApi = {
   katalogizuj: (data) => api.post('/knjiga/autokatalog', data),
 }
+export const kaznaApi = {
+  moje:  ()                          => api.get('/kazne/moje'),
+  plati: (idK, nacinPlacanja)        => api.post(`/kazne/${idK}/plati`, null, { params: { nacinPlacanja } }),
+}
+
 
 // ── Pretraga / Elastic (OCR + fulltext) ─────────────────────────────────
 export const searchApi = {
@@ -271,6 +276,15 @@ export const budzetApi = {
   getSviBudzeti:  ()      => api.get('/budzet/sve-po-zanrovima'),
   postaviBudzet:  (data)  => api.post('/budzet/postavi', data),
   prerasporedi:   (data)  => api.post('/budzet/prerasporedi', data),
+}
+
+//izvestaji
+export const izvestajApi = {
+  generiši: (od, datDo) =>
+    api.get('/izvestaj/aktivnosti', {
+      params: { od, do: datDo },
+      responseType: 'blob'
+    }),
 }
 
 export default api

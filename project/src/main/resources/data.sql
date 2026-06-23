@@ -339,8 +339,8 @@ INSERT INTO clanarina (
     jmbg
 ) VALUES (
     '2026-05-04',
-    '2026-06-23',
-    '2026-07-23',
+    '2026-07-29',
+    '2026-08-23',
     true,
     'FIZICKI',
     '1234567891234'
@@ -670,7 +670,7 @@ VALUES ('2026-04-20', '2026-04-30', '2026-05-04', FALSE, 7, '1234567891234');
 
 -- Pozajmica 7: "Na Drini ćuprija"
 INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)
-VALUES ('2026-06-17', NULL, '2026-07-01', TRUE, 1, '1234567891234');
+VALUES ('2026-06-17', NULL, '2026-06-20', TRUE, 1, '1234567891234');
 
 -- Pozajmica 8: "Gorski vijenac"
 INSERT INTO pozajmica (dat_poz, dat_vrac, dat_oc_vrac, status_poz, id_pk_fk, jmbg_clana)

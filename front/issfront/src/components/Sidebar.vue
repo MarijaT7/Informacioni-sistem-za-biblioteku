@@ -16,7 +16,7 @@
       <RouterLink class="nav-item" to="/pozajmice">
         <span class="nav-icon"></span> Pozajmice
       </RouterLink>
-      <RouterLink class="nav-item" to="#">
+      <RouterLink class="nav-item" to="/dugovanja">
         <span class="nav-icon"></span> Dugovanja
       </RouterLink>
       <RouterLink class="nav-item notif-item" to="/obavestenja">
@@ -55,6 +55,9 @@
       </RouterLink>
       <RouterLink v-if="role === 'BIBLIOTEKAR'" class="nav-item" to="/vracanje-knjiga">
         Vraćanje knjiga
+      </RouterLink>
+      <RouterLink v-if="role === 'BIBLIOTEKAR' || role === 'MENADZER' || role === 'ADMINISTRATOR'" class="nav-item" to="/izvestaj">
+              <span class="nav-icon"></span> Izvestaj o aktivnostima
       </RouterLink>
     </nav>
 

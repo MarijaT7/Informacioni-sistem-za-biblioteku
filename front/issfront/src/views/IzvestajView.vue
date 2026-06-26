@@ -175,17 +175,17 @@ function showSnack(msg, isErr) {
   border-radius: 50px;
   padding: 0.3rem 0.85rem;
   font-size: 0.8rem;
-  color: #7a5c48;
+  color: #4a6741;
   cursor: pointer;
   transition: background 0.15s;
 }
-.btn-range:hover { background: #ebe0d8; }
+.btn-range:hover { background: #4a6741; }
 
 .btn-generate {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  background: #7a5c48;
+  background: #4a6741;
   color: white;
   border: none;
   border-radius: 50px;
@@ -195,7 +195,7 @@ function showSnack(msg, isErr) {
   cursor: pointer;
   transition: background 0.15s;
 }
-.btn-generate:hover    { background: #5e4436; }
+.btn-generate:hover    { background: #4a6741; }
 .btn-generate:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .spinner {
@@ -210,7 +210,7 @@ function showSnack(msg, isErr) {
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .err-msg {
-  color: #7a1e1e;
+  color: #4a6741;
   font-size: 0.85rem;
   margin-bottom: 1rem;
 }

@@ -29,8 +29,14 @@ public class IzvestajService {
     private static final Color TEXT_DARK    = new Color(40,  35,  30);
     private static final Color TEXT_MID     = new Color(100, 90,  80);
     private static final Color WHITE        = Color.WHITE;
-    private static final Color GREEN_LIGHT  = new Color(200, 240, 200);
-    private static final Color GREEN_DARK   = new Color(29,  90,  38);
+    private static final Color GREEN_LIGHT  = new Color(212, 221, 184);
+    private static final Color GREEN_DARK   = new Color(74,  103,  65);
+
+    private static final Color GREEN_MED   = new Color(122, 144, 104);
+    private static final Color CARD_BG     = new Color(200, 213, 170);
+    private static final Color CARD_LIGHT  = new Color(234, 239, 220);
+    private static final Color TEXT_DARK_GREEN   = new Color(30, 45, 20);
+    private static final Color TEXT_MID_GREEN   = new Color(58, 78, 48);
 
     private static final String[] MESECI = {
             "", "Januar", "Februar", "Mart", "April", "Maj", "Jun",
@@ -48,16 +54,15 @@ public class IzvestajService {
         Document doc = new Document(PageSize.A4, 45, 45, 55, 45);
         PdfWriter writer = PdfWriter.getInstance(doc, baos);
 
-        // Zaglavlje/podnozje na svakoj strani
         writer.setPageEvent(new PdfPageEventHelper() {
             @Override
             public void onEndPage(PdfWriter w, Document d) {
                 try {
                     BaseFont bf = BaseFont.createFont(BaseFont.HELVETICA, "Cp1250", BaseFont.NOT_EMBEDDED);
-                    Font footer = new Font(bf, 8, Font.NORMAL, TEXT_MID);
+                    Font footer = new Font(bf, 8, Font.NORMAL, TEXT_MID_GREEN);
                     PdfContentByte cb = w.getDirectContent();
                     cb.saveState();
-                    cb.setColorFill(BROWN_LIGHT);
+                    cb.setColorFill(CARD_BG);
                     cb.rectangle(d.left(), d.bottom() - 15, d.right() - d.left(), 1);
                     cb.fill();
                     ColumnText.showTextAligned(cb, Element.ALIGN_CENTER,
@@ -74,24 +79,23 @@ public class IzvestajService {
         BaseFont bfBold = BaseFont.createFont(BaseFont.HELVETICA_BOLD, "Cp1250", BaseFont.NOT_EMBEDDED);
 
         Font fTitle    = new Font(bfBold, 20, Font.BOLD,   WHITE);
-        Font fSubtitle = new Font(bf,     10, Font.NORMAL, new Color(220, 200, 180));
-        Font fSection  = new Font(bfBold, 13, Font.BOLD,   BROWN_DARK);
+        Font fSubtitle = new Font(bf,     10, Font.NORMAL, GREEN_LIGHT);
+        Font fSection  = new Font(bfBold, 13, Font.BOLD,   GREEN_DARK);
         Font fTblHead  = new Font(bfBold,  9, Font.BOLD,   WHITE);
-        Font fTblCell  = new Font(bf,      9, Font.NORMAL, TEXT_DARK);
-        Font fTblSmall = new Font(bf,      8, Font.NORMAL, TEXT_MID);
-        Font fMetVal   = new Font(bfBold, 15, Font.BOLD,   BROWN_MED);
-        Font fMetLbl   = new Font(bf,      9, Font.NORMAL, TEXT_MID);
-        Font fNormal   = new Font(bf,      10, Font.NORMAL, TEXT_DARK);
+        Font fTblCell  = new Font(bf,      9, Font.NORMAL, TEXT_DARK_GREEN);
+        Font fTblSmall = new Font(bf,      8, Font.NORMAL, TEXT_MID_GREEN);
+        Font fMetVal   = new Font(bfBold, 15, Font.BOLD,   GREEN_MED);
+        Font fMetLbl   = new Font(bf,      9, Font.NORMAL, TEXT_MID_GREEN);
+        Font fNormal   = new Font(bf,      10, Font.NORMAL, TEXT_DARK_GREEN);
 
-        // ═══════════════════════════════════════════════════════════
-        // HEADER BLOk
-        // ═══════════════════════════════════════════════════════════
+
+
         PdfPTable header = new PdfPTable(1);
         header.setWidthPercentage(100);
         header.setSpacingAfter(20);
 
         PdfPCell hCell = new PdfPCell();
-        hCell.setBackgroundColor(BROWN_MED);
+        hCell.setBackgroundColor(GREEN_DARK);
         hCell.setPadding(22);
         hCell.setBorder(Rectangle.NO_BORDER);
 
@@ -108,9 +112,7 @@ public class IzvestajService {
         header.addCell(hCell);
         doc.add(header);
 
-        // ═══════════════════════════════════════════════════════════
-        // AGGREGACIJE
-        // ═══════════════════════════════════════════════════════════
+
         int total = pozajmice.size();
         LocalDate danas = LocalDate.now();
 
@@ -179,9 +181,6 @@ public class IzvestajService {
                         p -> YearMonth.of(p.getDatPoz().getYear(), p.getDatPoz().getMonthValue()),
                         Collectors.counting())));
 
-        // ═══════════════════════════════════════════════════════════
-        // SEKCIJA 1 — AKTIVNOST CLANOVA
-        // ═══════════════════════════════════════════════════════════
         doc.add(sectionHeader("1. Aktivnost clanova", fSection, bfBold));
 
         // Karticice sa sumama
@@ -200,17 +199,17 @@ public class IzvestajService {
         doc.add(metrics1);
 
         // Top 5 clanova
-        doc.add(subheading("Top 5 najaktivnijih clanova", new Font(bfBold, 10, Font.BOLD, TEXT_MID)));
+        doc.add(subheading("Top 5 najaktivnijih clanova", new Font(bfBold, 10, Font.BOLD, TEXT_MID_GREEN)));
         PdfPTable tblClanovi = new PdfPTable(3);
         tblClanovi.setWidthPercentage(100);
         tblClanovi.setSpacingBefore(6);
         tblClanovi.setSpacingAfter(14);
         tblClanovi.setWidths(new float[]{0.5f, 3f, 1.5f});
 
-        addTableHeader(tblClanovi, fTblHead, BROWN_DARK, "#", "Ime i prezime", "Br. pozajmica");
+        addTableHeader(tblClanovi, fTblHead, GREEN_DARK, "#", "Ime i prezime", "Br. pozajmica");
         int rank = 1;
         for (Map.Entry<String, Long> e : topClanovi) {
-            Color bg = (rank % 2 == 0) ? BEIGE_LIGHT : WHITE;
+            Color bg = (rank % 2 == 0) ? CARD_LIGHT : WHITE;
             addRow(tblClanovi, fTblCell, bg, Element.ALIGN_CENTER, "" + rank,
                     jmbgToName.getOrDefault(e.getKey(), e.getKey()),
                     "" + e.getValue());
@@ -220,7 +219,7 @@ public class IzvestajService {
         doc.add(tblClanovi);
 
         // Po kategoriji
-        doc.add(subheading("Pozajmice po kategoriji clana", new Font(bfBold, 10, Font.BOLD, TEXT_MID)));
+        doc.add(subheading("Pozajmice po kategoriji clana", new Font(bfBold, 10, Font.BOLD, TEXT_MID_GREEN)));
         PdfPTable tblKat = new PdfPTable(3);
         tblKat.setWidthPercentage(70);
         tblKat.setHorizontalAlignment(Element.ALIGN_LEFT);
@@ -228,10 +227,10 @@ public class IzvestajService {
         tblKat.setSpacingAfter(20);
         tblKat.setWidths(new float[]{3f, 1.5f, 1f});
 
-        addTableHeader(tblKat, fTblHead, BROWN_DARK, "Kategorija", "Br. pozajmica", "%");
+        addTableHeader(tblKat, fTblHead, GREEN_DARK, "Kategorija", "Br. pozajmica", "%");
         int rowIdx = 1;
         for (Map.Entry<String, Long> e : sortedDesc(poKategoriji)) {
-            Color bg = (rowIdx % 2 == 0) ? BEIGE_LIGHT : WHITE;
+            Color bg = (rowIdx % 2 == 0) ? CARD_LIGHT : WHITE;
             String pct = total > 0 ? String.format("%.1f%%", 100.0 * e.getValue() / total) : "—";
             addRow(tblKat, fTblCell, bg, Element.ALIGN_LEFT, labelKategorije(e.getKey()), "" + e.getValue(), pct);
             rowIdx++;
@@ -239,22 +238,20 @@ public class IzvestajService {
         if (poKategoriji.isEmpty()) addEmptyRow(tblKat, fTblSmall, 3, "Nema podataka");
         doc.add(tblKat);
 
-        // ═══════════════════════════════════════════════════════════
-        // SEKCIJA 2 — POPULARNOST NASLOVA
-        // ═══════════════════════════════════════════════════════════
+
         doc.add(sectionHeader("2. Popularnost naslova", fSection, bfBold));
 
-        doc.add(subheading("Top 10 najpozajmljivanijih knjiga", new Font(bfBold, 10, Font.BOLD, TEXT_MID)));
+        doc.add(subheading("Top 10 najpozajmljivanijih knjiga", new Font(bfBold, 10, Font.BOLD, TEXT_MID_GREEN)));
         PdfPTable tblKnjige = new PdfPTable(5);
         tblKnjige.setWidthPercentage(100);
         tblKnjige.setSpacingBefore(6);
         tblKnjige.setSpacingAfter(14);
         tblKnjige.setWidths(new float[]{0.5f, 3.5f, 2f, 1.5f, 1f});
 
-        addTableHeader(tblKnjige, fTblHead, BROWN_DARK, "#", "Naslov", "Autor", "Zanr", "Br.");
+        addTableHeader(tblKnjige, fTblHead, GREEN_DARK, "#", "Naslov", "Autor", "Zanr", "Br.");
         int rk = 1;
         for (Map.Entry<String, Long> e : topKnjige) {
-            Color bg = (rk % 2 == 0) ? BEIGE_LIGHT : WHITE;
+            Color bg = (rk % 2 == 0) ? CARD_LIGHT : WHITE;
             Knjiga k = isbnToKnjiga.get(e.getKey());
             String naslov = truncate(k.getNaslov(), 40);
             String autor  = truncate(k.getAutor() != null ? k.getAutor() : "—", 25);
@@ -266,7 +263,7 @@ public class IzvestajService {
         doc.add(tblKnjige);
 
         // Po zanru
-        doc.add(subheading("Pozajmice po zanru", new Font(bfBold, 10, Font.BOLD, TEXT_MID)));
+        doc.add(subheading("Pozajmice po zanru", new Font(bfBold, 10, Font.BOLD, TEXT_MID_GREEN)));
         PdfPTable tblZanr = new PdfPTable(3);
         tblZanr.setWidthPercentage(65);
         tblZanr.setHorizontalAlignment(Element.ALIGN_LEFT);
@@ -274,10 +271,10 @@ public class IzvestajService {
         tblZanr.setSpacingAfter(20);
         tblZanr.setWidths(new float[]{3f, 1.5f, 1f});
 
-        addTableHeader(tblZanr, fTblHead, BROWN_DARK, "Zanr", "Br. pozajmica", "%");
+        addTableHeader(tblZanr, fTblHead, GREEN_DARK, "Zanr", "Br. pozajmica", "%");
         rowIdx = 1;
         for (Map.Entry<String, Long> e : sortedDesc(poZanru)) {
-            Color bg = (rowIdx % 2 == 0) ? BEIGE_LIGHT : WHITE;
+            Color bg = (rowIdx % 2 == 0) ? CARD_LIGHT : WHITE;
             String pct = total > 0 ? String.format("%.1f%%", 100.0 * e.getValue() / total) : "—";
             addRow(tblZanr, fTblCell, bg, Element.ALIGN_LEFT, e.getKey(), "" + e.getValue(), pct);
             rowIdx++;
@@ -285,9 +282,7 @@ public class IzvestajService {
         if (poZanru.isEmpty()) addEmptyRow(tblZanr, fTblSmall, 3, "Nema podataka");
         doc.add(tblZanr);
 
-        // ═══════════════════════════════════════════════════════════
-        // SEKCIJA 3 — TRENDOVI CITANJA
-        // ═══════════════════════════════════════════════════════════
+
         doc.add(sectionHeader("3. Trendovi citanja", fSection, bfBold));
 
         // Sumarni metrik — prekoracenja
@@ -305,7 +300,7 @@ public class IzvestajService {
         doc.add(metrics3);
 
         // Mesecni pregled
-        doc.add(subheading("Mesecni pregled pozajmica", new Font(bfBold, 10, Font.BOLD, TEXT_MID)));
+        doc.add(subheading("Mesecni pregled pozajmica", new Font(bfBold, 10, Font.BOLD, TEXT_MID_GREEN)));
         PdfPTable tblMes = new PdfPTable(3);
         tblMes.setWidthPercentage(65);
         tblMes.setHorizontalAlignment(Element.ALIGN_LEFT);
@@ -313,11 +308,11 @@ public class IzvestajService {
         tblMes.setSpacingAfter(14);
         tblMes.setWidths(new float[]{2.5f, 1.5f, 1.5f});
 
-        addTableHeader(tblMes, fTblHead, BROWN_DARK, "Mesec", "Br. pozajmica", "Promena");
+        addTableHeader(tblMes, fTblHead, GREEN_DARK, "Mesec", "Br. pozajmica", "Promena");
         rowIdx = 1;
         Long prevCount = null;
         for (Map.Entry<YearMonth, Long> e : mesecniTrend.entrySet()) {
-            Color bg = (rowIdx % 2 == 0) ? BEIGE_LIGHT : WHITE;
+            Color bg = (rowIdx % 2 == 0) ? CARD_LIGHT : WHITE;
             String label = MESECI[e.getKey().getMonthValue()] + " " + e.getKey().getYear();
             String promena;
             if (prevCount == null) {
@@ -333,18 +328,11 @@ public class IzvestajService {
         if (mesecniTrend.isEmpty()) addEmptyRow(tblMes, fTblSmall, 3, "Nema podataka za izabrani period");
         doc.add(tblMes);
 
-        // Napomena
-        Paragraph napomena = new Paragraph(
-                "* Izvestaj obuhvata sve fizicke pozajmice evidentirane u sistemu za navedeni period.",
-                new Font(bf, 8, Font.ITALIC, TEXT_MID));
-        napomena.setSpacingBefore(20);
-        doc.add(napomena);
 
         doc.close();
         return baos.toByteArray();
     }
 
-    // ── Pomocne metode za PDF ────────────────────────────────────────────
 
     private Paragraph sectionHeader(String tekst, Font fSection, BaseFont bfBold) throws DocumentException {
         Paragraph p = new Paragraph();
@@ -365,9 +353,9 @@ public class IzvestajService {
 
     private PdfPCell metricCell(String value, String label, Font fVal, Font fLbl, BaseFont bfBold) {
         PdfPCell cell = new PdfPCell();
-        cell.setBackgroundColor(BEIGE_MED);
+        cell.setBackgroundColor(CARD_BG);
         cell.setPadding(14);
-        cell.setBorderColor(new Color(220, 200, 190));
+        cell.setBorderColor(GREEN_LIGHT);
         cell.setHorizontalAlignment(Element.ALIGN_CENTER);
 
         Paragraph val = new Paragraph(value, fVal);
@@ -389,7 +377,7 @@ public class IzvestajService {
             cell.setPaddingBottom(7);
             cell.setPaddingLeft(6);
             cell.setPaddingRight(6);
-            cell.setBorderColor(new Color(80, 60, 50));
+            cell.setBorderColor(GREEN_DARK);
             table.addCell(cell);
         }
     }
@@ -404,7 +392,7 @@ public class IzvestajService {
             cell.setPaddingBottom(5);
             cell.setPaddingLeft(6);
             cell.setPaddingRight(6);
-            cell.setBorderColor(new Color(220, 200, 190));
+            cell.setBorderColor(GREEN_LIGHT);
             table.addCell(cell);
             first = false;
         }
@@ -415,7 +403,7 @@ public class IzvestajService {
         cell.setColspan(colspan);
         cell.setHorizontalAlignment(Element.ALIGN_CENTER);
         cell.setPadding(10);
-        cell.setBorderColor(new Color(220, 200, 190));
+        cell.setBorderColor(GREEN_LIGHT);
         table.addCell(cell);
     }
 

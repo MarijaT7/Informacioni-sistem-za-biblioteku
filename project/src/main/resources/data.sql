@@ -213,6 +213,12 @@ INSERT INTO korisnik (
 INSERT INTO ugovor (dobavljac_id, popust, datum_pocetka, datum_isteka, datum_potpisa, rok_isporuke, status)
 VALUES (2, 15.0, '2024-06-01', '2025-06-01', '2024-05-28', 14, 'ISTEKAO');
 
+INSERT INTO ugovor (dobavljac_id, popust, datum_pocetka, datum_isteka, datum_potpisa, rok_isporuke, status)
+VALUES (1, 50.0, '2026-06-26', '2026-07-26', '2026-06-26', 4 , 'AKTIVAN');
+
+INSERT INTO ugovor (dobavljac_id, popust, datum_pocetka, datum_isteka, datum_potpisa, rok_isporuke, status)
+VALUES (2, 40.0, '2026-06-20', '2026-08-20', '2026-06-20', 7 , 'AKTIVAN');
+
 --clan
 INSERT INTO korisnik (
     jmbg,

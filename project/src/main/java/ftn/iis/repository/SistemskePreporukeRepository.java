@@ -15,4 +15,8 @@ public interface SistemskePreporukeRepository extends JpaRepository<SistemskaPre
     List<SistemskaPreporuka> findAllByStatusOrderByDatumGenerisanjaDesc(StatusSistemskePreporuke status);
 
     Optional<SistemskaPreporuka> findByFizickaKnjigaIsbnAndStatus(String isbn, StatusSistemskePreporuke status);
+
+    List<SistemskaPreporuka> findAllByStatus(StatusSistemskePreporuke status);
+
+    Optional<SistemskaPreporuka> findByFizickaKnjigaIsbn(String isbn);
 }

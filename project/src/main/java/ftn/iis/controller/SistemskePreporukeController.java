@@ -1,5 +1,6 @@
 package ftn.iis.controller;
 
+import ftn.iis.dto.KnjigaZaNarudzbinuDto;
 import ftn.iis.dto.PrihvatiSistemskuPreporukuDto;
 import ftn.iis.dto.SistemskaPreporukaResponseDto;
 import ftn.iis.enums.StatusSistemskePreporuke;
@@ -53,6 +54,12 @@ public class SistemskePreporukeController {
         String token = authHeader.substring(7);
         StatusSistemskePreporuke noviStatus = StatusSistemskePreporuke.valueOf(status.toUpperCase());
         return ResponseEntity.ok(sistemskePreporukeService.azurirajStatus(id, noviStatus, token, dto));
+    }
+
+    @GetMapping("/za-narudzbinu")
+    public ResponseEntity<List<KnjigaZaNarudzbinuDto>> getPrihvacenePreporuke(@RequestHeader("Authorization") String authHeader){
+        String token = authHeader.substring(7);
+        return ResponseEntity.ok(sistemskePreporukeService.preporukeZaNarudzbinu(token));
     }
 
 }

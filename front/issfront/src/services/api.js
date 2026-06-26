@@ -174,6 +174,7 @@ export const predlogApi = {
   predloziNaCekanju: ()    => api.get('/predlozi/na-cekanju'),
   odobreniPredlozi: ()     => api.get('/predlozi/odobreni'),
   obradiPredlog:    (id, data) => api.patch(`/predlozi/obradi/${id}`, data),
+  zaNarudzbinu: ()         =>  api.get("/predlozi/za-narudzbinu"),
   obradiPredlogMenadzer(id, odobren) {
     return api.put(`/predlozi/${id}/obrada-menadzer`, {
         odobren
@@ -232,6 +233,7 @@ export const sistemskePreporukeApi = {
   pokreniAnalizu:  ()          => api.post('/sistemske-preporuke/pokreni-analizu'),
   getAktivne:      ()          => api.get('/sistemske-preporuke/aktivne'),
   azurirajStatus:  (id, status, body)    => api.patch(`/sistemske-preporuke/${id}/status`, body, { params: { status }}),
+  zaNarudzbinu: ()               => api.get("/sistemske-preporuke/za-narudzbinu")
 }
 
 // ── AI Asistent: čet sesije ──────────────────────────────────────────
@@ -277,6 +279,25 @@ export const budzetApi = {
   postaviBudzet:  (data)  => api.post('/budzet/postavi', data),
   prerasporedi:   (data)  => api.post('/budzet/prerasporedi', data),
 }
+
+// ── Narudžbine ────────────────────────────────────────────────────────
+export const narudzbinApi = {
+  kreiraj:        (data)              => api.post('/narudzbine/kreiraj', data),
+  getSve:         ()                  => api.get('/narudzbine/sve'),
+  getJedna:       (id)      => api.get(`/narudzbine/${id}`),
+  dodajStavku:    (id, data)          => api.post(`/narudzbine/${id}/stavke`, data),
+  ukloniStavku:   (nId, sId)          => api.delete(`/narudzbine/${nId}/stavke/${sId}`),
+  potvrdi:        (id)                => api.patch(`/narudzbine/${id}/potvrdi`),
+  evidentirajIsporuku: (id, data)     => api.patch(`/narudzbine/${id}/isporuka`, data),
+}
+
+// -- Reklamacije ------------------------------------------------------------
+export const reklamacijaApi = {
+  kreiraj:   (narudzbinId, data) => api.post(`/reklamacije/narudzbina/${narudzbinId}`, data),
+  getSve:    ()                  => api.get('/reklamacije/sve'),
+  zatvori:   (id, data)          => api.patch(`/reklamacije/${id}/zatvori`, data),
+}
+
 
 //izvestaji
 export const izvestajApi = {

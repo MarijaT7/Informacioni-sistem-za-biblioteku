@@ -174,6 +174,7 @@ export const predlogApi = {
   predloziNaCekanju: ()    => api.get('/predlozi/na-cekanju'),
   odobreniPredlozi: ()     => api.get('/predlozi/odobreni'),
   obradiPredlog:    (id, data) => api.patch(`/predlozi/obradi/${id}`, data),
+  zaNarudzbinu: ()         =>  api.get("/predlozi/za-narudzbinu"),
   obradiPredlogMenadzer(id, odobren) {
     return api.put(`/predlozi/${id}/obrada-menadzer`, {
         odobren
@@ -227,6 +228,7 @@ export const sistemskePreporukeApi = {
   pokreniAnalizu:  ()          => api.post('/sistemske-preporuke/pokreni-analizu'),
   getAktivne:      ()          => api.get('/sistemske-preporuke/aktivne'),
   azurirajStatus:  (id, status, body)    => api.patch(`/sistemske-preporuke/${id}/status`, body, { params: { status }}),
+  zaNarudzbinu: ()               => api.get("/sistemske-preporuke/za-narudzbinu")
 }
 
 // ── AI Asistent: čet sesije ──────────────────────────────────────────

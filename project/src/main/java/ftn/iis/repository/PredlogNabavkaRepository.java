@@ -9,4 +9,6 @@ public interface PredlogNabavkaRepository extends JpaRepository<PredlogZaNabavku
     List<PredlogZaNabavku> findAllByKorisnikJmbgOrderByDatumPodnosenjaDesc(String jmbg);
     List<PredlogZaNabavku> findAllByOrderByDatumPodnosenjaDesc();
     List<PredlogZaNabavku> findAllByStatusOrderByDatumPodnosenjaDesc(StatusPredloga status);
+
+    List<PredlogZaNabavku> findAllByStatus(StatusPredloga status);
 }

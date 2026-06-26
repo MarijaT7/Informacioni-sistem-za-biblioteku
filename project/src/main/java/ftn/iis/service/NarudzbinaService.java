@@ -22,11 +22,13 @@ public class NarudzbinaService {
     private final FizickaKnjigaRepository fizickaKnjigaRepository;
     private final BudzetService budzetService;
     private final JwtService jwtService;
+    private final PredlogNabavkaRepository predlogNabavkaRepository;
 
     public NarudzbinaService(StavkaNarudzbineRepository stavkaRepository,
                              DobavljacRepository dobavljacRepository, UgovorRepository ugovorRepository,
                              FizickaKnjigaRepository fizickaKnjigaRepository, BudzetService budzetService,
-                             JwtService jwtService, NarudzbinaRepository narudzbinaRepository) {
+                             JwtService jwtService, NarudzbinaRepository narudzbinaRepository,
+                             PredlogNabavkaRepository predlogNabavkaRepository) {
         this.stavkaRepository = stavkaRepository;
         this.dobavljacRepository = dobavljacRepository;
         this.ugovorRepository = ugovorRepository;
@@ -34,6 +36,7 @@ public class NarudzbinaService {
         this.budzetService = budzetService;
         this.jwtService = jwtService;
         this.narudzbinaRepository = narudzbinaRepository;
+        this.predlogNabavkaRepository = predlogNabavkaRepository;
     }
 
 
@@ -77,15 +80,32 @@ public class NarudzbinaService {
             throw new RuntimeException("Stavke se mogu dodavati samo u narudžbine sa statusom KREIRANA.");
         }
 
-        FizickaKnjiga knjiga = fizickaKnjigaRepository.findById(dto.getIsbn())
-                .orElseThrow(() -> new RuntimeException("Knjiga nije pronađena."));
-
         Double popust = narudzbina.getUgovor().getPopust();
 
-        StavkaNarudzbine stavka = new StavkaNarudzbine(
-                narudzbina, knjiga, dto.getKolicina(), dto.getOkvirnaCena(), popust);
-        stavka.setPredlogId(dto.getPredlogId());
-        stavka.setPreporukaId(dto.getPreporukaId());
+        StavkaNarudzbine stavka;
+
+        if (dto.getIsbn() != null) {
+            // Sistemska preporuka -> knjiga postoji u bazi
+            FizickaKnjiga knjiga = fizickaKnjigaRepository.findById(dto.getIsbn())
+                    .orElseThrow(() -> new RuntimeException("Knjiga nije pronađena"));
+
+            stavka = new StavkaNarudzbine(narudzbina, knjiga, dto.getKolicina(), dto.getOkvirnaCena(), popust);
+
+            stavka.setPreporukaId(dto.getPreporukaId());
+        }
+        else if(dto.getPredlogId() != null){
+            // Korisnicki predlog -> knjiga ne postji u bazi
+            PredlogZaNabavku predlog = predlogNabavkaRepository.findById(dto.getPredlogId())
+                    .orElseThrow(() -> new RuntimeException("Predlog nije pronađen"));
+
+            stavka = new StavkaNarudzbine(narudzbina, predlog.getNaslov(), predlog.getAutor(),
+                    predlog.getId(), dto.getKolicina(), dto.getOkvirnaCena(), popust);
+
+        }
+        else{
+            throw new IllegalArgumentException("Mora biti postavljen isbn ili predlogId.");
+        }
+
         stavkaRepository.save(stavka);
 
         // Ažuriranje ukupne cene narudžbine
@@ -238,14 +258,19 @@ public class NarudzbinaService {
     private StavkaNarudzbineResponseDto mapirajStavkuUDto(StavkaNarudzbine s) {
         StavkaNarudzbineResponseDto dto = new StavkaNarudzbineResponseDto();
         dto.setId(s.getId());
-        dto.setIsbn(s.getFizickaKnjiga().getIsbn());
-        dto.setNaslov(s.getFizickaKnjiga().getKnjiga().getNaslov());
-        dto.setAutor(s.getFizickaKnjiga().getKnjiga().getAutor());
         dto.setKolicina(s.getKolicina());
         dto.setCenaPoKomadu(s.getCenaPoKomadu());
         dto.setUkupnaCenaStavke(s.getUkupnaCenaStavke());
         dto.setPredlogId(s.getPredlogId());
         dto.setPreporukaId(s.getPreporukaId());
+
+        dto.setNaslov(s.getNaslov());
+        dto.setAutor(s.getAutor());
+
+        if (s.getFizickaKnjiga() != null) {
+            dto.setIsbn(s.getFizickaKnjiga().getIsbn());
+        }
+
         return dto;
     }
 

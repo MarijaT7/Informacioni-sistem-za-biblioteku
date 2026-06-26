@@ -61,4 +61,11 @@ public class PredlogNabavkaController {
         predlogNabavkeService.obradiPredlogMenadzer(token, id, dto);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/za-narudzbinu")
+    public ResponseEntity<List<KnjigaZaNarudzbinuDto>> getOdobrenePredloge(@RequestHeader("Authorization") String authHeader){
+        String token = authHeader.substring(7);
+        return ResponseEntity.ok(predlogNabavkeService.predloziZaNarudzbinu(token));
+    }
+
 }

@@ -137,7 +137,8 @@
           <label>Knjiga (ISBN)</label>
           <select v-model="stavkaForma.isbn">
             <option :value="null" disabled>Izaberite knjigu</option>
-            <option v-for="k in knjige" :key="k.isbn" :value="k.isbn">
+            <option v-for="k in knjige":key="k.predlogId ?? k.isbn"
+                                       :value="k">
               {{ k.naslov }} — {{ k.autor }}
             </option>
           </select>
@@ -212,7 +213,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { narudzbinApi, reklamacijaApi, knjigaApi } from '../../services/api.js'
+import { narudzbinApi, reklamacijaApi, knjigaApi, predlogApi, sistemskePreporukeApi } from '../../services/api.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -252,33 +253,18 @@ async function ucitaj() {
 }
 
 async function ucitajKnjige() {
-  try {
-    // Učitaj prihvaćene predloge i preporuke
+    
+    try {
+
     const [predloziRes, preporukeRes] = await Promise.all([
-      predlogApi.odobreniPredlozi(),        // status ODOBRENO_MENADZER
-      sistemskePreporukeApi.getPrihvacene() // status PRIHVACENO
+    predlogApi.zaNarudzbinu(),
+    sistemskePreporukeApi.zaNarudzbinu()
     ])
 
-    // Spoji ih u jednu listu za dropdown
-    const izPredloga = predloziRes.data.map(p => ({
-      isbn: null,         // predlog nema isbn jer knjiga ne postoji u sistemu
-      naslov: p.naslov,
-      autor: p.autor,
-      predlogId: p.id,
-      okvirnaCena: p.okvirnaCena,
-      zanrNaziv: p.zanrNaziv
-    }))
-
-    const izPreporuka = preporukeRes.data.map(p => ({
-      isbn: p.isbn,
-      naslov: p.naslov,
-      autor: p.autor,
-      preporukaId: p.id,
-      okvirnaCena: p.okvirnaCena,
-      zanrNaziv: p.zanrNaziv
-    }))
-
-    knjige.value = [...izPredloga, ...izPreporuka]
+    knjige.value = [
+    ...predloziRes.data,
+    ...preporukeRes.data
+]
   } catch (e) {
     console.log('Greška pri učitavanju knjiga:', e)
   }

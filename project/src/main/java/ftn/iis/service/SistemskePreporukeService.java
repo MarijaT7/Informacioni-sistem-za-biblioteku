@@ -1,5 +1,6 @@
 package ftn.iis.service;
 
+import ftn.iis.dto.KnjigaZaNarudzbinuDto;
 import ftn.iis.dto.PrihvatiSistemskuPreporukuDto;
 import ftn.iis.dto.SistemskaPreporukaResponseDto;
 import ftn.iis.enums.StatusSistemskePreporuke;
@@ -152,6 +153,36 @@ public class SistemskePreporukeService {
         preporuka.setStatus(noviStatus);
         sistemskePreporukeRepository.save(preporuka);
         return mapirajUDto(preporuka);
+    }
+
+    @Transactional
+    public List<KnjigaZaNarudzbinuDto> preporukeZaNarudzbinu(String token){
+
+        String role = jwtService.extractRole(token);
+
+        if(!role.equalsIgnoreCase("MENADZER")){
+            throw new RuntimeException();
+        }
+
+        List<SistemskaPreporuka> preporuke = sistemskePreporukeRepository.findAllByStatus(StatusSistemskePreporuke.PRIHVACENO);
+
+        List<KnjigaZaNarudzbinuDto> dto = new ArrayList<>();
+
+        for(SistemskaPreporuka p : preporuke){
+
+            KnjigaZaNarudzbinuDto k = new KnjigaZaNarudzbinuDto();
+
+            k.setIsbn(p.getFizickaKnjiga().getIsbn());
+            k.setNaslov(p.getFizickaKnjiga().getKnjiga().getNaslov());
+            k.setAutor(p.getFizickaKnjiga().getKnjiga().getAutor());
+            k.setOkvirnaCena(p.getOkvirnaCena());
+            k.setPredlogId(null);
+            k.setSistemska(true);
+
+            dto.add(k);
+        }
+
+        return dto;
     }
 
 

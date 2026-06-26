@@ -1,5 +1,6 @@
 package ftn.iis.dto;
 
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -10,7 +11,7 @@ import lombok.Setter;
 @Setter
 public class DodajStavkuDto {
 
-    @NotNull(message = "Knjiga je obavezna.")
+    // ISBN vise nije obavezan !!
     private String isbn;
 
     @NotNull(message = "Količina je obavezna.")
@@ -24,5 +25,11 @@ public class DodajStavkuDto {
     private Long predlogId;
 
     private Long preporukaId;
+
+    // Potrebno je da stavka ima jedno od troje
+    @AssertTrue(message = "Stavka mora imati isbn, predlogId ili preporukaId.")
+    public boolean isIzvorPostavljen() {
+        return isbn != null || predlogId != null || preporukaId != null;
+    }
 
 }

@@ -33,6 +33,7 @@ public class PozajmicaService {
     private final CitanjeEKnjigeRepository citanjeEKnjigeRepository;
     private final SlusanjeAudioKnjigeRepository slusanjeAudioKnjigeRepository;
 
+    private final KaznaService kaznaService;
     private static final int DIGITAL_LOAN_DAYS = 14;
 
     public PozajmicaService(PozajmicaRepository pozajmicaRepository,
@@ -46,7 +47,8 @@ public class PozajmicaService {
                             AudioKnjigaRepository audioKnjigaRepository,
                             ClanarinaRepository clanarinaRepository,
                             CitanjeEKnjigeRepository citanjeEKnjigeRepository,
-                            SlusanjeAudioKnjigeRepository slusanjeAudioKnjigeRepository) {
+                            SlusanjeAudioKnjigeRepository slusanjeAudioKnjigeRepository,
+                            KaznaService kaznaServie) {
         this.pozajmicaRepository = pozajmicaRepository;
         this.primerakKnjigeRepository = primerkaKnjigeRepository;
         this.rezervacijaRepository = rezervacijaRepository;
@@ -59,6 +61,7 @@ public class PozajmicaService {
         this.clanarinaRepository = clanarinaRepository;
         this.citanjeEKnjigeRepository = citanjeEKnjigeRepository;
         this.slusanjeAudioKnjigeRepository = slusanjeAudioKnjigeRepository;
+        this.kaznaService=kaznaServie;
     }
 
     // Da li korisnik ima aktivne pozajmice gde je prekoracio rok vracanja
@@ -377,6 +380,8 @@ public class PozajmicaService {
         pozajmica.setDatVrac(LocalDate.now());
         pozajmicaRepository.save(pozajmica);
 
+        kaznaService.kreirajKaznaIzgubljena(pozajmica);
+
         result.put("success", true);
         result.put("message", "Prijava izgubljene knjige je evidentirana. Biće vam naplaćena naknada.");
         return result;
@@ -538,5 +543,11 @@ public class PozajmicaService {
             s.setStatusSlusanja(StatusSlusanja.NAPUSTENO);
             slusanjeAudioKnjigeRepository.save(s);
         }
+    }
+    public List<Pozajmica> findAllOverdueActivePozajmice() {
+        return pozajmicaRepository.findAllActivePozajmice()
+                .stream()
+                .filter(p -> LocalDate.now().isAfter(p.getDatOcVrac()))
+                .collect(Collectors.toList());
     }
 }

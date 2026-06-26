@@ -47,6 +47,7 @@
                 <th>Potrošeno</th>
                 <th>Dostupno</th>
                 <th>Iskorišćenost</th>
+                <th>Rezervisano</th>
                 <th class="text-right">Akcije</th>
               </tr>
             </thead>
@@ -72,6 +73,7 @@
                     <span class="progress-label" :class="procenat(b) > 80 ? 'text--visoko' : 'text--ok'">{{ procenat(b) }}%</span>
                   </div>
                 </td>
+                <td>{{ formatirajIznos(b.rezervisano) }}</td>
                 <td class="text-right">
                   <button class="btn-akcija btn-izmeni" @click="otvoriPostavljanje(b)">
                     Izmeni

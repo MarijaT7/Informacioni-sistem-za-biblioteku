@@ -147,10 +147,6 @@
           <label>Količina</label>
           <input v-model="stavkaForma.kolicina" type="number" min="1" placeholder="npr. 5" />
         </div>
-        <div class="form-group">
-          <label>Okvirna cena po komadu (RSD)</label>
-          <input v-model="stavkaForma.okvirnaCena" type="number" min="0.01" step="0.01" placeholder="npr. 1500" />
-        </div>
         <div class="modal-akcije">
           <button class="btn-primary" @click="dodajStavku" :disabled="loadingStavka">
             {{ loadingStavka ? 'Dodavanje...' : 'Dodaj' }}
@@ -272,17 +268,50 @@ async function ucitajKnjige() {
 
 async function dodajStavku() {
   stavkaError.value = ''
-  if (!stavkaForma.value.isbn || !stavkaForma.value.kolicina || !stavkaForma.value.okvirnaCena) {
+  
+  // Popravljena provera: polje je validno ako ima upisan čist string ILI ako je izabran objekat u formi
+  if (!stavkaForma.value.isbn || !stavkaForma.value.kolicina) {
     stavkaError.value = 'Sva polja su obavezna.'
     return
   }
+
   loadingStavka.value = true
+  
   try {
+    let slanjeIsbn = null
+    let slanjePreporukaId = null
+    let slanjePredlogId = null
+
+    if (typeof stavkaForma.value.isbn === 'object' && stavkaForma.value.isbn !== null) {
+      const selektovano = stavkaForma.value.isbn
+
+      console.log("--- SELEKTOVANI OBJEKAT ISPIS ---", selektovano)
+
+      // Slučaj A: Korisnički predlog (prepoznajemo ga jer predlogId nije null)
+      if (selektovano.predlogId !== null && selektovano.predlogId !== undefined) {
+        slanjePredlogId = selektovano.predlogId
+        slanjeIsbn = null
+        slanjePreporukaId = null
+      } 
+      // Slučaj B: Sistemska preporuka
+      else {
+        slanjeIsbn = selektovano.isbn
+        // KLJUČNA IZMENA: iz konzole vidimo da preporuka svoj ID drži u polju .id, a ne .preporukaId
+        slanjePreporukaId = selektovano.id 
+        slanjePredlogId = null
+      }
+    } else {
+      // Slučaj C: Ručni unos stringa
+      slanjeIsbn = stavkaForma.value.isbn
+    }
+
     const res = await narudzbinApi.dodajStavku(id, {
-      isbn: stavkaForma.value.isbn,
+      isbn: slanjeIsbn, 
       kolicina: Number(stavkaForma.value.kolicina),
-      okvirnaCena: Number(stavkaForma.value.okvirnaCena)
+      preporukaId: slanjePreporukaId,
+      predlogId: slanjePredlogId
     })
+    
     narudzbina.value = res.data
     showDodajStavkuModal.value = false
     stavkaForma.value = { isbn: null, kolicina: '', okvirnaCena: '' }
@@ -292,6 +321,7 @@ async function dodajStavku() {
     loadingStavka.value = false
   }
 }
+
 
 async function ukloniStavku(stavkaId) {
   try {

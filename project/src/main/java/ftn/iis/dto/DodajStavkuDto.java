@@ -18,10 +18,6 @@ public class DodajStavkuDto {
     @Min(value = 1, message = "Količina mora biti najmanje 1.")
     private Integer kolicina;
 
-    @NotNull(message = "Okvirna cena je obavezna.")
-    @DecimalMin(value = "0.01", message = "Cena mora biti veća od 0.")
-    private Double okvirnaCena;
-
     private Long predlogId;
 
     private Long preporukaId;

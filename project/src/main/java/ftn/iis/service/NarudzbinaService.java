@@ -23,12 +23,14 @@ public class NarudzbinaService {
     private final BudzetService budzetService;
     private final JwtService jwtService;
     private final PredlogNabavkaRepository predlogNabavkaRepository;
+    private final SistemskePreporukeRepository sistemskePreporukeRepository;
 
     public NarudzbinaService(StavkaNarudzbineRepository stavkaRepository,
                              DobavljacRepository dobavljacRepository, UgovorRepository ugovorRepository,
                              FizickaKnjigaRepository fizickaKnjigaRepository, BudzetService budzetService,
                              JwtService jwtService, NarudzbinaRepository narudzbinaRepository,
-                             PredlogNabavkaRepository predlogNabavkaRepository) {
+                             PredlogNabavkaRepository predlogNabavkaRepository,
+                             SistemskePreporukeRepository sistemskePreporukeRepository) {
         this.stavkaRepository = stavkaRepository;
         this.dobavljacRepository = dobavljacRepository;
         this.ugovorRepository = ugovorRepository;
@@ -37,6 +39,7 @@ public class NarudzbinaService {
         this.jwtService = jwtService;
         this.narudzbinaRepository = narudzbinaRepository;
         this.predlogNabavkaRepository = predlogNabavkaRepository;
+        this.sistemskePreporukeRepository = sistemskePreporukeRepository;
     }
 
 
@@ -70,10 +73,10 @@ public class NarudzbinaService {
 
     // Dodavanje stavke narudzbine
     @Transactional
-    public NarudzbinaResponseDto dodajStavku(String token, Long narudzbinId, DodajStavkuDto dto) {
+    public NarudzbinaResponseDto dodajStavku(String token, Long narudzbinaId, DodajStavkuDto dto) {
         proveriMenadzera(token);
 
-        Narudzbina narudzbina = narudzbinaRepository.findById(narudzbinId)
+        Narudzbina narudzbina = narudzbinaRepository.findById(narudzbinaId)
                 .orElseThrow(() -> new RuntimeException("Narudžbina nije pronađena."));
 
         if (narudzbina.getStatus() != StatusNarudzbine.KREIRANA) {
@@ -89,17 +92,25 @@ public class NarudzbinaService {
             FizickaKnjiga knjiga = fizickaKnjigaRepository.findById(dto.getIsbn())
                     .orElseThrow(() -> new RuntimeException("Knjiga nije pronađena"));
 
-            stavka = new StavkaNarudzbine(narudzbina, knjiga, dto.getKolicina(), dto.getOkvirnaCena(), popust);
+            SistemskaPreporuka preporuka = sistemskePreporukeRepository.findById(dto.getPreporukaId()) .orElseThrow(() -> new RuntimeException("Sistemska preporuka nije pronađena."));
 
+            Double cenaStavke = preporuka.getOkvirnaCena();
+
+            stavka = new StavkaNarudzbine(narudzbina, knjiga, dto.getKolicina(), cenaStavke, popust);
             stavka.setPreporukaId(dto.getPreporukaId());
+
         }
         else if(dto.getPredlogId() != null){
             // Korisnicki predlog -> knjiga ne postji u bazi
             PredlogZaNabavku predlog = predlogNabavkaRepository.findById(dto.getPredlogId())
                     .orElseThrow(() -> new RuntimeException("Predlog nije pronađen"));
 
+            Double cenaStavke = predlog.getOkvirnaCena();
+
             stavka = new StavkaNarudzbine(narudzbina, predlog.getNaslov(), predlog.getAutor(),
-                    predlog.getId(), dto.getKolicina(), dto.getOkvirnaCena(), popust);
+                    predlog.getId(), dto.getKolicina(), cenaStavke, popust);
+
+            stavka.setPredlogId(predlog.getId());
 
         }
         else{

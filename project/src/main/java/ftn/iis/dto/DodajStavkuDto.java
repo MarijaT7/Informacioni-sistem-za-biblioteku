@@ -22,10 +22,5 @@ public class DodajStavkuDto {
 
     private Long preporukaId;
 
-    // Potrebno je da stavka ima jedno od troje
-    @AssertTrue(message = "Stavka mora imati isbn, predlogId ili preporukaId.")
-    public boolean isIzvorPostavljen() {
-        return isbn != null || predlogId != null || preporukaId != null;
-    }
 
 }

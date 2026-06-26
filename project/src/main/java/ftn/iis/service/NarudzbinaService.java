@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class NarudzbinaService {
@@ -92,9 +93,13 @@ public class NarudzbinaService {
             FizickaKnjiga knjiga = fizickaKnjigaRepository.findById(dto.getIsbn())
                     .orElseThrow(() -> new RuntimeException("Knjiga nije pronađena"));
 
-            SistemskaPreporuka preporuka = sistemskePreporukeRepository.findById(dto.getPreporukaId()) .orElseThrow(() -> new RuntimeException("Sistemska preporuka nije pronađena."));
+            SistemskaPreporuka preporuka = sistemskePreporukeRepository.findByFizickaKnjigaIsbn(dto.getIsbn())
+                    .orElseThrow(() -> new RuntimeException("Sistemska preporuka za ovaj ISBN nije pronađena."));
 
             Double cenaStavke = preporuka.getOkvirnaCena();
+
+            // Pošto stavka traži preporukaId, mogu ga dinamički postaviti ovde iz nađene preporuke!!!
+            dto.setPreporukaId(preporuka.getId());
 
             stavka = new StavkaNarudzbine(narudzbina, knjiga, dto.getKolicina(), cenaStavke, popust);
             stavka.setPreporukaId(dto.getPreporukaId());
@@ -143,7 +148,19 @@ public class NarudzbinaService {
         StavkaNarudzbine stavka = stavkaRepository.findById(stavkaId)
                 .orElseThrow(() -> new RuntimeException("Stavka nije pronađena."));
 
-        narudzbina.setUkupnaCena(narudzbina.getUkupnaCena() - stavka.getUkupnaCenaStavke());
+        if (!stavka.getNarudzbina().getId().equals(narudzbinId)) {
+            throw new RuntimeException("Stavka ne pripada ovoj narudžbini.");
+        }
+
+        // Azuriram cenu
+        narudzbina.setUkupnaCena(Math.max(0.0, narudzbina.getUkupnaCena() - stavka.getUkupnaCenaStavke()));
+
+        // Brisem stavku iz liste
+        if (narudzbina.getStavke() != null) {
+            narudzbina.getStavke().remove(stavka);
+        }
+
+        // Ovim brisem stavku iz baze
         stavkaRepository.delete(stavka);
         narudzbinaRepository.save(narudzbina);
 
@@ -171,12 +188,29 @@ public class NarudzbinaService {
         }
 
         for (StavkaNarudzbine stavka : stavke) {
-            Genre zanr = stavka.getFizickaKnjiga().getKnjiga().getZanr();
-            if (zanr != null) {
-                budzetService.potrosi(zanr.getId(), stavka.getUkupnaCenaStavke());
-            }
-        }
 
+            if (stavka.getFizickaKnjiga() != null) {
+                Genre zanr = stavka.getFizickaKnjiga().getKnjiga().getZanr();
+                if (zanr != null) {
+                    budzetService.potrosi(zanr.getId(), stavka.getUkupnaCenaStavke());
+                }
+            }
+            else{
+                PredlogZaNabavku predlog = predlogNabavkaRepository.findById(stavka.getPredlogId()).orElseThrow(() -> new RuntimeException("Predlog nije pronađen."));
+
+                if(predlog != null){
+                    // Ako je predlog
+                    Genre zanr = predlog.getZanr();
+                    if(zanr != null){
+                        budzetService.potrosi(zanr.getId(), stavka.getUkupnaCenaStavke());
+                    }
+
+                }
+
+            }
+
+        }
+        narudzbina.setStatus(StatusNarudzbine.POTVRDJENA);
         narudzbinaRepository.save(narudzbina);
         return mapirajUDto(narudzbina);
     }
@@ -220,8 +254,8 @@ public class NarudzbinaService {
         Narudzbina narudzbina = narudzbinaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Narudžbina nije pronađena."));
 
-        if (narudzbina.getStatus() != StatusNarudzbine.KREIRANA) {
-            throw new RuntimeException("Isporuka se može evidentirati samo za narudžbine sa statusom KREIRANA.");
+        if (narudzbina.getStatus() != StatusNarudzbine.POTVRDJENA) {
+            throw new RuntimeException("Isporuka se može evidentirati samo za narudžbine sa statusom POTVRDJENA.");
         }
 
         List<StavkaNarudzbine> stavke = stavkaRepository.findAllByNarudzbinaId(id);

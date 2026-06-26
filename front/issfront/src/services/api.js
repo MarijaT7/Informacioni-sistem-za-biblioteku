@@ -273,4 +273,23 @@ export const budzetApi = {
   prerasporedi:   (data)  => api.post('/budzet/prerasporedi', data),
 }
 
+// ── Narudžbine ────────────────────────────────────────────────────────
+export const narudzbinApi = {
+  kreiraj:        (data)              => api.post('/narudzbine/kreiraj', data),
+  getSve:         ()                  => api.get('/narudzbine/sve'),
+  getJedna:       (id)      => api.get(`/narudzbine/${id}`),
+  dodajStavku:    (id, data)          => api.post(`/narudzbine/${id}/stavke`, data),
+  ukloniStavku:   (nId, sId)          => api.delete(`/narudzbine/${nId}/stavke/${sId}`),
+  potvrdi:        (id)                => api.patch(`/narudzbine/${id}/potvrdi`),
+  evidentirajIsporuku: (id, data)     => api.patch(`/narudzbine/${id}/isporuka`, data),
+}
+
+// -- Reklamacije ------------------------------------------------------------
+export const reklamacijaApi = {
+  kreiraj:   (narudzbinId, data) => api.post(`/reklamacije/narudzbina/${narudzbinId}`, data),
+  getSve:    ()                  => api.get('/reklamacije/sve'),
+  zatvori:   (id, data)          => api.patch(`/reklamacije/${id}/zatvori`, data),
+}
+
+
 export default api

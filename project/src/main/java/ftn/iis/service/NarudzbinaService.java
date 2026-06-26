@@ -1,0 +1,252 @@
+package ftn.iis.service;
+
+import ftn.iis.dto.*;
+import ftn.iis.enums.StatusDobavljaca;
+import ftn.iis.enums.StatusNarudzbine;
+import ftn.iis.enums.StatusUgovora;
+import ftn.iis.model.*;
+import ftn.iis.repository.*;
+import ftn.iis.utils.JwtService;
+import jakarta.transaction.Transactional;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
+public class NarudzbinaService {
+    private final StavkaNarudzbineRepository stavkaRepository;
+    private final NarudzbinaRepository narudzbinaRepository;
+    private final DobavljacRepository dobavljacRepository;
+    private final UgovorRepository ugovorRepository;
+    private final FizickaKnjigaRepository fizickaKnjigaRepository;
+    private final BudzetService budzetService;
+    private final JwtService jwtService;
+
+    public NarudzbinaService(StavkaNarudzbineRepository stavkaRepository,
+                             DobavljacRepository dobavljacRepository, UgovorRepository ugovorRepository,
+                             FizickaKnjigaRepository fizickaKnjigaRepository, BudzetService budzetService,
+                             JwtService jwtService, NarudzbinaRepository narudzbinaRepository) {
+        this.stavkaRepository = stavkaRepository;
+        this.dobavljacRepository = dobavljacRepository;
+        this.ugovorRepository = ugovorRepository;
+        this.fizickaKnjigaRepository = fizickaKnjigaRepository;
+        this.budzetService = budzetService;
+        this.jwtService = jwtService;
+        this.narudzbinaRepository = narudzbinaRepository;
+    }
+
+
+
+    // kreiranje narudzbine
+    @Transactional
+    public NarudzbinaResponseDto kreirajNarudzbinu(String token, KreirajNarudzbinuDto dto) {
+
+        proveriMenadzera(token);
+        Dobavljac dobavljac = dobavljacRepository.findById(dto.getDobavljacId())
+                .orElseThrow(() -> new RuntimeException("Dobavljač nije pronađen."));
+
+        if (dobavljac.getStatus() != StatusDobavljaca.AKTIVAN) {
+            throw new RuntimeException("Dobavljač nije aktivan. Nije moguce raditi nabavku od njega.");
+        }
+
+        Ugovor ugovor = ugovorRepository.findById(dto.getUgovorId())
+                .orElseThrow(() -> new RuntimeException("Ugovor nije pronađen."));
+
+        if (ugovor.getStatus() != StatusUgovora.AKTIVAN) {
+            throw new RuntimeException("Ugovor nije aktivan.");
+        }
+
+        Narudzbina narudzbina = new Narudzbina(dobavljac, ugovor, dto.getNapomena());
+        narudzbina = narudzbinaRepository.save(narudzbina);
+        return mapirajUDto(narudzbina);
+
+    }
+
+
+
+    // Dodavanje stavke narudzbine
+    @Transactional
+    public NarudzbinaResponseDto dodajStavku(String token, Long narudzbinId, DodajStavkuDto dto) {
+        proveriMenadzera(token);
+
+        Narudzbina narudzbina = narudzbinaRepository.findById(narudzbinId)
+                .orElseThrow(() -> new RuntimeException("Narudžbina nije pronađena."));
+
+        if (narudzbina.getStatus() != StatusNarudzbine.KREIRANA) {
+            throw new RuntimeException("Stavke se mogu dodavati samo u narudžbine sa statusom KREIRANA.");
+        }
+
+        FizickaKnjiga knjiga = fizickaKnjigaRepository.findById(dto.getIsbn())
+                .orElseThrow(() -> new RuntimeException("Knjiga nije pronađena."));
+
+        Double popust = narudzbina.getUgovor().getPopust();
+
+        StavkaNarudzbine stavka = new StavkaNarudzbine(
+                narudzbina, knjiga, dto.getKolicina(), dto.getOkvirnaCena(), popust);
+        stavka.setPredlogId(dto.getPredlogId());
+        stavka.setPreporukaId(dto.getPreporukaId());
+        stavkaRepository.save(stavka);
+
+        // Ažuriranje ukupne cene narudžbine
+        narudzbina.setUkupnaCena(narudzbina.getUkupnaCena() + stavka.getUkupnaCenaStavke());
+        narudzbinaRepository.save(narudzbina);
+
+        return mapirajUDto(narudzbina);
+    }
+
+
+
+    // Uklanjanje stavke
+    @Transactional
+    public NarudzbinaResponseDto ukloniStavku(String token, Long narudzbinId, Long stavkaId) {
+        proveriMenadzera(token);
+
+        Narudzbina narudzbina = narudzbinaRepository.findById(narudzbinId)
+                .orElseThrow(() -> new RuntimeException("Narudžbina nije pronađena."));
+
+        if (narudzbina.getStatus() != StatusNarudzbine.KREIRANA) {
+            throw new RuntimeException("Stavke se mogu uklanjati samo iz narudžbina sa statusom KREIRANA.");
+        }
+
+        StavkaNarudzbine stavka = stavkaRepository.findById(stavkaId)
+                .orElseThrow(() -> new RuntimeException("Stavka nije pronađena."));
+
+        narudzbina.setUkupnaCena(narudzbina.getUkupnaCena() - stavka.getUkupnaCenaStavke());
+        stavkaRepository.delete(stavka);
+        narudzbinaRepository.save(narudzbina);
+
+        return mapirajUDto(narudzbina);
+    }
+
+
+
+    // Potvrda narudžbine — rezervacija postaje potrošnjaa
+    @Transactional
+    public NarudzbinaResponseDto potvrdiNarudzbinu(String token, Long id) {
+        proveriMenadzera(token);
+
+        Narudzbina narudzbina = narudzbinaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Narudžbina nije pronađena."));
+
+        if (narudzbina.getStatus() != StatusNarudzbine.KREIRANA) {
+            throw new RuntimeException("Narudžbina je već potvrđena. Zao nam je :( .");
+        }
+
+        List<StavkaNarudzbine> stavke = stavkaRepository.findAllByNarudzbinaId(id);
+
+        if (stavke.isEmpty()) {
+            throw new RuntimeException("Narudžbina mora imati bar jednu stavku.");
+        }
+
+        for (StavkaNarudzbine stavka : stavke) {
+            Genre zanr = stavka.getFizickaKnjiga().getKnjiga().getZanr();
+            if (zanr != null) {
+                budzetService.potrosi(zanr.getId(), stavka.getUkupnaCenaStavke());
+            }
+        }
+
+        narudzbinaRepository.save(narudzbina);
+        return mapirajUDto(narudzbina);
+    }
+
+
+
+    // Pregled svih narudžbina
+    @Transactional
+    public List<NarudzbinaResponseDto> getSveNarudzbine(String token) {
+        proveriMenadzera(token);
+
+        List<Narudzbina> narudzbine = narudzbinaRepository.findAllByOrderByDatumKreiranjaDesc();
+
+        List<NarudzbinaResponseDto> dtos = new ArrayList<>();
+        for (Narudzbina n : narudzbine) {
+            dtos.add(mapirajUDto(n));
+        }
+        return dtos;
+    }
+
+
+
+    // Detalji jedne narudžbine
+    @Transactional
+    public NarudzbinaResponseDto getJednaNarudzbina(String token, Long id) {
+        proveriMenadzera(token);
+
+        Narudzbina narudzbina = narudzbinaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Narudžbina nije pronađena."));
+
+        return mapirajUDto(narudzbina);
+    }
+
+
+
+    // Evidentiranje isporuke
+    @Transactional
+    public NarudzbinaResponseDto evidentirajIsporuku(String token, Long id, EvidentirajIsporukuDto dto) {
+        proveriMenadzera(token);
+
+        Narudzbina narudzbina = narudzbinaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Narudžbina nije pronađena."));
+
+        if (narudzbina.getStatus() != StatusNarudzbine.KREIRANA) {
+            throw new RuntimeException("Isporuka se može evidentirati samo za narudžbine sa statusom KREIRANA.");
+        }
+
+        List<StavkaNarudzbine> stavke = stavkaRepository.findAllByNarudzbinaId(id);
+        if (stavke.isEmpty()) {
+            throw new RuntimeException("Ne možete evidentirati isporuku narudžbine bez stavki.");
+        }
+
+        narudzbina.setDatumStvarneIsporuke(dto.getDatumStvarneIsporuke());
+        narudzbina.setStatus(StatusNarudzbine.ISPORUCENA);
+        narudzbinaRepository.save(narudzbina);
+        return mapirajUDto(narudzbina);
+    }
+
+
+    // Pomocne metodice ~~~
+    private void proveriMenadzera(String token) {
+        String uloga = jwtService.extractRole(token);
+        if (!uloga.equalsIgnoreCase("MENADZER")) {
+            throw new RuntimeException("Samo menadžer može upravljati narudzbinama.");
+        }
+    }
+
+    private NarudzbinaResponseDto mapirajUDto(Narudzbina n) {
+        NarudzbinaResponseDto dto = new NarudzbinaResponseDto();
+        dto.setId(n.getId());
+        dto.setDobavljacNaziv(n.getDobavljac().getNaziv());
+        dto.setDobavljacId(n.getDobavljac().getId());
+        dto.setUgovorId(n.getUgovor().getId());
+        dto.setPopust(n.getUgovor().getPopust());
+        dto.setDatumKreiranja(n.getDatumKreiranja());
+        dto.setDatumOcekivaneIsporuke(n.getDatumOcekivaneIsporuke());
+        dto.setDatumStvarneIsporuke(n.getDatumStvarneIsporuke());
+        dto.setUkupnaCena(n.getUkupnaCena());
+        dto.setStatus(n.getStatus());
+        dto.setNapomena(n.getNapomena());
+
+        List<StavkaNarudzbineResponseDto> stavkeDtos = new ArrayList<>();
+        for (StavkaNarudzbine s : n.getStavke()) {
+            stavkeDtos.add(mapirajStavkuUDto(s));
+        }
+        dto.setStavke(stavkeDtos);
+        return dto;
+    }
+
+    private StavkaNarudzbineResponseDto mapirajStavkuUDto(StavkaNarudzbine s) {
+        StavkaNarudzbineResponseDto dto = new StavkaNarudzbineResponseDto();
+        dto.setId(s.getId());
+        dto.setIsbn(s.getFizickaKnjiga().getIsbn());
+        dto.setNaslov(s.getFizickaKnjiga().getKnjiga().getNaslov());
+        dto.setAutor(s.getFizickaKnjiga().getKnjiga().getAutor());
+        dto.setKolicina(s.getKolicina());
+        dto.setCenaPoKomadu(s.getCenaPoKomadu());
+        dto.setUkupnaCenaStavke(s.getUkupnaCenaStavke());
+        dto.setPredlogId(s.getPredlogId());
+        dto.setPreporukaId(s.getPreporukaId());
+        return dto;
+    }
+
+}

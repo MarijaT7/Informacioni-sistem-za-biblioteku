@@ -213,6 +213,12 @@ INSERT INTO korisnik (
 INSERT INTO ugovor (dobavljac_id, popust, datum_pocetka, datum_isteka, datum_potpisa, rok_isporuke, status)
 VALUES (2, 15.0, '2024-06-01', '2025-06-01', '2024-05-28', 14, 'ISTEKAO');
 
+INSERT INTO ugovor (dobavljac_id, popust, datum_pocetka, datum_isteka, datum_potpisa, rok_isporuke, status)
+VALUES (1, 50.0, '2026-06-26', '2026-07-26', '2026-06-26', 4 , 'AKTIVAN');
+
+INSERT INTO ugovor (dobavljac_id, popust, datum_pocetka, datum_isteka, datum_potpisa, rok_isporuke, status)
+VALUES (2, 40.0, '2026-06-20', '2026-08-20', '2026-06-20', 7 , 'AKTIVAN');
+
 --clan
 INSERT INTO korisnik (
     jmbg,
@@ -836,9 +842,10 @@ INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id) VALUE
 INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id) VALUES (7, 18500.00, 9200.00, 1);
 INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id) VALUES (8, 5000.00, 4800.00, 1);
 INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id) VALUES (9, 30000.00, 11500.75, 1);
-INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id) VALUES (10, 14000.00, 13600.00, 1);
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id) VALUES (10, 14000.00, 1600.00, 1);
 INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id) VALUES (11, 16500.00, 3100.25, 1);
 INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id) VALUES (12, 11500.00, 9200.00, 1);
-INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id) VALUES (13, 5000.00, 4800.00, 1);
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id) VALUES (13, 5000.00, 800.00, 1);
 INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id) VALUES (14, 30000.00, 11500.75, 1);
 INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id) VALUES (15, 14000.00, 13600.00, 1);
+

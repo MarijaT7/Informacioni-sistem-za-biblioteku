@@ -306,6 +306,7 @@ export const izvestajApi = {
       params: { od, do: datDo },
       responseType: 'blob'
     }),
+    nabavka: (od, datDo) => api.get('/izvestaj/nabavka', { params: { od, do: datDo }, responseType: 'blob' }),
 }
 
 export default api

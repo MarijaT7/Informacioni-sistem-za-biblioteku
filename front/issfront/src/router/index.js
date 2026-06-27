@@ -173,6 +173,7 @@ const routes = [
     { path: 'narudzbine/nova',     component: () => import('../views/menadzer/KreirajNarudzbinuView.vue') },
     { path: 'narudzbine/:id',      component: () => import('../views/menadzer/NarudzbinaDetaljiView.vue') },
     { path: 'reklamacije',         component: () => import('../views/menadzer/ReklamacijeView.vue') },
+    { path: 'izvestaj',            component: () => import('../views/menadzer/IzvestajView.vue') },
  
   ]
 },

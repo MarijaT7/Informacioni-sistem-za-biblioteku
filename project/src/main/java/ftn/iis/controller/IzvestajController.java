@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.Set;
 
 @RestController
@@ -58,8 +59,8 @@ public class IzvestajController {
             return ResponseEntity.internalServerError().body("Greska pri generisanju izvestaja: " + e.getMessage());
         }
     }
-
-    @GetMapping("fond")
+  
+  @GetMapping("fond")
     public ResponseEntity<?> generisiIzvestajFonda(
             @RequestHeader("Authorization") String authHeader,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate od,
@@ -69,14 +70,13 @@ public class IzvestajController {
             String token = authHeader.substring(BEARER_LEN);
             String rola  = jwtService.extractRole(token);
 
-            if (!DOZVOLJENE_ULOGE.contains(rola)) {
-                return ResponseEntity.status(403).body("Nemate pravo pristupa izvestaju.");
+            if (!DOZVOLJENE_ULOGE.contains(rola)) {    
+              return ResponseEntity.status(403).body("Nemate pravo pristupa izvestaju.");
             }
             if (od.isAfter(datDo)) {
                 return ResponseEntity.badRequest().body("Datum 'od' mora biti pre datuma 'do'.");
             }
-
-            byte[] pdf = izvestajService.generisiIzvestajFonda(od, datDo);
+          byte[] pdf = izvestajService.generisiIzvestajFonda(od, datDo);
             String filename = "izvestaj-fonda-"
                     + od.format(DateTimeFormatter.ofPattern("ddMMyyyy"))
                     + "-"
@@ -90,5 +90,34 @@ public class IzvestajController {
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Greska pri generisanju izvestaja: " + e.getMessage());
         }
+     }
+
+
+    @GetMapping("/nabavka")
+    public ResponseEntity<?> generisiIzvestajNabavka( @RequestHeader("Authorization") String authHeader, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate od,
+                                                      @RequestParam("do") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate datDo) {
+
+        try {
+            String token = authHeader.substring(BEARER_LEN);
+            String rola = jwtService.extractRole(token);
+
+            if (!rola.equals("MENADZER")) {
+                return ResponseEntity.status(403).body("Nemate pravo pristupa izvestaju.");
+            }
+            if (od.isAfter(datDo)) {
+                return ResponseEntity.badRequest().body("Datum 'od' mora biti pre datuma 'do'.");
+            }
+
+            byte[] pdf = izvestajService.generisiIzvestajNabavka(od, datDo);
+            String fileName = "izvestaj-nabavka-" + od.format(DateTimeFormatter.ofPattern("ddMMyyyy")) + "-" + datDo.format(DateTimeFormatter.ofPattern("ddMMyyyy")) + ".pdf";
+
+            return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(pdf);
+
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Greska pri generisanju izvestaja: " + e.getMessage());
+        }
+
     }
 }

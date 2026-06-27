@@ -169,6 +169,11 @@ const routes = [
     { path: 'predlozi',            component: () => import('../views/menadzer/OdobreniPredloziView.vue') },
     { path: 'sistemske-preporuke', component: () => import('../views/menadzer/SistemskePreporukeView.vue') },
     { path: 'budzet', component: () => import('../views/menadzer/BudzetView.vue') },
+    { path: 'narudzbine',          component: () => import('../views/menadzer/NarudzbineView.vue') },
+    { path: 'narudzbine/nova',     component: () => import('../views/menadzer/KreirajNarudzbinuView.vue') },
+    { path: 'narudzbine/:id',      component: () => import('../views/menadzer/NarudzbinaDetaljiView.vue') },
+    { path: 'reklamacije',         component: () => import('../views/menadzer/ReklamacijeView.vue') },
+    { path: 'izvestaj',            component: () => import('../views/menadzer/IzvestajView.vue') },
  
   ]
 },

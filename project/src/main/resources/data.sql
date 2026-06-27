@@ -1,6 +1,6 @@
 -- noinspection SqlNoDataSourceInspectionForFile
 
--- Biblioteke 
+-- Biblioteke
 INSERT INTO biblioteka (bid, name, ziro_rb) VALUES
 ('BIB001', 'Gradska biblioteka Novi Sad', '840-123456-78'),
 ('BIB002', 'Biblioteka Matica srpska','840-234567-89'),
@@ -132,6 +132,7 @@ INSERT INTO kategorija_clana (idkc, tip_kc, cena_kc) VALUES
 (4, 'PENZIONERSKA', 350.00),
 (5, 'PORODICNA', 900.00);
 
+
 -- dobavljaci
 INSERT INTO dobavljac (naziv, email, telefon, pib, status)
 VALUES ('Delfi Knjižare', 'kontakt@delfi.rs', '011/123-456', '102345678', 'AKTIVAN');
@@ -142,18 +143,25 @@ VALUES ('Laguna Izdavaštvo', 'podrska@laguna.rs', '011/987-654', '109876543', '
 INSERT INTO dobavljac (naziv, email, telefon, pib, status)
 VALUES ('Vulkan Izdavaštvo', 'info@vulkani.rs', '011/555-666', '105556661', 'AKTIVAN');
 
+INSERT INTO dobavljac (naziv, email, telefon, pib, status)
+VALUES ('Prosveta Beograd', 'info@prosveta.rs', '011/333-444', '103334441', 'AKTIVAN');
+
 
 -- 2. knjizare
 INSERT INTO knjizara (id, "url_sajta")
 VALUES (1, 'https://www.delfi.rs');
 
+INSERT INTO knjizara (id, "url_sajta")
+VALUES (4, 'https://www.prosveta.rs');
 
--- 3. iydavaci
+
+-- 3. izdavaci
 INSERT INTO izdavac (id)
 VALUES (2);
 
 INSERT INTO izdavac (id)
 VALUES (3);
+
 
 -- elektronske baze podataka
 INSERT INTO elektronska_baza_podataka (naziv_ebp, oblast_ebp, opis_ebp, licenca_ebp, id_izdavaca_ebp, putanja_ebp)
@@ -163,6 +171,7 @@ VALUES ('EBSCO Academic Search', 'Multidisciplinarno', 'Pregled akademskih radov
 INSERT INTO elektronska_baza_podataka (naziv_ebp, oblast_ebp, opis_ebp, licenca_ebp, id_izdavaca_ebp, putanja_ebp)
 VALUES ('Springer Nature Archive', 'Prirodne nauke', 'Kolekcija naucnih publikacija i monografija.', 'Premium', 3,
     './src/main/resources/baze_podataka/springer_archive.zip');
+
 
 -- menadzeri
 INSERT INTO korisnik (
@@ -209,9 +218,23 @@ INSERT INTO korisnik (
              '1999-05-15'
          );
 
+
 --ugovori
 INSERT INTO ugovor (dobavljac_id, popust, datum_pocetka, datum_isteka, datum_potpisa, rok_isporuke, status)
 VALUES (2, 15.0, '2024-06-01', '2025-06-01', '2024-05-28', 14, 'ISTEKAO');
+
+INSERT INTO ugovor (dobavljac_id, popust, datum_pocetka, datum_isteka, datum_potpisa, rok_isporuke, status)
+VALUES (1, 50.0, '2026-06-26', '2026-07-26', '2026-06-26', 4 , 'AKTIVAN');
+
+INSERT INTO ugovor (dobavljac_id, popust, datum_pocetka, datum_isteka, datum_potpisa, rok_isporuke, status)
+VALUES (2, 40.0, '2026-06-20', '2026-08-20', '2026-06-20', 7 , 'AKTIVAN');
+
+INSERT INTO ugovor (dobavljac_id, popust, datum_pocetka, datum_isteka, datum_potpisa, rok_isporuke, status)
+VALUES (4, 20.0, '2026-03-01', '2027-03-01', '2026-02-28', 10, 'AKTIVAN');
+
+INSERT INTO ugovor (dobavljac_id, popust, datum_pocetka, datum_isteka, datum_potpisa, rok_isporuke, status)
+VALUES (3, 30.0, '2026-04-01', '2027-04-01', '2026-03-28', 5, 'AKTIVAN');
+
 
 --clan
 INSERT INTO korisnik (
@@ -328,6 +351,7 @@ INSERT INTO korisnik (
              'MESECNA',
              NULL
          );
+
 
 --clanarina za Petra
 INSERT INTO clanarina (
@@ -770,6 +794,7 @@ VALUES ('1234567891234', 'Zlocin i kazna', 'Fjodor Mihailovič Dostojevski', '20
 INSERT INTO predlog_za_nabavku (korisnik_jmbg, naslov, autor, datum_podnosenja, status, obrazlozenje_bibliotekara)
 VALUES ('1234567891234', 'Fifty Shades of Grey', 'E.L. James', '2026-03-01', 'ODBIJENO_BIBLIOTEKAR', 'Knjiga nije primerena za biblioteku.');
 
+
 -- Notifikacije
 INSERT INTO notifikacija (korisnik_jmbg, poruka, datum, procitana)
 VALUES ('1234567891234', 'Vaš predlog za nabavku knjige "Majstor i Margarita" je odobren i uvršten u plan nabavke.', '2026-02-16 10:00:00', false);
@@ -777,10 +802,12 @@ VALUES ('1234567891234', 'Vaš predlog za nabavku knjige "Majstor i Margarita" j
 INSERT INTO notifikacija (korisnik_jmbg, poruka, datum, procitana)
 VALUES ('1234567891234', 'Vaš predlog za nabavku knjige "Fifty Shades of Grey" je odbijen. Razlog: Knjiga nije primerena za biblioteku.', '2026-03-02 09:30:00', false);
 
+
 --INSERT INTO obavestenje (tip_o, tekst_o, dat_kreiran,procitano, jmbg_clana)
 --VALUES ('VRACANJE', 'Podsetnik: knjiga Na Drini ćuprija treba da bude vraćena do 18.06.2026.', CURRENT_DATE, FALSE, '1234567891234');
 INSERT INTO notifikacija (korisnik_jmbg, poruka, datum, procitana)
 VALUES ('1234567891234', 'Vaš predlog za nabavku knjige "Zlocin i kazna" je odobren i uvršten u plan nabavke.', '2026-02-11 10:00:00', false);
+
 
 -- Podaci vezani za AI asistenta
 -- Čet sesije
@@ -789,6 +816,7 @@ VALUES ('Preporuka knjiga o istoriji', '2026-06-01 10:00:00', '2026-06-01 10:05:
 
 INSERT INTO cet_sesija (naslov_cs, datum_kreiranja_cs, datum_azuriranja_cs, tip_agenta_cs, jmbg_clana)
 VALUES ('Pitanja o Na Drini ćuprija', '2026-06-02 09:00:00', '2026-06-02 09:10:00', 'AGENT_RECENZIJE', '1234567891234');
+
 
 -- Čet poruke (id_cs = 1)
 INSERT INTO cet_poruka (tip_cp, datum_kreiranja_cp, sadrzaj_cp, id_cs)
@@ -803,14 +831,17 @@ VALUES ('CLAN', '2026-06-01 10:00:00', 'Možeš li mi reći nešto o knjizi Na D
 INSERT INTO cet_poruka (tip_cp, datum_kreiranja_cp, sadrzaj_cp, id_cs)
 VALUES ('AI_ASISTENT', '2026-06-01 10:00:30', 'U pitanju je istorijska knjiga koja priča o višegradskom mostu.', 2);
 
+
 -- Ocena čet poruke (User 1234567891234 ocenjuje poruku id_cp=2)
 INSERT INTO ocena_cet_poruke (jmbg_clana, id_cp, ocena_cp, komentar_cp, datum_ocenjivanja_cs)
 VALUES ('1234567891234', 2, 5, 'Odlična preporuka, baš ono što sam tražio.', '2026-06-01 10:06:00');
+
 
 -- Podaci vezani za diskusije i komentare
 -- Diskusija vezana za knjigu (isbn = '9788617150001')
 INSERT INTO diskusija (naslov_d, opis_d, datum_kreiranja_d, isbn, jmbg_clana)
 VALUES ('Utisci o romanu', 'Šta mislite o simbolizmu mosta u romanu?', '2026-06-03 12:00:00', '9788617150001', '1234567891234');
+
 
 -- Komentari (id_d = 1)
 INSERT INTO komentar (tekst_k, datum_kreiranja_k, id_d, jmbg_clana, id_ok)
@@ -819,12 +850,16 @@ VALUES ('Meni je most simbol spajanja kultura.', '2026-06-03 12:10:00', 1, '1234
 INSERT INTO komentar (tekst_k, datum_kreiranja_k, id_d, jmbg_clana, id_ok)
 VALUES ('Slažem se, i smatram da predstavlja postojanost kroz vekove.', '2026-06-03 12:15:00', 1, '1234567891234', 1);
 
+
 -- Lajk na komentar (id_k = 1, lajkovao isti korisnik radi testa)
 INSERT INTO komentar_lajk (id_k, jmbg_clana)
 VALUES (1, '1234567891234');
 
+
+
 -- Budzeti
 INSERT INTO budzet (godina , ukupan_iznos) VALUES ( 2026 , 251000.00);
+
 
 -- Budzeti po zanru
 INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id, rezervisano) VALUES (1, 10000.00, 2000.00, 1,  0.00);
@@ -836,9 +871,21 @@ INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id, rezer
 INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id, rezervisano) VALUES (7, 18500.00, 9200.00, 1, 0.00);
 INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id, rezervisano) VALUES (8, 5000.00, 4800.00, 1, 0.00);
 INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id, rezervisano) VALUES (9, 30000.00, 11500.75, 1, 0.00);
-INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id, rezervisano) VALUES (10, 14000.00, 13600.00, 1, 0.00);
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id, rezervisano) VALUES (10, 14000.00, 600.00, 1, 0.00);
 INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id, rezervisano) VALUES (11, 16500.00, 3100.25, 1, 0.00);
 INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id, rezervisano) VALUES (12, 11500.00, 9200.00, 1, 0.00);
-INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id, rezervisano) VALUES (13, 5000.00, 4800.00, 1, 0.00);
+INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id, rezervisano) VALUES (13, 5000.00, 800.00, 1, 0.00);
 INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id, rezervisano) VALUES (14, 30000.00, 11500.75, 1, 0.00);
 INSERT INTO budzet_po_zanru (zanr_id, ukupan_budzet, potroseno, budzet_id, rezervisano) VALUES (15, 14000.00, 13600.00, 1, 0.00);
+
+
+-- Sistemske preporuke
+
+INSERT INTO sistemska_preporuka (isbn, broj_pozajmica, trenutni_broj_primeraka, predlog, datum_generisanja, status)
+VALUES ('9788617150005', 8, 4, 'Knjiga beleži nagli porast pozajmica — preporučuje se nabavka dodatnih primeraka.', '2026-05-15 00:00:00', 'AKTIVNA');
+
+INSERT INTO sistemska_preporuka (isbn, broj_pozajmica, trenutni_broj_primeraka, predlog, datum_generisanja, status)
+VALUES ('9788617150007', 6, 2, 'Knjiga beleži nagli porast pozajmica — preporučuje se nabavka dodatnih primeraka.', '2026-06-01 00:00:00', 'AKTIVNA');
+
+INSERT INTO sistemska_preporuka (isbn, broj_pozajmica, trenutni_broj_primeraka, predlog, datum_generisanja, status)
+VALUES ('9788617150001', 9, 4, 'Povećana potražnja — razmotrite nabavku dodatnih primeraka.', '2026-06-15 00:00:00', 'AKTIVNA');

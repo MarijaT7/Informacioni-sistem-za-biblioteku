@@ -306,6 +306,11 @@ export const izvestajApi = {
       params: { od, do: datDo },
       responseType: 'blob'
     }),
+  generisiFond: (od, datDo) =>
+    api.get('/izvestaj/fond', {
+      params: { od, do: datDo },
+      responseType: 'blob'
+    }),
     nabavka: (od, datDo) => api.get('/izvestaj/nabavka', { params: { od, do: datDo }, responseType: 'blob' }),
 }
 

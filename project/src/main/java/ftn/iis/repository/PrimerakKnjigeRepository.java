@@ -21,4 +21,11 @@ public interface PrimerakKnjigeRepository extends JpaRepository<PrimerakKnjige, 
             ")")
     List<PrimerakKnjige> findAvailablePrimerciByIsbn(@Param("isbn") String isbn);
 
+    @Query("SELECT COUNT(p) FROM PrimerakKnjige p")
+    long countAllPrimerci();
+
+    @Query("SELECT COUNT(p) FROM PrimerakKnjige p WHERE NOT EXISTS " +
+           "(SELECT poz FROM Pozajmica poz WHERE poz.primerakKnjige = p AND poz.statusPoz = true)")
+    long countAvailablePrimerci();
+
 }

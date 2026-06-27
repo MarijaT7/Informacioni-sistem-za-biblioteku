@@ -2,6 +2,13 @@ package ftn.iis.service;
 
 import com.lowagie.text.*;
 import com.lowagie.text.pdf.*;
+import ftn.iis.model.Kazna;
+import ftn.iis.model.Knjiga;
+import ftn.iis.model.Pozajmica;
+import ftn.iis.repository.KaznaRepository;
+import ftn.iis.repository.KnjigaRepository;
+import ftn.iis.repository.PozajmicaRepository;
+import ftn.iis.repository.PrimerakKnjigeRepository;
 import ftn.iis.enums.StatusNarudzbine;
 import ftn.iis.enums.StatusPredloga;
 import ftn.iis.enums.StatusSistemskePreporuke;
@@ -21,6 +28,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 @Service
 public class IzvestajService {
+    private final KnjigaRepository        knjigaRepository;
+    private final PrimerakKnjigeRepository primerakKnjigeRepository;
+    private final KaznaRepository         kaznaRepository;
     private final PozajmicaRepository pozajmicaRepository;
     private final NarudzbinaRepository narudzbinaRepository;
     private final StavkaNarudzbineRepository stavkaNarudzbineRepository;
@@ -40,7 +50,7 @@ public class IzvestajService {
     private static final Color WHITE        = Color.WHITE;
     private static final Color GREEN_LIGHT  = new Color(212, 221, 184);
     private static final Color GREEN_DARK   = new Color(74,  103,  65);
-
+    private static final Color AMBER_DARK   = new Color(160, 100,   0);
     private static final Color GREEN_MED   = new Color(122, 144, 104);
     private static final Color CARD_BG     = new Color(200, 213, 170);
     private static final Color CARD_LIGHT  = new Color(234, 239, 220);
@@ -53,13 +63,18 @@ public class IzvestajService {
     };
 
     public IzvestajService(PozajmicaRepository pozajmicaRepository,
-                           NarudzbinaRepository narudzbinaRepository,
+                           KnjigaRepository knjigaRepository,
+                           PrimerakKnjigeRepository primerakKnjigeRepository,
+                           KaznaRepository kaznaRepository, NarudzbinaRepository narudzbinaRepository,
                            StavkaNarudzbineRepository stavkaNarudzbineRepository,
                            ReklamacijaRepository reklamacijaRepository,
                            BudzetPoZanruRepository budzetPoZanruRepository,
                            PredlogNabavkaRepository predlogRepository,
                            FizickaKnjigaRepository fizickaKnjigaRepository,
                            SistemskePreporukeRepository sistemskePreporukeRepository) {
+        this.knjigaRepository         = knjigaRepository;
+        this.primerakKnjigeRepository = primerakKnjigeRepository;
+        this.kaznaRepository          = kaznaRepository;                           
         this.pozajmicaRepository = pozajmicaRepository;
         this.narudzbinaRepository = narudzbinaRepository;
         this.stavkaNarudzbineRepository = stavkaNarudzbineRepository;
@@ -848,6 +863,340 @@ public class IzvestajService {
 
 
 
+
+    public byte[] generisiIzvestajFonda(LocalDate od, LocalDate datDo) throws DocumentException, IOException {
+
+        // ── DATA FETCHING ────────────────────────────────────────────────
+        List<Knjiga>    sveKnjige          = knjigaRepository.findAllActiveWithZanrAndFizicka();
+        long            ukupnoPrimeraka    = primerakKnjigeRepository.countAllPrimerci();
+        long            dostupnoPrimeraka  = primerakKnjigeRepository.countAvailablePrimerci();
+        List<Pozajmica> pozajmiceUPeriodu  = pozajmicaRepository.findAllInPeriodWithDetails(od, datDo);
+        List<String>    sveIkadPozajmljene = pozajmicaRepository.findAllEverBorrowedIsbns();
+        List<Pozajmica> uPrekoracenjuSad   = pozajmicaRepository.findAllCurrentlyOverdue(LocalDate.now());
+        List<Kazna>     izgubljenaPozajmica = kaznaRepository.findAllLostBookKazne();
+
+        // ── SECTION 1 AGGREGATIONS ───────────────────────────────────────
+        long ukupnoNaslova = sveKnjige.size();
+        long nFizicke = sveKnjige.stream().filter(k -> tip(k, 0)).count();
+        long nEKnjige = sveKnjige.stream().filter(k -> tip(k, 1)).count();
+        long nAudio   = sveKnjige.stream().filter(k -> tip(k, 2)).count();
+
+        Map<String, Long> poZanruNaslovi = sveKnjige.stream()
+            .collect(Collectors.groupingBy(
+                k -> k.getZanr() != null ? k.getZanr().getName() : "Bez zanra",
+                Collectors.counting()));
+
+        // ── SECTION 2 AGGREGATIONS ───────────────────────────────────────
+        Set<String> pozajmljeneIsbnUPeriodu = pozajmiceUPeriodu.stream()
+            .map(p -> p.getPrimerakKnjige().getFizickaKnjiga().getIsbn())
+            .collect(Collectors.toSet());
+
+        Map<String, Long> cirkulacija = pozajmiceUPeriodu.stream()
+            .collect(Collectors.groupingBy(
+                p -> p.getPrimerakKnjige().getFizickaKnjiga().getIsbn(),
+                Collectors.counting()));
+
+        Map<String, Knjiga> isbnToKnjigaCirc = pozajmiceUPeriodu.stream()
+            .collect(Collectors.toMap(
+                p -> p.getPrimerakKnjige().getFizickaKnjiga().getIsbn(),
+                p -> p.getPrimerakKnjige().getFizickaKnjiga().getKnjiga(),
+                (a, b) -> a));
+
+        List<Map.Entry<String, Long>> top10 = cirkulacija.entrySet().stream()
+            .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+            .limit(10).collect(Collectors.toList());
+
+        List<Knjiga> bezCirkulacijeSve = sveKnjige.stream()
+            .filter(k -> k.getFizickaKnjiga() != null && !pozajmljeneIsbnUPeriodu.contains(k.getIsbn()))
+            .collect(Collectors.toList());
+        int ukupnoBezCirk = bezCirkulacijeSve.size();
+        List<Knjiga> bezCirkulacijePrikaz = bezCirkulacijeSve.stream().limit(20).collect(Collectors.toList());
+
+        // ── SECTION 3 AGGREGATIONS ───────────────────────────────────────
+        Set<String> ikadPozajmljeneSet = new HashSet<>(sveIkadPozajmljene);
+        List<Knjiga> nikadPozajmleneSve = sveKnjige.stream()
+            .filter(k -> k.getFizickaKnjiga() != null && !ikadPozajmljeneSet.contains(k.getIsbn()))
+            .collect(Collectors.toList());
+        int ukupnoNikad = nikadPozajmleneSve.size();
+        List<Knjiga> nikadPozajmlenePrikaz = nikadPozajmleneSve.stream().limit(15).collect(Collectors.toList());
+
+        // ── PDF SETUP ────────────────────────────────────────────────────
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Document doc = new Document(PageSize.A4, 45, 45, 55, 45);
+        PdfWriter writer = PdfWriter.getInstance(doc, baos);
+
+        writer.setPageEvent(new PdfPageEventHelper() {
+            @Override
+            public void onEndPage(PdfWriter w, Document d) {
+                try {
+                    BaseFont bf2 = BaseFont.createFont(BaseFont.HELVETICA, "Cp1250", BaseFont.NOT_EMBEDDED);
+                    Font footer2 = new Font(bf2, 8, Font.NORMAL, TEXT_MID);
+                    PdfContentByte cb = w.getDirectContent();
+                    cb.saveState();
+                    cb.setColorFill(BROWN_LIGHT);
+                    cb.rectangle(d.left(), d.bottom() - 15, d.right() - d.left(), 1);
+                    cb.fill();
+                    ColumnText.showTextAligned(cb, Element.ALIGN_CENTER,
+                            new Phrase("Strana " + w.getPageNumber(), footer2),
+                            (d.left() + d.right()) / 2, d.bottom() - 25, 0);
+                    cb.restoreState();
+                } catch (Exception ignored) {}
+            }
+        });
+
+        doc.open();
+
+        BaseFont bf     = BaseFont.createFont(BaseFont.HELVETICA,      "Cp1250", BaseFont.NOT_EMBEDDED);
+        BaseFont bfBold = BaseFont.createFont(BaseFont.HELVETICA_BOLD, "Cp1250", BaseFont.NOT_EMBEDDED);
+
+        Font fTitle    = new Font(bfBold, 20, Font.BOLD,   WHITE);
+        Font fSubtitle = new Font(bf,     10, Font.NORMAL, new Color(220, 200, 180));
+        Font fSection  = new Font(bfBold, 13, Font.BOLD,   BROWN_DARK);
+        Font fSectionA = new Font(bfBold, 13, Font.BOLD,   AMBER_DARK);
+        Font fTblHead  = new Font(bfBold,  9, Font.BOLD,   WHITE);
+        Font fTblCell  = new Font(bf,      9, Font.NORMAL, TEXT_DARK);
+        Font fTblSmall = new Font(bf,      8, Font.NORMAL, TEXT_MID);
+        Font fMetVal   = new Font(bfBold, 15, Font.BOLD,   BROWN_MED);
+        Font fMetLbl   = new Font(bf,      9, Font.NORMAL, TEXT_MID);
+        Font fNote     = new Font(bf,      8, Font.ITALIC, TEXT_MID);
+        Font fSubSec   = new Font(bfBold, 10, Font.BOLD,   TEXT_MID);
+
+        // ── HEADER ───────────────────────────────────────────────────────
+        PdfPTable header = new PdfPTable(1);
+        header.setWidthPercentage(100);
+        header.setSpacingAfter(20);
+        PdfPCell hCell = new PdfPCell();
+        hCell.setBackgroundColor(BROWN_MED);
+        hCell.setPadding(22);
+        hCell.setBorder(Rectangle.NO_BORDER);
+        Paragraph t1 = new Paragraph(
+            "Izvestaj o stanju fonda, cirkulaciji naslova i potrebama za revizijom", fTitle);
+        t1.setAlignment(Element.ALIGN_CENTER);
+        Paragraph t2 = new Paragraph(
+            "Period cirkulacije: " + fmt(od) + "  \u2014  " + fmt(datDo) +
+            "    |    Generisano: " + fmt(LocalDate.now()), fSubtitle);
+        t2.setAlignment(Element.ALIGN_CENTER);
+        t2.setSpacingBefore(5);
+        hCell.addElement(t1);
+        hCell.addElement(t2);
+        header.addCell(hCell);
+        doc.add(header);
+
+        // ════════════════════════════════════════════════════════════════
+        // SEKCIJA 1 — PREGLED FONDA
+        // ════════════════════════════════════════════════════════════════
+        doc.add(sectionHeader("1. Pregled fonda", fSection, bfBold));
+
+        PdfPTable metrics1 = new PdfPTable(3);
+        metrics1.setWidthPercentage(100);
+        metrics1.setSpacingBefore(10);
+        metrics1.setSpacingAfter(16);
+        metrics1.setWidths(new float[]{1, 1, 1});
+        metrics1.addCell(metricCell("" + ukupnoNaslova,    "Ukupno naslova",      fMetVal, fMetLbl, bfBold));
+        metrics1.addCell(metricCell("" + ukupnoPrimeraka,  "Ukupno primeraka",    fMetVal, fMetLbl, bfBold));
+        metrics1.addCell(metricCell("" + dostupnoPrimeraka,"Dostupnih primeraka", fMetVal, fMetLbl, bfBold));
+        doc.add(metrics1);
+
+        doc.add(subheading("Raspodela po formatu", new Font(bfBold, 10, Font.BOLD, TEXT_MID)));
+        PdfPTable tblFormat = new PdfPTable(3);
+        tblFormat.setWidthPercentage(62);
+        tblFormat.setHorizontalAlignment(Element.ALIGN_LEFT);
+        tblFormat.setSpacingBefore(6);
+        tblFormat.setSpacingAfter(14);
+        tblFormat.setWidths(new float[]{3f, 1.5f, 1f});
+        addTableHeader(tblFormat, fTblHead, BROWN_DARK, "Format", "Br. naslova", "%");
+        String[][] formati = {
+            {"Fizicka knjiga", "" + nFizicke,
+                ukupnoNaslova > 0 ? String.format("%.1f%%", 100.0 * nFizicke / ukupnoNaslova) : "-"},
+            {"E-knjiga",       "" + nEKnjige,
+                ukupnoNaslova > 0 ? String.format("%.1f%%", 100.0 * nEKnjige / ukupnoNaslova) : "-"},
+            {"Audioknjiga",    "" + nAudio,
+                ukupnoNaslova > 0 ? String.format("%.1f%%", 100.0 * nAudio   / ukupnoNaslova) : "-"},
+        };
+        int rowIdx = 1;
+        for (String[] row : formati) {
+            addRow(tblFormat, fTblCell, rowIdx % 2 == 0 ? BEIGE_LIGHT : WHITE, Element.ALIGN_LEFT,
+                   row[0], row[1], row[2]);
+            rowIdx++;
+        }
+        doc.add(tblFormat);
+
+        doc.add(subheading("Raspodela po zanru", new Font(bfBold, 10, Font.BOLD, TEXT_MID)));
+        PdfPTable tblZanrFond = new PdfPTable(3);
+        tblZanrFond.setWidthPercentage(70);
+        tblZanrFond.setHorizontalAlignment(Element.ALIGN_LEFT);
+        tblZanrFond.setSpacingBefore(6);
+        tblZanrFond.setSpacingAfter(20);
+        tblZanrFond.setWidths(new float[]{3f, 1.5f, 1f});
+        addTableHeader(tblZanrFond, fTblHead, BROWN_DARK, "Zanr", "Br. naslova", "%");
+        rowIdx = 1;
+        for (Map.Entry<String, Long> e : sortedDesc(poZanruNaslovi)) {
+            String pct = ukupnoNaslova > 0
+                ? String.format("%.1f%%", 100.0 * e.getValue() / ukupnoNaslova) : "-";
+            addRow(tblZanrFond, fTblCell, rowIdx % 2 == 0 ? BEIGE_LIGHT : WHITE, Element.ALIGN_LEFT,
+                   e.getKey(), "" + e.getValue(), pct);
+            rowIdx++;
+        }
+        if (poZanruNaslovi.isEmpty()) addEmptyRow(tblZanrFond, fTblSmall, 3, "Nema podataka");
+        doc.add(tblZanrFond);
+
+        // ════════════════════════════════════════════════════════════════
+        // SEKCIJA 2 — CIRKULACIJA NASLOVA
+        // ════════════════════════════════════════════════════════════════
+        doc.add(sectionHeader(
+            "2. Cirkulacija naslova  (" + fmt(od) + " \u2014 " + fmt(datDo) + ")", fSection, bfBold));
+
+        PdfPTable metrics2 = new PdfPTable(3);
+        metrics2.setWidthPercentage(100);
+        metrics2.setSpacingBefore(10);
+        metrics2.setSpacingAfter(16);
+        metrics2.setWidths(new float[]{1, 1, 1});
+        metrics2.addCell(metricCell("" + pozajmiceUPeriodu.size(),       "Ukupno pozajmica u periodu", fMetVal, fMetLbl, bfBold));
+        metrics2.addCell(metricCell("" + pozajmljeneIsbnUPeriodu.size(), "Aktivnih naslova",           fMetVal, fMetLbl, bfBold));
+        metrics2.addCell(metricCell("" + ukupnoBezCirk,                  "Naslova bez cirkulacije",    fMetVal, fMetLbl, bfBold));
+        doc.add(metrics2);
+
+        doc.add(subheading("Top 10 najpozajmljivanijih naslova", new Font(bfBold, 10, Font.BOLD, TEXT_MID)));
+        PdfPTable tblTop = new PdfPTable(5);
+        tblTop.setWidthPercentage(100);
+        tblTop.setSpacingBefore(6);
+        tblTop.setSpacingAfter(14);
+        tblTop.setWidths(new float[]{0.5f, 3.5f, 2f, 1.5f, 1f});
+        addTableHeader(tblTop, fTblHead, BROWN_DARK, "#", "Naslov", "Autor", "Zanr", "Br. poz.");
+        int rk = 1;
+        for (Map.Entry<String, Long> e : top10) {
+            Color bg = rk % 2 == 0 ? BEIGE_LIGHT : WHITE;
+            Knjiga k = isbnToKnjigaCirc.get(e.getKey());
+            addRow(tblTop, fTblCell, bg, Element.ALIGN_CENTER,
+                "" + rk,
+                truncate(k.getNaslov(), 40),
+                truncate(k.getAutor() != null ? k.getAutor() : "-", 25),
+                k.getZanr() != null ? k.getZanr().getName() : "-",
+                "" + e.getValue());
+            rk++;
+        }
+        if (top10.isEmpty()) addEmptyRow(tblTop, fTblSmall, 5, "Nema pozajmica u izabranom periodu");
+        doc.add(tblTop);
+
+        doc.add(subheading("Naslovi bez cirkulacije u periodu", new Font(bfBold, 10, Font.BOLD, TEXT_MID)));
+        PdfPTable tblBezCirk = new PdfPTable(3);
+        tblBezCirk.setWidthPercentage(100);
+        tblBezCirk.setSpacingBefore(6);
+        tblBezCirk.setSpacingAfter(4);
+        tblBezCirk.setWidths(new float[]{3.5f, 2.5f, 2f});
+        addTableHeader(tblBezCirk, fTblHead, BROWN_DARK, "Naslov", "Autor", "Zanr");
+        rowIdx = 1;
+        for (Knjiga k : bezCirkulacijePrikaz) {
+            addRow(tblBezCirk, fTblCell, rowIdx % 2 == 0 ? BEIGE_LIGHT : WHITE, Element.ALIGN_LEFT,
+                truncate(k.getNaslov(), 45),
+                truncate(k.getAutor() != null ? k.getAutor() : "-", 30),
+                k.getZanr() != null ? k.getZanr().getName() : "-");
+            rowIdx++;
+        }
+        if (bezCirkulacijePrikaz.isEmpty())
+            addEmptyRow(tblBezCirk, fTblSmall, 3, "Svi naslovi su imali cirkulaciju u ovom periodu");
+        doc.add(tblBezCirk);
+        if (ukupnoBezCirk > 20) {
+            Paragraph noteCirc = new Paragraph(
+                "* Prikazano prvih 20 od ukupno " + ukupnoBezCirk + " naslova bez cirkulacije u periodu.", fNote);
+            noteCirc.setSpacingBefore(4);
+            doc.add(noteCirc);
+        }
+        doc.add(new Paragraph(" "));
+
+        // ════════════════════════════════════════════════════════════════
+        // SEKCIJA 3 — POTREBE ZA REVIZIJOM
+        // ════════════════════════════════════════════════════════════════
+        doc.add(sectionHeader("3. Potrebe za revizijom", fSectionA, bfBold));
+
+        // 3.1 Nikad pozajmljeni
+        doc.add(subheading("3.1  Naslovi koji nikada nisu pozajmljeni", fSubSec));
+        PdfPTable tblNikad = new PdfPTable(3);
+        tblNikad.setWidthPercentage(100);
+        tblNikad.setSpacingBefore(6);
+        tblNikad.setSpacingAfter(4);
+        tblNikad.setWidths(new float[]{3.5f, 2.5f, 2f});
+        addTableHeader(tblNikad, fTblHead, BROWN_DARK, "Naslov", "Autor", "Zanr");
+        rowIdx = 1;
+        for (Knjiga k : nikadPozajmlenePrikaz) {
+            addRow(tblNikad, fTblCell, rowIdx % 2 == 0 ? BEIGE_LIGHT : WHITE, Element.ALIGN_LEFT,
+                truncate(k.getNaslov(), 45),
+                truncate(k.getAutor() != null ? k.getAutor() : "-", 30),
+                k.getZanr() != null ? k.getZanr().getName() : "-");
+            rowIdx++;
+        }
+        if (nikadPozajmlenePrikaz.isEmpty())
+            addEmptyRow(tblNikad, fTblSmall, 3, "Svi naslovi su imali barem jednu pozajmicu");
+        doc.add(tblNikad);
+        if (ukupnoNikad > 15) {
+            Paragraph noteNikad = new Paragraph(
+                "* Prikazano prvih 15 od ukupno " + ukupnoNikad + " naslova koji nikada nisu pozajmljeni.", fNote);
+            noteNikad.setSpacingBefore(4);
+            doc.add(noteNikad);
+        }
+        doc.add(new Paragraph(" "));
+
+        // 3.2 Aktivne pozajmice u prekoracenju
+        doc.add(subheading("3.2  Aktivne pozajmice u prekoracenju roka", fSubSec));
+        PdfPTable tblPrekor = new PdfPTable(4);
+        tblPrekor.setWidthPercentage(100);
+        tblPrekor.setSpacingBefore(6);
+        tblPrekor.setSpacingAfter(14);
+        tblPrekor.setWidths(new float[]{3f, 2.5f, 1.5f, 1.5f});
+        addTableHeader(tblPrekor, fTblHead, BROWN_DARK, "Naslov", "Clan", "Rok vracanja", "Dana kasnjenja");
+        rowIdx = 1;
+        for (Pozajmica p : uPrekoracenjuSad) {
+            long dana = ChronoUnit.DAYS.between(p.getDatOcVrac(), LocalDate.now());
+            String naslov = truncate(
+                p.getPrimerakKnjige().getFizickaKnjiga().getKnjiga().getNaslov(), 40);
+            String clan = p.getClan().getFirstName() + " " + p.getClan().getLastName();
+            addRow(tblPrekor, fTblCell, rowIdx % 2 == 0 ? BEIGE_LIGHT : WHITE, Element.ALIGN_LEFT,
+                naslov, truncate(clan, 30), fmt(p.getDatOcVrac()), "+" + dana);
+            rowIdx++;
+        }
+        if (uPrekoracenjuSad.isEmpty())
+            addEmptyRow(tblPrekor, fTblSmall, 4, "Nema aktivnih pozajmica u prekoracenju roka");
+        doc.add(tblPrekor);
+
+        // 3.3 Izgubljena gradja
+        doc.add(subheading("3.3  Izgubljena gradja (evidentirana kazna za gubitak)", fSubSec));
+        PdfPTable tblIzg = new PdfPTable(5);
+        tblIzg.setWidthPercentage(100);
+        tblIzg.setSpacingBefore(6);
+        tblIzg.setSpacingAfter(14);
+        tblIzg.setWidths(new float[]{3f, 2.5f, 1.5f, 1.2f, 1f});
+        addTableHeader(tblIzg, fTblHead, BROWN_DARK, "Naslov", "Clan", "Dat. kazne", "Iznos (RSD)", "Placena");
+        rowIdx = 1;
+        for (Kazna kaz : izgubljenaPozajmica) {
+            String naslov = truncate(
+                kaz.getPozajmica().getPrimerakKnjige().getFizickaKnjiga().getKnjiga().getNaslov(), 40);
+            String clan = kaz.getClan().getFirstName() + " " + kaz.getClan().getLastName();
+            addRow(tblIzg, fTblCell, rowIdx % 2 == 0 ? BEIGE_LIGHT : WHITE, Element.ALIGN_LEFT,
+                naslov, truncate(clan, 30), fmt(kaz.getDatNastanka()),
+                "" + kaz.getIznosK(), kaz.isPlacena() ? "Da" : "Ne");
+            rowIdx++;
+        }
+        if (izgubljenaPozajmica.isEmpty())
+            addEmptyRow(tblIzg, fTblSmall, 5, "Nema evidentiranih izgubljenih primeraka");
+        doc.add(tblIzg);
+
+        Paragraph napomena = new Paragraph(
+            "* Izvestaj obuhvata aktivni fond (neobrisan). " +
+            "Sekcija cirkulacije odnosi se na fizicke pozajmice u navedenom periodu.",
+            fNote);
+        napomena.setSpacingBefore(20);
+        doc.add(napomena);
+
+        doc.close();
+        return baos.toByteArray();
+    }
+
+    // ── Pomocne metode za PDF ────────────────────────────────────────────
+
+    private boolean tip(Knjiga k, int pos) {
+        String t = k.getTipKnjige();
+        return t != null && t.length() > pos && t.charAt(pos) == '1';
+    }
 
     private Paragraph sectionHeader(String tekst, Font fSection, BaseFont bfBold) throws DocumentException {
         Paragraph p = new Paragraph();

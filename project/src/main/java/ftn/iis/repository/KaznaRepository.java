@@ -24,4 +24,15 @@ public interface KaznaRepository extends JpaRepository<Kazna, Long> {
     boolean existsByPozajmica_IdPAndPlacenaFalseAndBrojDanaPrekoracenjaIsNotNull(Long idP);
     boolean existsByPozajmica_IdPAndPlacenaTrueAndBrojDanaPrekoracenjaIsNotNull(Long idP);
 
+    @Query("SELECT k FROM Kazna k " +
+           "JOIN FETCH k.pozajmica poz " +
+           "JOIN FETCH poz.primerakKnjige pk " +
+           "JOIN FETCH pk.fizickaKnjiga fk " +
+           "JOIN FETCH fk.knjiga kn " +
+           "LEFT JOIN FETCH kn.zanr " +
+           "JOIN FETCH k.clan c " +
+           "WHERE k.brojDanaPrekoracenja IS NULL " +
+           "ORDER BY k.datNastanka DESC")
+    List<Kazna> findAllLostBookKazne();
+
 }

@@ -59,6 +59,9 @@
       <RouterLink v-if="role === 'BIBLIOTEKAR' || role === 'MENADZER' || role === 'ADMINISTRATOR'" class="nav-item" to="/izvestaj">
               <span class="nav-icon"></span> Izvestaj o aktivnostima
       </RouterLink>
+      <RouterLink v-if="role === 'BIBLIOTEKAR' || role === 'MENADZER' || role === 'ADMINISTRATOR'" class="nav-item" to="/izvestaj-katalog">
+              <span class="nav-icon"></span> Izvestaj o katalogu
+      </RouterLink>
     </nav>
 
     <button class="logout-btn" @click="handleLogout">Odjavi se</button>

@@ -154,8 +154,17 @@ public class BudzetService {
                 .orElseThrow(() -> new RuntimeException("Budžet za žanr nije pronađen."));
 
         // Oslobodi rezervaciju i dodaj u potrošeno
-        double novoRezervovano = Math.max(0, budzet.getRezervisano() - iznos);
-        budzet.setRezervisano(novoRezervovano);
+        double novoRezervisano = Math.max(0, budzet.getRezervisano() - iznos);
+        budzet.setRezervisano(novoRezervisano);
+
+        // Provera da li se prevazilazi budzet samog zanra
+        // Jer menadzer sad na frontu moze da izabere 10000 komada knjiga ako zeli :*
+        if(budzet.getPotroseno() + iznos > budzet.getUkupanBudzet()){
+            throw new RuntimeException("Ne možete potrošiti više od ukupnog budžeta za žanr. "
+                    + "Ukupan budžet: " + budzet.getUkupanBudzet() + " RSD, "
+                    + "Već potrošeno: " + budzet.getPotroseno() + " RSD, "
+                    + "Pokušavate da potrošite dodatnih: " + iznos + " RSD.");
+        }
 
         budzet.setPotroseno(budzet.getPotroseno() + iznos);
         budzetPoZanruRepository.save(budzet);

@@ -58,4 +58,37 @@ public class IzvestajController {
             return ResponseEntity.internalServerError().body("Greska pri generisanju izvestaja: " + e.getMessage());
         }
     }
+
+    @GetMapping("fond")
+    public ResponseEntity<?> generisiIzvestajFonda(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate od,
+            @RequestParam("do") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate datDo) {
+
+        try {
+            String token = authHeader.substring(BEARER_LEN);
+            String rola  = jwtService.extractRole(token);
+
+            if (!DOZVOLJENE_ULOGE.contains(rola)) {
+                return ResponseEntity.status(403).body("Nemate pravo pristupa izvestaju.");
+            }
+            if (od.isAfter(datDo)) {
+                return ResponseEntity.badRequest().body("Datum 'od' mora biti pre datuma 'do'.");
+            }
+
+            byte[] pdf = izvestajService.generisiIzvestajFonda(od, datDo);
+            String filename = "izvestaj-fonda-"
+                    + od.format(DateTimeFormatter.ofPattern("ddMMyyyy"))
+                    + "-"
+                    + datDo.format(DateTimeFormatter.ofPattern("ddMMyyyy"))
+                    + ".pdf";
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(pdf);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Greska pri generisanju izvestaja: " + e.getMessage());
+        }
+    }
 }

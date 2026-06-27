@@ -183,6 +183,12 @@ const routes = [
     component: () => import('../views/IzvestajView.vue'),
     meta: { requiresAuth: true, roles: ['BIBLIOTEKAR', 'MENADZER', 'ADMINISTRATOR'] }
   },
+  {
+    path: '/izvestaj-katalog',
+    name: 'izvestaj-katalog',
+    component: () => import('../views/IzvestajFondView.vue'),
+    meta: { requiresAuth: true, roles: ['BIBLIOTEKAR', 'MENADZER', 'ADMINISTRATOR'] }
+  },
 ]
 
 const router = createRouter({

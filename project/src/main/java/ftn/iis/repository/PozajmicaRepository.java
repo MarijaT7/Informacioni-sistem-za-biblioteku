@@ -38,4 +38,17 @@ public interface PozajmicaRepository extends JpaRepository<Pozajmica, Long> {
 
     @Query("SELECT DISTINCT p from Pozajmica p JOIN FETCH p.primerakKnjige pk JOIN FETCH pk.fizickaKnjiga fk JOIN FETCH fk.knjiga k LEFT JOIN FETCH k.zanr z JOIN FETCH p.clan c LEFT JOIN FETCH c.kategorijaClana kc WHERE p.datPoz BETWEEN :od AND :datDo ORDER BY p.datPoz")
     List<Pozajmica> findAllInPeriodWithDetails(@Param("od") LocalDate od, @Param("datDo") LocalDate datDo);
+
+    @Query("SELECT DISTINCT p.primerakKnjige.fizickaKnjiga.isbn FROM Pozajmica p")
+    List<String> findAllEverBorrowedIsbns();
+
+    @Query("SELECT p FROM Pozajmica p " +
+           "JOIN FETCH p.primerakKnjige pk " +
+           "JOIN FETCH pk.fizickaKnjiga fk " +
+           "JOIN FETCH fk.knjiga k " +
+           "LEFT JOIN FETCH k.zanr z " +
+           "JOIN FETCH p.clan c " +
+           "WHERE p.statusPoz = true AND p.datOcVrac < :today " +
+           "ORDER BY p.datOcVrac ASC")
+    List<Pozajmica> findAllCurrentlyOverdue(@Param("today") LocalDate today);
 }

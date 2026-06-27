@@ -285,6 +285,11 @@ export const izvestajApi = {
       params: { od, do: datDo },
       responseType: 'blob'
     }),
+  generisiFond: (od, datDo) =>
+    api.get('/izvestaj/fond', {
+      params: { od, do: datDo },
+      responseType: 'blob'
+    }),
 }
 
 export default api

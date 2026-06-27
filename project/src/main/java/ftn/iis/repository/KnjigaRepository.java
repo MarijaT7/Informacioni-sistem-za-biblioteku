@@ -32,4 +32,6 @@ public interface KnjigaRepository extends JpaRepository<Knjiga, String> {
     """)
     List<String> findAutoriByZanrIds(@Param("zanrIds") Set<Long> zanrIds);
 
+    @Query("SELECT k FROM Knjiga k LEFT JOIN FETCH k.zanr LEFT JOIN FETCH k.fizickaKnjiga WHERE k.deleted = false ORDER BY k.naslov")
+    List<Knjiga> findAllActiveWithZanrAndFizicka();
 }

@@ -811,25 +811,28 @@ VALUES ('1234567891234', 'Vaš predlog za nabavku knjige "Zlocin i kazna" je odo
 
 -- Podaci vezani za AI asistenta
 -- Čet sesije
-INSERT INTO cet_sesija (naslov_cs, datum_kreiranja_cs, datum_azuriranja_cs, tip_agenta_cs, jmbg_clana)
-VALUES ('Preporuka knjiga o istoriji', '2026-06-01 10:00:00', '2026-06-01 10:05:00', 'AGENT_KNJIGE', '1234567891234');
+INSERT INTO cet_sesija (naslov_cs, datum_kreiranja_cs, datum_azuriranja_cs, tip_agenta_cs, jmbg_clana, arhivirano, datum_arhiviranja_cs, verzija, id_roditeljske_sesije, indeks_poruke_racvanja, ima_grane)
+VALUES ('Preporuka knjiga o istoriji', '2026-06-01 10:00:00', '2026-06-01 10:05:00', 'AGENT_KNJIGE', '1234567891234', false, null, 1, null, null, false);
 
-INSERT INTO cet_sesija (naslov_cs, datum_kreiranja_cs, datum_azuriranja_cs, tip_agenta_cs, jmbg_clana)
-VALUES ('Pitanja o Na Drini ćuprija', '2026-06-02 09:00:00', '2026-06-02 09:10:00', 'AGENT_RECENZIJE', '1234567891234');
+INSERT INTO cet_sesija (naslov_cs, datum_kreiranja_cs, datum_azuriranja_cs, tip_agenta_cs, jmbg_clana, arhivirano, datum_arhiviranja_cs, verzija, id_roditeljske_sesije, indeks_poruke_racvanja, ima_grane)
+VALUES ('Pitanja o Na Drini ćuprija', '2026-06-02 09:00:00', '2026-06-02 09:10:00', 'AGENT_RECENZIJE', '1234567891234', false, null, 1, null, null, false);
 
 
--- Čet poruke (id_cs = 1)
-INSERT INTO cet_poruka (tip_cp, datum_kreiranja_cp, sadrzaj_cp, id_cs)
-VALUES ('CLAN', '2026-06-01 10:00:00', 'Možeš li mi preporučiti knjigu o istoriji Balkana?', 1);
+-- Čet poruke (id_cs = 1) - agent knjige
+INSERT INTO cet_poruka (tip_cp, datum_kreiranja_cp, sadrzaj_cp, id_cs, izvori_cp)
+VALUES ('CLAN', '2026-06-01 10:00:00', 'Možeš li mi preporučiti knjigu o istoriji Balkana?', 1, null);
 
-INSERT INTO cet_poruka (tip_cp, datum_kreiranja_cp, sadrzaj_cp, id_cs)
-VALUES ('AI_ASISTENT', '2026-06-01 10:00:30', 'Preporučujem "Na Drini ćuprija" od Ive Andrića.', 1);
+INSERT INTO cet_poruka (tip_cp, datum_kreiranja_cp, sadrzaj_cp, id_cs, izvori_cp)
+VALUES ('AI_ASISTENT', '2026-06-01 10:00:30', 'Preporučujem "Na Drini ćuprija" od Ive Andrića.', 1,
+        '[{"id":1,"naslov":"Na Drini ćuprija","autor":"Ivo Andrić","skor":0.91},{"id":7,"naslov":"Travnička hronika","autor":"Ivo Andrić","skor":0.78}]');
 
-INSERT INTO cet_poruka (tip_cp, datum_kreiranja_cp, sadrzaj_cp, id_cs)
-VALUES ('CLAN', '2026-06-01 10:00:00', 'Možeš li mi reći nešto o knjizi Na Drini Ćuprija?', 2);
+-- Čet poruke (id_cs = 2) - agent recenzije
+INSERT INTO cet_poruka (tip_cp, datum_kreiranja_cp, sadrzaj_cp, id_cs, izvori_cp)
+VALUES ('CLAN', '2026-06-01 10:00:00', 'Možeš li mi reći nešto o knjizi Na Drini Ćuprija?', 2, null);
 
-INSERT INTO cet_poruka (tip_cp, datum_kreiranja_cp, sadrzaj_cp, id_cs)
-VALUES ('AI_ASISTENT', '2026-06-01 10:00:30', 'U pitanju je istorijska knjiga koja priča o višegradskom mostu.', 2);
+INSERT INTO cet_poruka (tip_cp, datum_kreiranja_cp, sadrzaj_cp, id_cs, izvori_cp)
+VALUES ('AI_ASISTENT', '2026-06-01 10:00:30', 'U pitanju je istorijska knjiga koja priča o višegradskom mostu.', 2,
+        '[{"id":3,"reviewId":"rev-101","isbn":"9788652103981","rating":5,"skor":0.88},{"id":9,"reviewId":"rev-204","isbn":"9788652103981","rating":4,"skor":0.74}]');
 
 
 -- Ocena čet poruke (User 1234567891234 ocenjuje poruku id_cp=2)
@@ -838,17 +841,13 @@ VALUES ('1234567891234', 2, 5, 'Odlična preporuka, baš ono što sam tražio.',
 
 
 -- Podaci vezani za diskusije i komentare
--- Diskusija vezana za knjigu (isbn = '9788617150001')
-INSERT INTO diskusija (naslov_d, opis_d, datum_kreiranja_d, isbn, jmbg_clana)
-VALUES ('Utisci o romanu', 'Šta mislite o simbolizmu mosta u romanu?', '2026-06-03 12:00:00', '9788617150001', '1234567891234');
 
+-- Komentariza knjigu (isbn = '9788617150001')
+INSERT INTO komentar (tekst_k, datum_kreiranja_k, isbn, jmbg_clana, id_ok)
+VALUES ('Meni je most simbol spajanja kultura.', '2026-06-03 12:10:00', 9788617150001, '1234567891234', NULL);
 
--- Komentari (id_d = 1)
-INSERT INTO komentar (tekst_k, datum_kreiranja_k, id_d, jmbg_clana, id_ok)
-VALUES ('Meni je most simbol spajanja kultura.', '2026-06-03 12:10:00', 1, '1234567891234', NULL);
-
-INSERT INTO komentar (tekst_k, datum_kreiranja_k, id_d, jmbg_clana, id_ok)
-VALUES ('Slažem se, i smatram da predstavlja postojanost kroz vekove.', '2026-06-03 12:15:00', 1, '1234567891234', 1);
+INSERT INTO komentar (tekst_k, datum_kreiranja_k, isbn, jmbg_clana, id_ok)
+VALUES ('Slažem se, i smatram da predstavlja postojanost kroz vekove.', '2026-06-03 12:15:00', 9788617150001, '1234567891234', 1);
 
 
 -- Lajk na komentar (id_k = 1, lajkovao isti korisnik radi testa)

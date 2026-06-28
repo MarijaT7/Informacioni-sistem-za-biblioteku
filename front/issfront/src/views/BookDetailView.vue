@@ -127,6 +127,48 @@
                   Preuzetim knjigama možete da pristupite iz opcije Pozajmice
                 </p>
               </div>
+
+              <!-- KOMENTARI -->
+              <section class="komentari-sekcija">
+                <h3>Komentari</h3>
+              
+                <p v-if="komentariLoading" class="helper-text">Učitavanje komentara...</p>
+                <p v-else-if="komentari.length === 0" class="helper-text">Još uvek nema komentara. Budite prvi!</p>
+              
+                <div v-else class="komentari-lista">
+                  <KomentarStablo
+                    v-for="k in komentari"
+                    :key="k.id"
+                    :komentar="k"
+                    :dubina="0"
+                    @odgovori="zapocniOdgovor"
+                    @lajkuj="toggleLajk"
+                  />
+                </div>
+              
+                <!-- Forma za novi komentar -->
+                <div class="komentar-forma" id="komentar-forma">
+                  <div v-if="odgovorNaAutor" class="odgovor-na-badge">
+                    Odgovarate na komentar od <strong>{{ odgovorNaAutor }}</strong>
+                    <button class="btn-otkazi-odgovor" type="button" @click="otkaziOdgovor">✕</button>
+                  </div>
+                  <textarea
+                    v-model="noviKomentar"
+                    class="komentar-textarea"
+                    rows="3"
+                    :placeholder="odgovorNaAutor ? 'Napišite odgovor...' : 'Napišite komentar...'"
+                  ></textarea>
+                  <p v-if="komentarGreska" class="error-msg">{{ komentarGreska }}</p>
+                  <button
+                    class="btn-primary komentar-btn"
+                    type="button"
+                    @click.prevent="posaljiKomentar"
+                    :disabled="komentarSlanje || !noviKomentar.trim()"
+                  >
+                    {{ komentarSlanje ? 'Slanje...' : (odgovorNaAutor ? 'Pošalji odgovor' : 'Pošalji komentar') }}
+                  </button>
+                </div>
+              </section>
             </template>
 
             <!-- LIBRARIAN VIEW -->
@@ -270,7 +312,9 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import SidebarNav from '../components/Sidebar.vue'
 import { useAuthStore } from '../stroage/auth.js'
-import { katalogApi, knjigaApi, pozajmicaApi, marcApi } from '../services/api.js'
+import { katalogApi, knjigaApi, pozajmicaApi, marcApi, komentarApi } from '../services/api.js'
+
+import KomentarStablo from '../components/KomentarStablo.vue'
 
 const authStore = useAuthStore()
 const route = useRoute()
@@ -319,6 +363,15 @@ const korisnikImaPozajmicu = ref(false)
 const isClan = computed(() => authStore.getRole() === 'CLAN')
 const isLibrarian = computed(() => authStore.getRole() === 'BIBLIOTEKAR')
 
+// Komentari
+const komentari = ref([])
+const komentariLoading = ref(false)
+const noviKomentar = ref('')
+const odgovorNaId = ref(null)
+const odgovorNaAutor = ref('')
+const komentarGreska = ref('')
+const komentarSlanje = ref(false)
+
 onMounted(() => {
   const role = authStore.getRole()
   authorized.value = role === 'CLAN' || role === 'BIBLIOTEKAR'
@@ -328,6 +381,7 @@ onMounted(() => {
     if (role === 'CLAN') {
       checkAvailability()
       checkUserHasLoan()
+      ucitajKomentare()
     }
   }
 })
@@ -351,6 +405,63 @@ async function checkUserHasLoan() {
     korisnikImaPozajmicu.value = res.data.imaPozajmicu
   } catch {
     korisnikImaPozajmicu.value = false
+  }
+}
+
+async function ucitajKomentare() {
+  komentariLoading.value = true
+  try {
+    const res = await komentarApi.dohvati(isbn.value)
+    komentari.value = res.data
+  } catch {
+    // tiho - komentari nisu kritični
+  } finally {
+    komentariLoading.value = false
+  }
+}
+
+function zapocniOdgovor(komentar) {
+  odgovorNaId.value = komentar.id
+  odgovorNaAutor.value = komentar.autorIme
+  noviKomentar.value = ''
+  // scroll do forme
+  document.getElementById('komentar-forma')?.scrollIntoView({ behavior: 'smooth' })
+}
+
+function otkaziOdgovor() {
+  odgovorNaId.value = null
+  odgovorNaAutor.value = ''
+  noviKomentar.value = ''
+}
+
+async function posaljiKomentar() {
+  if (!noviKomentar.value.trim() || komentarSlanje.value) return
+  komentarSlanje.value = true
+  komentarGreska.value = ''
+  try {
+    await komentarApi.dodaj(isbn.value, {
+      tekstK: noviKomentar.value.trim(),
+      odgovorNaId: odgovorNaId.value
+    })
+    noviKomentar.value = ''
+    odgovorNaId.value = null
+    odgovorNaAutor.value = ''
+    await ucitajKomentare()
+  } catch (e) {
+    komentarGreska.value = e.response?.data || 'Greška pri slanju komentara.'
+  } finally {
+    komentarSlanje.value = false
+  }
+}
+
+async function toggleLajk(komentar) {
+  try {
+    const res = await komentarApi.lajkuj(isbn.value, komentar.id)
+    // ažuriraj lokalno bez ponovnog učitavanja
+    komentar.brojLajkova = res.data.brojLajkova
+    komentar.lajkovaoTrenutniKorisnik = res.data.lajkovaoTrenutniKorisnik
+  } catch {
+    console.log("Greska prilikom lajkovanja!");
   }
 }
 
@@ -723,4 +834,34 @@ async function deleteAudio() {
   .book-detail { grid-template-columns: 1fr; }
   .detail-cover { width: 100%; height: 260px; }
 }
+
+/* Komentari */
+.komentari-sekcija { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+.komentari-sekcija h3 { margin-bottom: 1rem; }
+.komentari-lista { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.25rem; }
+
+.komentar-kartica { background: #f9f5f0; border-radius: 10px; padding: 0.85rem 1rem; }
+.komentar-kartica.odgovor { background: #f2ece5; margin-left: 1.5rem; margin-top: 0.5rem; border-left: 3px solid var(--border); }
+
+.komentar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem; }
+.komentar-autor { font-weight: 600; font-size: 0.9rem; color: var(--text-dark); }
+.komentar-datum { font-size: 0.78rem; color: var(--text-mid); }
+.komentar-tekst { font-size: 0.95rem; color: var(--text-dark); line-height: 1.5; margin-bottom: 0.5rem; }
+
+.komentar-akcije { display: flex; gap: 0.75rem; align-items: center; }
+.btn-lajk { background: none; border: 1px solid var(--border); border-radius: 50px; padding: 0.25rem 0.75rem; font-size: 0.85rem; cursor: pointer; color: var(--text-mid); transition: all 0.15s; }
+.btn-lajk:hover, .btn-lajk.aktivan { background: #fce4e4; border-color: #e07070; color: #8b1a1a; }
+.btn-odgovor-link { background: none; border: none; color: var(--text-mid); font-size: 0.85rem; cursor: pointer; text-decoration: underline; padding: 0; }
+.btn-odgovor-link:hover { color: var(--btn-primary); }
+
+.odgovori-lista { margin-top: 0.5rem; }
+
+.komentar-forma { margin-top: 1rem; }
+.odgovor-na-badge { background: #e8f0e8; border-radius: 6px; padding: 0.4rem 0.75rem; font-size: 0.85rem; color: var(--text-mid); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+.btn-otkazi-odgovor { background: none; border: none; cursor: pointer; font-size: 0.9rem; color: var(--text-mid); margin-left: auto; }
+.komentar-textarea { width: 100%; background: white; border: 1.5px solid var(--border); border-radius: 8px; padding: 0.6rem 0.75rem; font-size: 0.95rem; resize: vertical; font-family: inherit; color: var(--text-dark); }
+.komentar-textarea:focus { outline: none; border-color: var(--btn-primary); }
+.komentar-btn { margin-top: 0.6rem; display: inline-block; padding: 0.6rem 1.8rem; font-size: 0.95rem; }
+.komentar-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
 </style>

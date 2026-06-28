@@ -26,6 +26,9 @@ public class CetPoruka {
     @Column(name = "sadrzaj_cp", nullable = false, columnDefinition = "TEXT")
     private String sadrzajCP;
 
+    @Column(name = "izvori_cp", columnDefinition = "TEXT")
+    private String izvoriCP;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_cs", nullable = false)
     private CetSesija cetSesija;
@@ -33,16 +36,22 @@ public class CetPoruka {
     @OneToMany(mappedBy = "cetPoruka", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<OcenaCetPoruke> ocene = new ArrayList<>();
 
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String slikaBase64;
+
     public CetPoruka() {
     }
 
-    public CetPoruka(Long id, TipCP tipCP, LocalDateTime datumKreiranjaCP, String sadrzajCP, CetSesija cetSesija, List<OcenaCetPoruke> ocene) {
+    public CetPoruka(Long id, TipCP tipCP, LocalDateTime datumKreiranjaCP, String sadrzajCP, String izvoriCP, CetSesija cetSesija, List<OcenaCetPoruke> ocene, String slikaBase64) {
         this.id = id;
         this.tipCP = tipCP;
         this.datumKreiranjaCP = datumKreiranjaCP;
         this.sadrzajCP = sadrzajCP;
+        this.izvoriCP = izvoriCP;
         this.cetSesija = cetSesija;
         this.ocene = ocene;
+        this.slikaBase64 = slikaBase64;
     }
 
     public Long getId() {
@@ -91,5 +100,21 @@ public class CetPoruka {
 
     public void setOcene(List<OcenaCetPoruke> ocene) {
         this.ocene = ocene;
+    }
+
+    public String getIzvoriCP() {
+        return izvoriCP;
+    }
+
+    public void setIzvoriCP(String izvoriCP) {
+        this.izvoriCP = izvoriCP;
+    }
+
+    public String getSlikaBase64() {
+        return slikaBase64;
+    }
+
+    public void setSlikaBase64(String slikaBase64) {
+        this.slikaBase64 = slikaBase64;
     }
 }

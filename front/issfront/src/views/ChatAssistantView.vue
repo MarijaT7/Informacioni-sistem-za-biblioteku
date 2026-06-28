@@ -14,15 +14,18 @@
           <!-- LEVA KOLONA: dugme + lista sesija -->
           <aside class="session-panel">
             <button class="btn-new-chat" @click="openCompose">Novi čet</button>
+            <button class="btn-show-archive" @click="showArchive = !showArchive">
+              {{ showArchive ? 'Aktivni četovi' : 'Arhivirani četovi' }}
+            </button>
 
             <p v-if="loadingSessions" class="loading-msg">Učitavanje četova...</p>
             <p v-else-if="sessionsError" class="error-msg">{{ sessionsError }}</p>
 
-            <nav v-else class="session-list">
-              <p v-if="!sessions.length" class="empty-state">Još nemate nijedan čet.</p>
+            <nav v-else-if="!showArchive" class="session-list">
+              <p v-if="!activeSessions.length" class="empty-state">Još nemate nijedan čet.</p>
 
               <div
-                v-for="s in sessions"
+                v-for="s in activeSessions"
                 :key="s.id"
                 class="session-item"
                 :class="{ active: s.id === activeSessionId && viewMode === 'conversation' }"
@@ -36,12 +39,50 @@
                     {{ agentLabel(s.tipAgentaCS) }}
                   </span>
                   <button
+                    class="btn-archive-session"
+                    :disabled="s._pending || archivingSesijaId === s.id || imaGrane(s)"
+                    @click.stop="archiveSession(s)"
+                    aria-label="Arhiviraj čet"
+                    :title="imaGrane(s) ? 'Nije moguće arhivirati čet koji ima grane' : 'Arhiviraj čet'"
+                  >
+                    {{ archivingSesijaId === s.id ? '…' : '➘' }}
+                  </button>
+                  <button
                     class="btn-delete-session"
-                    :disabled="s._pending || deletingSessionId === s.id"
+                    :disabled="s._pending || deletingSessionId === s.id || imaGrane(s)"
                     @click.stop="deleteSession(s)"
                     aria-label="Obriši čet"
-                    title="Obriši čet"
+                    :title="imaGrane(s) ? 'Nije moguće obrisati čet koji ima grane' : 'Obriši čet'"
                   >
+                    {{ deletingSessionId === s.id ? '…' : '✕' }}
+                  </button>
+                </div>
+              </div>
+            </nav>
+
+            <nav v-else class="session-list archive-list">
+              <p class="archive-notice">Arhivirane sesije se automatski brišu 30 dana od arhiviranja.</p>
+              <p v-if="!archivedSessions.length" class="empty-state">Nemate arhiviranih četova.</p>
+              <div
+                v-for="s in archivedSessions"
+                :key="s.id"
+                class="session-item archived-item"
+                :class="{ active: s.id === activeSessionId && viewMode === 'conversation' }"
+                @click="selectSession(s.id)"
+              >
+                <div class="session-name-wrap">
+                  <span class="session-name">{{ sessionLabel(s) }}</span>
+                  <span class="archive-date">Arhivirano: {{ formatDate(s.datumArhiviranjaCS) }}</span>
+                </div>
+                <div class="session-right">
+                  <span v-if="s.imaGrane" class="branch-pill" title="Ova sesija ima grane (verzije)">grane</span>
+                  <button class="btn-unarchive-session" :disabled="unarchivingSesijaId === s.id"
+                          @click.stop="unarchiveSession(s)" title="Vrati iz arhive">
+                    {{ unarchivingSesijaId === s.id ? '…' : '↩' }}
+                  </button>
+                  <button class="btn-delete-session" :disabled="deletingSessionId === s.id || imaGrane(s)"
+                          @click.stop="deleteSession(s)"
+                          :title="imaGrane(s) ? 'Nije moguće obrisati čet koji ima grane' : 'Obriši'">
                     {{ deletingSessionId === s.id ? '…' : '✕' }}
                   </button>
                 </div>
@@ -72,11 +113,35 @@
                       :disabled="creatingSession"
                     ></textarea>
 
+                    <template v-if="newSessionForm.tipAgentaCS === 'AGENT_KNJIGE'">
+                      <p v-if="composeSlikaError" class="error-msg">{{ composeSlikaError }}</p>
+                      <div v-if="composeSlikaPreviewUrl" class="slika-preview-row">
+                        <img :src="composeSlikaPreviewUrl" class="slika-preview" alt="Pregled slike za slanje" />
+                        <span class="slika-preview-label">Slika će biti priložena uz prvu poruku</span>
+                        <button type="button" class="btn-remove-slika" @click="clearComposeSlika" :disabled="creatingSession" aria-label="Ukloni sliku">✕</button>
+                      </div>
+                      <div class="image-picker-row">
+                        <label class="btn-pick-image" :class="{ disabled: creatingSession }">
+                          📎 {{ composeSlikaFile ? 'Promeni sliku' : 'Priloži sliku' }}
+                          <input
+                            ref="composeFileInputEl"
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp"
+                            class="visually-hidden-file-input"
+                            @change="onComposeSlikaSelected"
+                            :disabled="creatingSession"
+                          />
+                        </label>
+                        <span class="image-picker-hint">JPEG, PNG ili WebP, do 10MB</span>
+                      </div>
+                    </template>
+
                     <div class="compose-actions">
                       <select
                         v-model="newSessionForm.tipAgentaCS"
                         class="compose-agent-select"
                         :disabled="creatingSession"
+                        @change="onComposeAgentChange"
                       >
                         <option value="AGENT_KNJIGE">Asistent za knjige</option>
                         <option value="AGENT_RECENZIJE">Asistent za recenzije</option>
@@ -117,29 +182,164 @@
                 >
                   <div class="msg-bubble" :class="m.tipCP === 'CLAN' ? 'user-bubble' : 'agent-bubble'">
                     <p v-if="m._pending" class="agent-pending">Agent odgovara...</p>
-                    <p v-else class="msg-text">{{ m.sadrzajCP }}</p>
+
+                    <!-- Edit mod za poruku člana -->
+                    <div v-else-if="m.tipCP === 'CLAN' && editingMessageId === m.id" class="msg-edit-box">
+                      <textarea
+                        v-model="editDraft"
+                        class="msg-edit-textarea"
+                        rows="3"
+                        :disabled="editingInFlight"
+                      ></textarea>
+
+                      <template v-if="activeSession?.tipAgentaCS === 'AGENT_KNJIGE'">
+                        <p v-if="editSlikaError" class="error-msg">{{ editSlikaError }}</p>
+
+                        <!-- Nova slika odabrana za zamenu -->
+                        <div v-if="editSlikaPreviewUrl" class="slika-preview-row">
+                          <img :src="editSlikaPreviewUrl" class="slika-preview" alt="Nova slika" />
+                          <span class="slika-preview-label">Nova slika (zamenjuje postojeću)</span>
+                          <button type="button" class="btn-remove-slika" @click="clearNovoOdabranuEditSliku" :disabled="editingInFlight" aria-label="Otkaži novu sliku">✕</button>
+                        </div>
+
+                        <!-- Postojeća slika poruke, ako je ima i nije zatraženo brisanje/zamena -->
+                        <div v-else-if="editOriginalnaSlikaUrl && !editUkloniSliku" class="slika-preview-row">
+                          <img :src="editOriginalnaSlikaUrl" class="slika-preview" alt="Trenutna slika" />
+                          <span class="slika-preview-label">Trenutna slika</span>
+                        </div>
+
+                        <!-- Slika je zatražena za brisanje -->
+                        <p v-else-if="editOriginalnaSlikaUrl && editUkloniSliku" class="slika-preview-removed">
+                          Slika će biti uklonjena.
+                        </p>
+
+                        <div class="msg-edit-slika-actions">
+                          <label
+                            class="btn-pick-image"
+                            :class="{ disabled: editingInFlight }"
+                          >
+                            📎 {{ editSlikaFile ? 'Promeni sliku' : 'Priloži sliku' }}
+                            <input
+                              ref="editFileInputEl"
+                              type="file"
+                              accept="image/png,image/jpeg,image/webp"
+                              class="visually-hidden-file-input"
+                              @change="onEditSlikaSelected"
+                              :disabled="editingInFlight"
+                            />
+                          </label>
+                          <button
+                            v-if="editOriginalnaSlikaUrl"
+                            type="button"
+                            class="btn-secondary2 btn-toggle-ukloni-slika"
+                            @click="toggleUkloniSlikuEdit"
+                            :disabled="editingInFlight"
+                          >{{ editUkloniSliku ? 'Vrati sliku' : 'Ukloni sliku' }}</button>
+                        </div>
+                      </template>
+
+                      <p v-if="editError" class="error-msg">{{ editError }}</p>
+                      <div class="modal-actions">
+                        <button
+                          type="button"
+                          class="btn-secondary2"
+                          @click="cancelEditMessage"
+                          :disabled="editingInFlight"
+                        >Otkažite</button>
+                        <button
+                          type="button"
+                          class="btn-primary"
+                          @click="submitEditMessage(m)"
+                          :disabled="editingInFlight || !editDraft.trim()"
+                        >{{ editingInFlight ? 'Čuvam...' : 'Sačuvajte' }}</button>
+                      </div>
+                    </div>
+
+                    <div v-else class="msg-content">
+                      <img v-if="m._slikaUrl" :src="m._slikaUrl" class="msg-image" alt="Priložena slika" />
+                      <p class="msg-text">{{ m.sadrzajCP }}</p>
+                    </div>
+
+                    <details
+                      v-if="m.tipCP === 'AI_ASISTENT' && !m._pending && hasIzvori(m)"
+                      class="izvori-details"
+                    >
+                      <summary class="izvori-summary">
+                        {{ izvoriNaslov(m) }}
+                      </summary>
+                      <ul class="izvori-list">
+                        <li v-for="(izvor, idx) in izvoriZaPrikaz(m)" :key="idx" class="izvori-item">
+                          <template v-if="m.tipAgentaIzvora === 'AGENT_RECENZIJE'">
+                            <span class="izvor-naslov">Recenzija {{ izvor.reviewId || izvor.id }}</span>
+                            <span v-if="izvor.isbn"> — ISBN: {{ izvor.isbn }}</span>
+                            <span v-if="izvor.rating != null"> — ocena: {{ izvor.rating }}/5</span>
+                          </template>
+                          <template v-else>
+                            <span class="izvor-naslov">{{ izvor.naslov }}</span>
+                            <span v-if="izvor.autor"> od {{ izvor.autor }}</span>
+                          </template>
+                          <span v-if="izvor.skor != null" class="izvor-skor">{{ formatSkor(izvor.skor) }}</span>
+                        </li>
+                      </ul>
+                    </details>
 
                     <div v-if="m.tipCP === 'AI_ASISTENT' && !m._pending" class="rating-row">
-                      <button class="btn-rate" :class="{ rated: m._ocena != null }" @click="openRatingPopup(m)">
+                      <button class="btn-rate" :class="{ rated: m._ocena != null }" @click="openRatingPopup(m)" :disabled="activeSession?.arhivirano">
                         {{ m._ocena != null ? `Ocenjeno ★${m._ocena}` : 'Oceni' }}
+                      </button>
+                    </div>
+
+                    <div
+                      v-else-if="m.tipCP === 'CLAN' && !m._pending && editingMessageId !== m.id && canEditMessage(m)"
+                      class="rating-row"
+                    >
+                      <button class="btn-rate" @click="startEditMessage(m)">
+                        Izmeni
                       </button>
                     </div>
                   </div>
                 </div>
               </div>
-
-              <form class="message-form" @submit.prevent="sendMessage">
-                <input
-                  v-model="draft"
-                  type="text"
-                  class="message-input"
-                  placeholder="Poruka sa pitanjem"
-                  :disabled="sending"
-                />
-                <button type="submit" class="btn-send" :disabled="sending || !draft.trim()" aria-label="Pošalji">
-                  ➤
-                </button>
-              </form>
+              
+              <div v-if="activeSession?.arhivirano" class="archived-notice-bar">
+                Ova sesija je arhivirana. Vrati je iz arhive da bi nastavio razgovor.
+              </div>
+              <template v-else>
+                <p v-if="slikaError" class="error-msg">{{ slikaError }}</p>
+                <div v-if="slikaPreviewUrl" class="slika-preview-row">
+                  <img :src="slikaPreviewUrl" class="slika-preview" alt="Pregled slike za slanje" />
+                  <button type="button" class="btn-remove-slika" @click="clearSlika" :disabled="sending" aria-label="Ukloni sliku">✕</button>
+                </div>
+                <form class="message-form" @submit.prevent="sendMessage">
+                  <label
+                    v-if="activeSession?.tipAgentaCS === 'AGENT_KNJIGE'"
+                    class="btn-pick-image btn-pick-image-inline"
+                    :class="{ disabled: sending }"
+                    title="Priloži sliku"
+                    aria-label="Priloži sliku"
+                  >
+                    📎
+                    <input
+                      ref="fileInputEl"
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      class="visually-hidden-file-input"
+                      @change="onSlikaSelected"
+                      :disabled="sending"
+                    />
+                  </label>
+                  <input
+                    v-model="draft"
+                    type="text"
+                    class="message-input"
+                    placeholder="Poruka sa pitanjem"
+                    :disabled="sending"
+                  />
+                  <button type="submit" class="btn-send" :disabled="sending || !draft.trim()" aria-label="Pošalji">
+                    ➤
+                  </button>
+                </form>
+              </template>
             </template>
 
             <!-- Stanje: ništa odabrano -->
@@ -219,6 +419,11 @@ const healthChecked = ref(false)
 const healthOk = ref(true)
 
 const sessions = ref([])
+
+const showArchive = ref(false)          
+const archivingSesijaId = ref(null)     
+const unarchivingSesijaId = ref(null)
+
 const loadingSessions = ref(false)
 const sessionsError = ref('')
 
@@ -234,6 +439,11 @@ const messagesEl = ref(null)
 const draft = ref('')
 const sending = ref(false)
 
+const slikaFile = ref(null)
+const slikaPreviewUrl = ref('')
+const fileInputEl = ref(null)
+const slikaError = ref('')
+
 const creatingSession = ref(false)
 const deletingSessionId = ref(null)
 const newSessionError = ref('')
@@ -241,6 +451,11 @@ const newSessionForm = ref({
   tipAgentaCS: 'AGENT_KNJIGE',
   sadrzajPoruke: ''
 })
+
+const composeSlikaFile = ref(null)
+const composeSlikaPreviewUrl = ref('')
+const composeFileInputEl = ref(null)
+const composeSlikaError = ref('')
 
 const ratingPopup = ref({
   open: false,
@@ -251,6 +466,23 @@ const ratingPopup = ref({
   error: ''
 })
 
+// ── Editovanje (ažuriranje) poruke člana - kreira novu granu sesije ────
+const editingMessageId = ref(null)   // id poruke koja se trenutno edituje (ulazak u edit mod)
+const editDraft = ref('')
+const editingInFlight = ref(false)
+const editError = ref('')
+
+// Slika u edit modu - tri moguća stanja pri slanju, isto kao na backendu:
+//   editSlikaFile postavljen      -> slika se zamenjuje novom
+//   editUkloniSliku === true      -> slika se briše
+//   ni jedno ni drugo              -> originalna slika (editOriginalnaSlikaUrl) ostaje
+const editOriginalnaSlikaUrl = ref('')  // originalna slika
+const editSlikaFile = ref(null)
+const editSlikaPreviewUrl = ref('')
+const editFileInputEl = ref(null)
+const editUkloniSliku = ref(false)
+const editSlikaError = ref('')
+
 const AGENT_LABELS = {
   AGENT_KNJIGE: 'Knjige',
   AGENT_RECENZIJE: 'Recenzije'
@@ -259,12 +491,54 @@ const agentLabel = (tip) => AGENT_LABELS[tip] || tip || '—'
 const agentPillClass = (tip) =>
   tip === 'AGENT_RECENZIJE' ? 'pill-recenzije' : 'pill-knjige'
 
+// Server čuva sliku kao čist base64 string (kolona slikaBase64), bez
+// data: prefiksa - ovde ga dodajemo da bi <img> mogao da je prikaže.
+// Ne znamo tačan MIME tip sa servera, ali image/jpeg je dovoljno jer
+// browseri u praksi ignorišu nepoklapanje MIME-a/sadržaja kod data URL-ova.
+function slikaBase64ToDataUrl(slikaBase64) {
+  if (!slikaBase64) return null
+  if (slikaBase64.startsWith('data:')) return slikaBase64
+  return `data:image/jpeg;base64,${slikaBase64}`
+}
+
+// ── Izvori (knjige / recenzije) na osnovu kojih je AI agent dao odgovor ──
+function izvoriZaPrikaz(m) {
+  if (m.tipAgentaIzvora === 'AGENT_RECENZIJE') {
+    return m.izvoriRecenzije || []
+  }
+  return m.izvoriKnjige || []
+}
+
+function hasIzvori(m) {
+  return izvoriZaPrikaz(m).length > 0
+}
+
+function izvoriNaslov(m) {
+  return m.tipAgentaIzvora === 'AGENT_RECENZIJE'
+    ? 'Recenzije korišćene za odgovor'
+    : 'Knjige korišćene za odgovor'
+}
+
+function formatSkor(skor) {
+  return Number(skor).toFixed(4)
+}
+
 const activeSession = computed(() =>
   sessions.value.find((s) => s.id === activeSessionId.value) || null
 )
 
+const activeSessions  = computed(() => sessions.value.filter(s => !s.arhivirano && !s._pending))
+const archivedSessions = computed(() => sessions.value.filter(s => s.arhivirano))
+
 function sessionLabel(session) {
   return session?.naslovCS || 'Bez naziva'
+}
+
+// Korisnik ne može da arhivira ili obriše čet ako ima grane (isto pravilo
+// kao na backendu - ovde ga samo unapred provervamo da ne šaljemo poziv
+// koji znamo da će vratiti 409).
+function imaGrane(session) {
+  return !!session?.imaGrane
 }
 
 onMounted(async () => {
@@ -305,6 +579,7 @@ async function loadSessions() {
 
 async function selectSession(id) {
   if (id === activeSessionId.value && viewMode.value === 'conversation') return
+  cancelEditMessage()
   activeSessionId.value = id
   viewMode.value = 'conversation'
   await loadMessages(id)
@@ -316,7 +591,8 @@ async function loadMessages(id) {
   messages.value = []
   try {
     const res = await cetSesijaApi.jedna(id)
-    messages.value = (res.data?.poruke || []).map((p) => ({ ...p }))
+    const tipAgenta = res.data?.tipAgentaCS
+    messages.value = (res.data?.poruke || []).map((p) => ({ ...p, tipAgentaIzvora: tipAgenta, _slikaUrl: slikaBase64ToDataUrl(p.slikaBase64) }))
     await scrollToBottom()
     await loadRatings()
   } catch (e) {
@@ -387,10 +663,20 @@ async function sendMessage() {
   sending.value = true
   draft.value = ''
 
+  const slika = slikaFile.value
+  // Lokalni object URL za trenutni prikaz dok čekamo odgovor servera.
+  // Čuvamo ga posebno od slikaPreviewUrl da clearSlika() ne oslobodi
+  // URL koji upravo prikazujemo u poruci.
+  const lokalniPreviewZaPoruku = slikaPreviewUrl.value
+  slikaFile.value = null
+  slikaPreviewUrl.value = ''
+  if (fileInputEl.value) fileInputEl.value.value = ''
+
   const userMsg = {
     id: `temp-user-${Date.now()}`,
     tipCP: 'CLAN',
-    sadrzajCP: sadrzaj
+    sadrzajCP: sadrzaj,
+    _slikaUrl: lokalniPreviewZaPoruku || null
   }
   const pendingAgentMsg = {
     id: `temp-agent-${Date.now()}`,
@@ -402,9 +688,16 @@ async function sendMessage() {
   await scrollToBottom()
 
   try {
-    const res = await cetPorukaApi.nova(activeSessionId.value, sadrzaj)
+    const res = await cetPorukaApi.nova(activeSessionId.value, sadrzaj, slika)
     const data = res.data || {}
     userMsg.id = data.porukaClana?.id ?? userMsg.id
+    // Server je sada izvor istine za sliku (trajno sačuvana kao
+    // slikaBase64) - zamenjujemo privremeni object URL data URL-om sa
+    // servera, koji ostaje ispravan i posle reload-a/loadMessages.
+    if (data.porukaClana?.slikaBase64) {
+      if (lokalniPreviewZaPoruku) URL.revokeObjectURL(lokalniPreviewZaPoruku)
+      userMsg._slikaUrl = slikaBase64ToDataUrl(data.porukaClana.slikaBase64)
+    }
     pendingAgentMsg.id = data.porukaAgenta?.id ?? pendingAgentMsg.id
     pendingAgentMsg.sadrzajCP = data.porukaAgenta?.sadrzajCP ?? ''
     pendingAgentMsg._pending = false
@@ -428,9 +721,83 @@ async function scrollToBottom() {
   }
 }
 
+const DOZVOLJENI_TIPOVI_SLIKE = ['image/png', 'image/jpeg', 'image/webp']
+const MAX_VELICINA_SLIKE = 10 * 1024 * 1024 // 10MB
+
+function onSlikaSelected(e) {
+  const file = e.target.files?.[0]
+  if (!file) return
+
+  slikaError.value = ''
+
+  if (!DOZVOLJENI_TIPOVI_SLIKE.includes(file.type)) {
+    slikaError.value = 'Dozvoljene su samo JPEG, PNG i WebP slike.'
+    e.target.value = ''
+    return
+  }
+  if (file.size > MAX_VELICINA_SLIKE) {
+    slikaError.value = 'Slika ne može biti veća od 10MB.'
+    e.target.value = ''
+    return
+  }
+
+  if (slikaPreviewUrl.value) URL.revokeObjectURL(slikaPreviewUrl.value)
+  slikaFile.value = file
+  slikaPreviewUrl.value = URL.createObjectURL(file)
+}
+
+function clearSlika() {
+  if (slikaPreviewUrl.value) URL.revokeObjectURL(slikaPreviewUrl.value)
+  slikaFile.value = null
+  slikaPreviewUrl.value = ''
+  slikaError.value = ''
+  if (fileInputEl.value) fileInputEl.value.value = ''
+}
+
+function onComposeSlikaSelected(e) {
+  const file = e.target.files?.[0]
+  if (!file) return
+
+  composeSlikaError.value = ''
+
+  if (!DOZVOLJENI_TIPOVI_SLIKE.includes(file.type)) {
+    composeSlikaError.value = 'Dozvoljene su samo JPEG, PNG i WebP slike.'
+    e.target.value = ''
+    return
+  }
+  if (file.size > MAX_VELICINA_SLIKE) {
+    composeSlikaError.value = 'Slika ne može biti veća od 10MB.'
+    e.target.value = ''
+    return
+  }
+
+  if (composeSlikaPreviewUrl.value) URL.revokeObjectURL(composeSlikaPreviewUrl.value)
+  composeSlikaFile.value = file
+  composeSlikaPreviewUrl.value = URL.createObjectURL(file)
+}
+
+function clearComposeSlika() {
+  if (composeSlikaPreviewUrl.value) URL.revokeObjectURL(composeSlikaPreviewUrl.value)
+  composeSlikaFile.value = null
+  composeSlikaPreviewUrl.value = ''
+  composeSlikaError.value = ''
+  if (composeFileInputEl.value) composeFileInputEl.value.value = ''
+}
+
+// Slika je podržana samo za asistenta za knjige - isto pravilo kao na
+// backendu (CetSesijaService). Ako korisnik prebaci na recenzije nakon
+// što je već odabrao sliku, uklanjamo je da ne dobijemo 400 pri slanju.
+function onComposeAgentChange() {
+  if (newSessionForm.value.tipAgentaCS !== 'AGENT_KNJIGE') {
+    clearComposeSlika()
+  }
+}
+
 function openCompose() {
+  cancelEditMessage()
   newSessionForm.value = { tipAgentaCS: 'AGENT_KNJIGE', sadrzajPoruke: '' }
   newSessionError.value = ''
+  clearComposeSlika()
   viewMode.value = 'compose'
 }
 
@@ -443,6 +810,15 @@ async function createSession() {
   }
 
   creatingSession.value = true
+
+  const slika = composeSlikaFile.value
+  // Lokalni object URL za trenutni prikaz dok čekamo odgovor servera -
+  // isti obrazac kao u sendMessage(). Čuvamo ga posebno da clearComposeSlika()
+  // (pozvana ispod) ne oslobodi URL koji upravo prikazujemo u poruci.
+  const lokalniPreviewZaPoruku = composeSlikaPreviewUrl.value
+  composeSlikaFile.value = null
+  composeSlikaPreviewUrl.value = ''
+  if (composeFileInputEl.value) composeFileInputEl.value.value = ''
 
   // Optimistički ubacujemo privremenu sesiju u levu listu da korisnik
   // odmah vidi da je čet pokrenut, dok čekamo prawi odgovor sa servera.
@@ -458,13 +834,13 @@ async function createSession() {
   activeSessionId.value = tempId
   viewMode.value = 'conversation'
   messages.value = [
-    { id: `temp-user-${Date.now()}`, tipCP: 'CLAN', sadrzajCP: sadrzaj },
+    { id: `temp-user-${Date.now()}`, tipCP: 'CLAN', sadrzajCP: sadrzaj, _slikaUrl: lokalniPreviewZaPoruku || null },
     { id: `temp-agent-${Date.now()}`, tipCP: 'AI_ASISTENT', sadrzajCP: '', _pending: true }
   ]
   await scrollToBottom()
 
   try {
-    const res = await cetSesijaApi.nova(tipAgenta, sadrzaj)
+    const res = await cetSesijaApi.nova(tipAgenta, sadrzaj, slika)
     const newSession = res.data
 
     // Zamenjujemo privremenu sesiju pravom (server vraća naslovCS
@@ -478,7 +854,16 @@ async function createSession() {
 
     if (newSession?.id) {
       activeSessionId.value = newSession.id
-      messages.value = (newSession.poruke || []).map((p) => ({ ...p, _ocena: null, _komentar: '' }))
+      // Server je sada izvor istine za sliku (trajno sačuvana kao
+      // slikaBase64) - isti obrazac kao u sendMessage().
+      if (lokalniPreviewZaPoruku) URL.revokeObjectURL(lokalniPreviewZaPoruku)
+      messages.value = (newSession.poruke || []).map((p) => ({
+        ...p,
+        tipAgentaIzvora: newSession.tipAgentaCS,
+        _ocena: null,
+        _komentar: '',
+        _slikaUrl: slikaBase64ToDataUrl(p.slikaBase64)
+      }))
       await scrollToBottom()
     }
   } catch (e) {
@@ -487,6 +872,13 @@ async function createSession() {
     sessions.value = sessions.value.filter((s) => s.id !== tempId)
     activeSessionId.value = null
     viewMode.value = 'compose'
+
+    // Vraćamo odabranu sliku na compose ekran da je korisnik ne izgubi
+    // zajedno sa porukom, isto kao i tekst (sadrzajPoruke ostaje u formi).
+    if (slika) {
+      composeSlikaFile.value = slika
+      composeSlikaPreviewUrl.value = lokalniPreviewZaPoruku || URL.createObjectURL(slika)
+    }
 
     if (e.response?.status === 400) {
       newSessionError.value = 'Nedostaje sadržaj poruke ili tip asistenta.'
@@ -502,12 +894,16 @@ async function createSession() {
 
 async function deleteSession(session) {
   if (session._pending) return
+  if (imaGrane(session)) {
+    sessionsError.value = 'Nije moguće obrisati čet koji ima grane. Obrišite prvo sve grane.'
+    return
+  }
   if (!confirm(`Obrisati čet "${sessionLabel(session)}"?`)) return
 
   deletingSessionId.value = session.id
   try {
     await cetSesijaApi.obrisi(session.id)
-    sessions.value = sessions.value.filter((s) => s.id !== session.id)
+    await loadSessions()
 
     // Ako je obrisana aktivna sesija, vrati na compose ekran
     if (activeSessionId.value === session.id) {
@@ -516,13 +912,210 @@ async function deleteSession(session) {
       messages.value = []
     }
   } catch (e) {
-    sessionsError.value = e.response?.status === 404
-      ? 'Čet sesija nije pronađena.'
-      : 'Greška pri brisanju. Pokušajte ponovo.'
+    if (e.response?.status === 404) {
+      sessionsError.value = 'Čet sesija nije pronađena.'
+    } else if (e.response?.status === 409) {
+      sessionsError.value = 'Nije moguće obrisati čet koji ima grane.'
+    } else {
+      sessionsError.value = 'Greška pri brisanju. Pokušajte ponovo.'
+    }
   } finally {
     deletingSessionId.value = null
   }
 }
+
+async function archiveSession(session) {
+  if (session._pending) return
+  if (imaGrane(session)) {
+    sessionsError.value = 'Nije moguće arhivirati čet koji ima grane.'
+    return
+  }
+  if (!confirm(`Arhivirati čet "${sessionLabel(session)}"?`)) return
+
+  archivingSesijaId.value = session.id
+  try {
+    const res = await cetSesijaApi.arhiviraj(session.id)
+    // Ažuriramo lokalnu sesiju sa novim podacima (arhivirano: true, datumArhiviranjaCS)
+    const idx = sessions.value.findIndex(s => s.id === session.id)
+    if (idx !== -1) sessions.value.splice(idx, 1, res.data)
+    // Ako je bila aktivna, osvežimo je
+    if (activeSessionId.value === session.id && viewMode.value === 'conversation') {
+      await loadMessages(session.id)
+    }
+  } catch (e) {
+    if (e.response?.status === 409) {
+      sessionsError.value = 'Sesija je već arhivirana ili ima grane.'
+    } else {
+      sessionsError.value = 'Greška pri arhiviranju.'
+    }
+  } finally {
+    archivingSesijaId.value = null
+  }
+}
+
+async function unarchiveSession(session) {
+  if (!confirm(`Vratiti čet "${sessionLabel(session)}" iz arhive?`)) return
+
+  unarchivingSesijaId.value = session.id
+  try {
+    const res = await cetSesijaApi.vrati(session.id)
+    const idx = sessions.value.findIndex(s => s.id === session.id)
+    if (idx !== -1) sessions.value.splice(idx, 1, res.data)
+    if (activeSessionId.value === session.id && viewMode.value === 'conversation') {
+      await loadMessages(session.id)
+    }
+  } catch (e) {
+    sessionsError.value = e.response?.status === 409
+      ? 'Sesija nije arhivirana.'
+      : 'Greška pri vraćanju iz arhive.'
+  } finally {
+    unarchivingSesijaId.value = null
+  }
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '—'
+  return new Date(dateStr).toLocaleDateString('sr-RS', {
+    day: '2-digit', month: '2-digit', year: 'numeric'
+  })
+}
+
+// ── Editovanje poruke člana ─────────────────────────────────────────
+// Dozvoljeno je samo za poruke tipa CLAN, i samo dok sesija nije
+// arhivirana (isto pravilo važi i na backendu - frontend ga samo
+// proverava unapred radi boljeg UX-a).
+function canEditMessage(message) {
+  return message?.tipCP === 'CLAN' && !message?._pending && !activeSession.value?.arhivirano
+}
+
+function startEditMessage(message) {
+  if (!canEditMessage(message)) return
+  editingMessageId.value = message.id
+  editDraft.value = message.sadrzajCP
+  editError.value = ''
+
+  editOriginalnaSlikaUrl.value = message._slikaUrl || ''
+  editSlikaFile.value = null
+  editSlikaPreviewUrl.value = ''
+  editUkloniSliku.value = false
+  editSlikaError.value = ''
+}
+
+function cancelEditMessage() {
+  editingMessageId.value = null
+  editDraft.value = ''
+  editError.value = ''
+
+  if (editSlikaPreviewUrl.value) URL.revokeObjectURL(editSlikaPreviewUrl.value)
+  editOriginalnaSlikaUrl.value = ''
+  editSlikaFile.value = null
+  editSlikaPreviewUrl.value = ''
+  editUkloniSliku.value = false
+  editSlikaError.value = ''
+  if (editFileInputEl.value) editFileInputEl.value.value = ''
+}
+
+function onEditSlikaSelected(e) {
+  const file = e.target.files?.[0]
+  if (!file) return
+
+  editSlikaError.value = ''
+
+  if (!DOZVOLJENI_TIPOVI_SLIKE.includes(file.type)) {
+    editSlikaError.value = 'Dozvoljene su samo JPEG, PNG i WebP slike.'
+    e.target.value = ''
+    return
+  }
+  if (file.size > MAX_VELICINA_SLIKE) {
+    editSlikaError.value = 'Slika ne može biti veća od 10MB.'
+    e.target.value = ''
+    return
+  }
+
+  if (editSlikaPreviewUrl.value) URL.revokeObjectURL(editSlikaPreviewUrl.value)
+  editSlikaFile.value = file
+  editSlikaPreviewUrl.value = URL.createObjectURL(file)
+  // Nova slika i "ukloni sliku" su međusobno isključivi - biranje nove
+  // slike automatski otkazuje prethodno zatraženo brisanje.
+  editUkloniSliku.value = false
+}
+
+function clearNovoOdabranuEditSliku() {
+  if (editSlikaPreviewUrl.value) URL.revokeObjectURL(editSlikaPreviewUrl.value)
+  editSlikaFile.value = null
+  editSlikaPreviewUrl.value = ''
+  if (editFileInputEl.value) editFileInputEl.value.value = ''
+}
+
+function toggleUkloniSlikuEdit() {
+  // Ako je korisnik upravo odabrao novu sliku, klik na "ukloni sliku"
+  // odbacuje tu novu sliku i prelazi na brisanje originalne.
+  if (editSlikaFile.value) clearNovoOdabranuEditSliku()
+  editUkloniSliku.value = !editUkloniSliku.value
+}
+
+async function submitEditMessage(message) {
+  const noviSadrzaj = editDraft.value.trim()
+  if (!noviSadrzaj) {
+    editError.value = 'Poruka mora da ima sadržaj.'
+    return
+  }
+
+  editingInFlight.value = true
+  editError.value = ''
+  try {
+    // Backend ne menja postojeću poruku/sesiju - kreira NOVU čet sesiju
+    // (granu, npr. v2) koja sadrži kopirane poruke do tačke editovanja,
+    // izmenjenu poruku i novi odgovor agenta. Vraća CetSesijaDetaljnoDto.
+    // Slika ide u jednom od tri stanja: nova (editSlikaFile), brisanje
+    // (editUkloniSliku), ili izostavljena (stara slika ostaje na serveru).
+    const res = await cetPorukaApi.azuriraj(
+      message.id,
+      noviSadrzaj,
+      editSlikaFile.value,
+      editUkloniSliku.value
+    )
+    const novaSesija = res.data
+
+    // Originalna sesija sada ima grane (imaGrane: true) - ažuriramo
+    // je lokalno da se odmah onemoguće arhiviranje/brisanje u UI-ju.
+    if (activeSession.value) {
+      const idxOriginal = sessions.value.findIndex((s) => s.id === activeSession.value.id)
+      if (idxOriginal !== -1) {
+        sessions.value.splice(idxOriginal, 1, { ...sessions.value[idxOriginal], imaGrane: true })
+      }
+    }
+
+    // Dodajemo novu granu u listu sesija i odmah je otvaramo.
+    sessions.value = [novaSesija, ...sessions.value]
+    activeSessionId.value = novaSesija.id
+    viewMode.value = 'conversation'
+    messages.value = (novaSesija.poruke || []).map((p) => ({
+      ...p,
+      _ocena: null,
+      _komentar: '',
+      _slikaUrl: slikaBase64ToDataUrl(p.slikaBase64)
+    }))
+    cancelEditMessage()
+    await scrollToBottom()
+    await loadRatings()
+  } catch (e) {
+    if (e.response?.status === 404) {
+      editError.value = 'Poruka ili sesija ne postoji.'
+    } else if (e.response?.status === 409) {
+      editError.value = 'Nije moguće editovati poruku u arhiviranoj sesiji.'
+    } else if (e.response?.status === 400) {
+      editError.value = e.response?.data || 'Nije moguće editovati ovu poruku.'
+    } else if (e.response?.status === 502) {
+      editError.value = 'Agent trenutno nije dostupan. Pokušajte kasnije.'
+    } else {
+      editError.value = 'Greška pri ažuriranju poruke. Pokušajte ponovo.'
+    }
+  } finally {
+    editingInFlight.value = false
+  }
+}
+
 </script>
 
 <style scoped>
@@ -663,7 +1256,15 @@ async function deleteSession(session) {
 }
 .user-bubble  { background: white; border: 1px solid var(--border); color: var(--text-dark); }
 .agent-bubble { background: white; border: 1px solid var(--border); color: var(--text-dark); }
+.msg-content { display: flex; flex-direction: column; gap: 0.5rem; }
 .msg-text { margin: 0; white-space: pre-wrap; }
+.msg-image {
+  max-width: 220px;
+  max-height: 220px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  object-fit: cover;
+}
 
 .rating-row {
   display: flex;
@@ -691,15 +1292,111 @@ async function deleteSession(session) {
   color: #7a5c1d;
 }
 
+.btn-rate:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ── Padajući meni: izvori (knjige / recenzije) za odgovor agenta ────── */
+.izvori-details {
+  margin-top: 0.6rem;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 0 0.7rem;
+  background: var(--card-bg-alt);
+}
+.izvori-details[open] {
+  padding-bottom: 0.6rem;
+}
+
+.izvori-summary {
+  cursor: pointer;
+  list-style: none;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-mid);
+  padding: 0.55rem 0;
+  user-select: none;
+}
+.izvori-summary::-webkit-details-marker { display: none; }
+.izvori-summary::before {
+  content: '▸';
+  display: inline-block;
+  margin-right: 0.4rem;
+  transition: transform 0.15s ease;
+}
+.izvori-details[open] .izvori-summary::before {
+  transform: rotate(90deg);
+}
+.izvori-summary:hover { color: var(--text-dark); }
+
+.izvori-list {
+  margin: 0.2rem 0 0;
+  padding-left: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.izvori-item {
+  font-size: 0.85rem;
+  color: var(--text-dark);
+  line-height: 1.4;
+}
+
+.izvor-naslov { font-weight: 700; }
+
+.izvor-skor {
+  display: inline-block;
+  margin-left: 0.5rem;
+  background: #e3f3e3;
+  color: #2d6a2d;
+  border-radius: 6px;
+  padding: 0.05rem 0.45rem;
+  font-size: 0.78rem;
+  font-family: 'Courier New', monospace;
+}
+
+/* ── Editovanje poruke (kreira granu) ────────────────────── */
+.msg-edit-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0rem;
+}
+.msg-edit-textarea {
+  width: 100%;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.7rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: var(--text-dark);
+  resize: vertical;
+}
+.msg-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0rem;
+}
+.msg-edit-actions .btn-secondary2,
+.msg-edit-actions .btn-small {
+  margin: 0;
+}
+
 .message-form {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
   background: var(--input-bg);
   border: 1.5px solid var(--border);
   border-radius: 999px;
-  padding: 0.5rem 0.5rem 0.5rem 1.2rem;
+  padding: 0.5rem;
   flex-shrink: 0;
+}
+.message-form .message-input {
+  padding-left: 0.4rem;
 }
 .message-input {
   flex: 1;
@@ -725,6 +1422,120 @@ async function deleteSession(session) {
 }
 .btn-send:hover    { opacity: 0.9; }
 .btn-send:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Biranje slike: native <input type="file"> je vizuelno nemoguće
+   doterati preko CSS-a (browser "Choose file" dugme ne prati temu), pa
+   ga sakrivamo i koristimo <label> kao trigger - klik na label fokusira
+   i otvara dijalog vezanog inputa bez ikakvog JS-a za to. ────────────── */
+.visually-hidden-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.btn-pick-image {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+  background: var(--card-bg-alt, transparent);
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.85rem;
+  color: var(--text-mid);
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.btn-pick-image:hover {
+  border-color: var(--btn-primary, #7a5c48);
+  color: var(--text-dark);
+}
+.btn-pick-image.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Varijanta dugmeta koja se uklapa u zaokruženu traku za slanje poruke
+   (pored teksta i dugmeta za slanje) - samo ikonica, bez teksta. */
+.btn-pick-image-inline {
+  padding: 0.5rem;
+  width: 40px;
+  height: 40px;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 1.05rem;
+}
+
+.image-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+.image-picker-hint {
+  font-size: 0.78rem;
+  color: var(--text-mid);
+}
+
+.slika-preview-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+  flex-shrink: 0;
+}
+.slika-preview {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+}
+.btn-remove-slika {
+  background: transparent;
+  border: 1.5px solid var(--border);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 0.75rem;
+  color: var(--text-mid);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-remove-slika:hover { color: #c0392b; border-color: #c0392b; }
+.btn-remove-slika:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.slika-preview-label {
+  font-size: 0.78rem;
+  color: var(--text-mid);
+}
+.slika-preview-removed {
+  font-size: 0.82rem;
+  color: #c0392b;
+  margin: 0 0 0.5rem 0;
+}
+.msg-edit-slika-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+  flex-wrap: wrap;
+}
+.btn-toggle-ukloni-slika {
+  font-size: 0.78rem;
+  padding: 0.3rem 0.7rem;
+}
 
 .no-session-state {
   flex: 1;
@@ -832,7 +1643,6 @@ async function deleteSession(session) {
   .conversation-panel { order: 1; }
 }
 
-
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -907,4 +1717,78 @@ async function deleteSession(session) {
 .session-item:hover .btn-delete-session { opacity: 1; }
 .btn-delete-session:hover { color: #c0392b; background: #fdecea; }
 .btn-delete-session:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-show-archive {
+  background: var(--btn-secondary);
+  color: var(--text-light);
+  border: none;
+  border-radius: 999px;
+  padding: 0.7rem 1rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-top: 0.8%;
+  transition: background 0.2s;
+}
+.btn-show-archive:hover { background: var(--btn-secondary-hover); }
+
+.archive-notice {
+  font-size: 0.8rem;
+  background: #fef3cd;
+  color: #7a5c1d;
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.archived-item { opacity: 0.85; }
+
+.session-name-wrap {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.archive-date {
+  font-size: 0.72rem;
+  color: var(--text-mid);
+  font-weight: 400;
+}
+
+.btn-unarchive-session {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.2rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  color: var(--btn-primary);
+  transition: background 0.15s;
+}
+.btn-unarchive-session:hover { background: #dde8d8; }
+
+.btn-archive-session {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.2rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  color: var(--text-mid);
+  transition: background 0.15s;
+}
+.btn-archive-session:hover { background: #fef3cd; }
+.btn-archive-session:disabled { opacity: 0.4; cursor: not-allowed; background: transparent; }
+
+.archived-notice-bar {
+  background: #fef3cd;
+  color: #7a5c1d;
+  border-radius: 8px;
+  padding: 0.7rem 1.2rem;
+  font-size: 0.92rem;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
 </style>

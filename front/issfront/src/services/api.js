@@ -242,27 +242,62 @@ export const sistemskePreporukeApi = {
 export const cetSesijaApi = {
   sve:      ()                          => api.get('/cet-sesija/sve'),
   jedna:    (id)                        => api.get(`/cet-sesija/${id}`),
-  nova: (tipAgentaCS, sadrzajPoruke) => {
+  nova: (tipAgentaCS, sadrzajPoruke, slika) => {
     const formData = new FormData()
     const podaciBlob = new Blob(
       [JSON.stringify({ tipAgentaCS, sadrzajPoruke })],
       { type: 'application/json' }
     )
     formData.append('podaci', podaciBlob)
+    if (slika) {
+      formData.append('slika', slika)
+    }
     return api.post('/cet-sesija/nova', formData, {
-    headers: { 'Content-Type': undefined }
-  })
+      headers: { 'Content-Type': undefined }
+    })
   },
   obrisi:   (id)                        => api.delete(`/cet-sesija/${id}`),
+  arhiviraj: (id) => api.patch(`/cet-sesija/${id}/arhiviraj`),
+  vrati:     (id) => api.patch(`/cet-sesija/${id}/vrati`),
 }
 
 // ── AI Asistent: čet poruke ───────────────────────────────────────────
+// Poruke se šalju kao multipart/form-data sa poljem "podaci" (JSON string) i opcionim poljem "slika" (fajl, samo agent za knjige).
 export const cetPorukaApi = {
-  nova:        (idCetSesije, sadrzajPoruke) =>
-    api.post(`/cet-poruka/cet-sesija/${idCetSesije}`, { sadrzajPoruke }),
+  nova: (idCetSesije, sadrzajPoruke, slika) => {
+    const formData = new FormData()
+    const podaciBlob = new Blob(
+      [JSON.stringify({ sadrzajPoruke })],
+      { type: 'application/json' }
+    )
+    formData.append('podaci', podaciBlob)
+    if (slika) {
+      formData.append('slika', slika)
+    }
+    return api.post(`/cet-poruka/cet-sesija/${idCetSesije}`, formData, {
+      headers: { 'Content-Type': undefined }
+    })
+  },
   ocena:       (idCetPoruke)                => api.get(`/cet-poruka/${idCetPoruke}/ocena`),
   oceni:       (idCetPoruke, ocenaCP, komentarCP) =>
     api.post(`/cet-poruka/${idCetPoruke}/ocena`, { ocenaCP, komentarCP }),
+  // ukloniSliku: eksplicitan signal da se postojeća slika poruke obriše.
+  // slika: nova slika koja zamenjuje postojeću.
+  // Ako ni slika ni ukloniSliku nisu prisutni, postojeća slika ostaje.
+  azuriraj: (idCetPoruke, sadrzajPoruke, slika, ukloniSliku = false) => {
+    const formData = new FormData()
+    const podaciBlob = new Blob(
+      [JSON.stringify({ sadrzajPoruke, ukloniSliku })],
+      { type: 'application/json' }
+    )
+    formData.append('podaci', podaciBlob)
+    if (slika) {
+      formData.append('slika', slika)
+    }
+    return api.put(`/cet-poruka/${idCetPoruke}`, formData, {
+      headers: { 'Content-Type': undefined }
+    })
+  },
 }
 
 // ── AI Asistent: health check (poseban servis, port 8000) ────────────
@@ -312,6 +347,13 @@ export const izvestajApi = {
       responseType: 'blob'
     }),
     nabavka: (od, datDo) => api.get('/izvestaj/nabavka', { params: { od, do: datDo }, responseType: 'blob' }),
+}
+
+// ── Komentari ─────────────────────────────────────────────────────────
+export const komentarApi = {
+  dohvati: (isbn)                  => api.get(`/knjiga/${isbn}/komentari`),
+  dodaj:   (isbn, data)            => api.post(`/knjiga/${isbn}/komentari`, data),
+  lajkuj:  (isbn, komentarId)      => api.post(`/knjiga/${isbn}/komentari/${komentarId}/lajk`),
 }
 
 export default api

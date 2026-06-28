@@ -27,22 +27,24 @@ public class VektorskiServisClient {
         this.restTemplate = restTemplate;
     }
 
-    public KnjigeOdgovorDto pitajAgentaKnjige(String poruka) {
+    public KnjigeOdgovorDto pitajAgentaKnjige(String poruka, String slikaBase64) {
         String url = baseUrl + "/api/v1/books/chat";
-        return pozovi(url, poruka, KnjigeOdgovorDto.class);
+        VektorskiUpitDto upit = new VektorskiUpitDto(poruka);
+        upit.setImageBase64(slikaBase64);
+        return pozovi(url, upit, KnjigeOdgovorDto.class);
     }
 
     public RecenzijeOdgovorDto pitajAgentaRecenzije(String poruka) {
         String url = baseUrl + "/api/v1/reviews/chat";
-        return pozovi(url, poruka, RecenzijeOdgovorDto.class);
+        return pozovi(url, new VektorskiUpitDto(poruka), RecenzijeOdgovorDto.class);
     }
 
-    private <T> T pozovi(String url, String poruka, Class<T> tipOdgovora) {
+    private <T> T pozovi(String url, VektorskiUpitDto upit, Class<T> tipOdgovora) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(java.util.List.of(MediaType.APPLICATION_JSON));
 
-        HttpEntity<VektorskiUpitDto> zahtev = new HttpEntity<>(new VektorskiUpitDto(poruka), headers);
+        HttpEntity<VektorskiUpitDto> zahtev = new HttpEntity<>(upit, headers);
 
         try {
             T odgovor = restTemplate.postForObject(url, zahtev, tipOdgovora);

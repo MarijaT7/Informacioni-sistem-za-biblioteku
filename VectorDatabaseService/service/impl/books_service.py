@@ -6,6 +6,7 @@ import heapq
 import logging
 from concurrent.futures import ThreadPoolExecutor
 
+from extraction.books_filter_extraction import BookSearchFilters
 from model.book import Book, BookCreate, BookSearchResult, BookUpdate
 from repository.books_repository import books_repository
 from service.i_books_service import IBooksService
@@ -25,6 +26,8 @@ def _build_filter(
     author: str | None,
     publisher: str | None,
     has_image: bool | None,
+    min_pages: int | None = None,
+    max_pages: int | None = None,
 ) -> str:
     clauses = []
     if language and language.strip():
@@ -37,6 +40,10 @@ def _build_filter(
         clauses.append("has_image == true")
     elif has_image is False:
         clauses.append("has_image == false")
+    if min_pages is not None:
+        clauses.append(f"pages >= {int(min_pages)}")
+    if max_pages is not None:
+        clauses.append(f"pages <= {int(max_pages)}")
     return " && ".join(clauses)
 
 
@@ -319,6 +326,41 @@ class BooksService(IBooksService):
         )[0]
         return [_to_book_search_result(hit) for hit in hits]
 
+    def multi_filtered_semantic_search(
+        self,
+        query: str,
+        filters: BookSearchFilters,
+        top_k: int,
+    ) -> list[BookSearchResult]:
+        """Vector search over description_embedding with any combination of
+        scalar filters (language/author/publisher/page range).
+
+        Unlike `filtered_semantic_search` (which is fixed to language + a
+        required page range, mirroring an older fixed-schema endpoint), this
+        accepts whatever subset of filters was actually extracted from a
+        chat message — including author/publisher alone, with no language
+        or page range at all.
+        """
+        if not query or not query.strip():
+            raise ValueError("Query cannot be empty")
+        if top_k <= 0:
+            raise ValueError("top_k must be positive")
+        if filters.is_empty():
+            raise ValueError("At least one filter must be set; use semantic_search for unfiltered queries")
+
+        filter_expr = _build_filter(
+            language=filters.language,
+            author=filters.author,
+            publisher=filters.publisher,
+            has_image=None,
+            min_pages=filters.min_pages,
+            max_pages=filters.max_pages,
+        )
+
+        query_vector = embedding_service.encode_text_one(query.strip())
+        hits = books_repository.search_description([query_vector], top_k, filter_expr)[0]
+        return [_to_book_search_result(hit) for hit in hits]
+
     def iterator_semantic_search(
         self,
         query: str,
@@ -374,6 +416,7 @@ class BooksService(IBooksService):
         image_base64: str | None,
         text_weight: float,
         top_k: int,
+        filters: BookSearchFilters | None = None,
     ) -> dict:
         if not query or not query.strip():
             raise ValueError("Query cannot be empty")
@@ -396,14 +439,36 @@ class BooksService(IBooksService):
             image_vector = embedding_service.encode_from_base64(image_base64.strip())
             image_source = "base64"
 
+        # Scalar filters extracted from the chat message (if any) apply to both
+        # recall legs. The cover leg additionally always requires has_image,
+        # since there is nothing useful to compare a query image against
+        # otherwise — _build_filter combines both conditions into one expr.
+        user_filter_expr = ""
+        if filters is not None and not filters.is_empty():
+            user_filter_expr = _build_filter(
+                language=filters.language,
+                author=filters.author,
+                publisher=filters.publisher,
+                has_image=None,
+                min_pages=filters.min_pages,
+                max_pages=filters.max_pages,
+            )
+
+        text_filter_expr = user_filter_expr
+        cover_filter_expr = (
+            f"({user_filter_expr}) && has_image == true" if user_filter_expr else "has_image == true"
+        )
+
         recall_k = max(top_k * 3, 50)
         with ThreadPoolExecutor(max_workers=2) as executor:
-            text_future = executor.submit(books_repository.search_description, [text_vector], recall_k)
+            text_future = executor.submit(
+                books_repository.search_description, [text_vector], recall_k, text_filter_expr,
+            )
             cover_future = executor.submit(
                 books_repository.search_cover,
                 [image_vector],
                 recall_k,
-                "has_image == true",
+                cover_filter_expr,
             )
             text_hits = text_future.result()[0]
             cover_hits = cover_future.result()[0]
@@ -415,6 +480,7 @@ class BooksService(IBooksService):
             "image_source": image_source,
             "text_weight": text_weight,
             "image_weight": 1 - text_weight,
+            "applied_filters": filters.model_dump() if filters is not None else None,
             "results": [_to_book_search_result(hit).model_dump(by_alias=True) for hit in fused],
         }
 

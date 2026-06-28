@@ -1,11 +1,13 @@
 package ftn.iis.service;
 
 import ftn.iis.dto.*;
+import ftn.iis.enums.TipAgentaCS;
 import ftn.iis.model.CetPoruka;
 import ftn.iis.model.CetSesija;
 import ftn.iis.model.User;
 import ftn.iis.repository.CetSesijaRepository;
 import ftn.iis.repository.UserRepository;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,9 +45,15 @@ public class CetSesijaService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public CetSesija postNovaCetSesija(String jmbg, NovaCetSesijaDto podaci) {
+    public CetSesija postNovaCetSesija(String jmbg, NovaCetSesijaDto podaci, String slikaBase64) {
         // 0. Proveri postojanje korisnika
         User user = userRepository.findByJmbg(jmbg).orElseThrow();
+
+        // Slika je podržana samo za agenta za knjige (recenzije nemaju cover
+        // embedding, pa slika tamo nema svrhu na strani vektorskog servisa).
+        if (slikaBase64 != null && podaci.getTipAgentaCS() != TipAgentaCS.AGENT_KNJIGE) {
+            throw new IllegalArgumentException("Slika je podržana samo za asistenta za knjige.");
+        }
 
         // 1. Kreiraj osnovnu cet sesiju prvo
         CetSesija cetSesija = new CetSesija();
@@ -56,10 +64,10 @@ public class CetSesijaService {
         cetSesija = cetSesijaRepository.saveAndFlush(cetSesija);
 
         // 2. Kreiraj samu poruku
-        CetPoruka korisnikovaPoruka = cetPorukaService.sacuvajPorukuClana(cetSesija, podaci.getSadrzajPoruke());
+        CetPoruka korisnikovaPoruka = cetPorukaService.sacuvajPorukuClana(cetSesija, podaci.getSadrzajPoruke(), slikaBase64);
 
         // 3. Pozovi odgovarajuci vektorski servis u zavisnosti od tipa agenta
-        CetPoruka porukaAgenta = cetPorukaService.pozoviAgentaISacuvajOdgovor(cetSesija, podaci.getSadrzajPoruke());
+        CetPoruka porukaAgenta = cetPorukaService.pozoviAgentaISacuvajOdgovor(cetSesija, podaci.getSadrzajPoruke(), slikaBase64);
 
         // 4. Dodaj nedostajuca polja
         cetSesija.getPoruke().add(korisnikovaPoruka);
@@ -78,6 +86,67 @@ public class CetSesijaService {
         if (!Objects.equals(cetSesija.getClan().getJmbg(), jmbg)) {
             throw new NoSuchElementException("Čet sesija ne postoji: " + id);
         }
+        if (cetSesija.getImaGrane()) {
+            throw new IllegalStateException("Nije moguće obrisati čet sesiju koja ima grane. Obrišite prvo sve grane.");
+        }
+
+        CetSesija roditeljskaSesija = cetSesija.getRoditeljskaSesija();
+
         cetSesijaRepository.delete(cetSesija);
+
+        if (roditeljskaSesija != null) {
+            List<CetSesija> preostaleGrane = cetSesijaRepository.findByRoditeljskaSesija(roditeljskaSesija);
+            if (preostaleGrane.isEmpty()) {
+                roditeljskaSesija.setImaGrane(false);
+                cetSesijaRepository.saveAndFlush(roditeljskaSesija);
+            }
+        }
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public CetSesijaDetaljnoDto arhivirajCetSesiju(String jmbg, Long id) {
+        CetSesija cetSesija = cetSesijaRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Čet sesija ne postoji: " + id));
+
+        if (!Objects.equals(cetSesija.getClan().getJmbg(), jmbg)) {
+            throw new NoSuchElementException("Čet sesija ne postoji: " + id);
+        }
+        if (cetSesija.getArhivirano()) {
+            throw new IllegalStateException("Čet sesija je već arhivirana.");
+        }
+        if (cetSesija.getImaGrane()) {
+            throw new IllegalStateException("Nije moguće arhivirati čet sesiju koja ima grane.");
+        }
+
+        cetSesija.setArhivirano(true);
+        cetSesija.setDatumArhiviranjaCS(LocalDateTime.now());
+        cetSesija = cetSesijaRepository.saveAndFlush(cetSesija);
+        return CetSesijaDetaljnoDto.fromCetSesija(cetSesija);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public CetSesijaDetaljnoDto vratiCetSesijuIzArhive(String jmbg, Long id) {
+        CetSesija cetSesija = cetSesijaRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Čet sesija ne postoji: " + id));
+
+        if (!Objects.equals(cetSesija.getClan().getJmbg(), jmbg)) {
+            throw new NoSuchElementException("Čet sesija ne postoji: " + id);
+        }
+        if (!cetSesija.getArhivirano()) {
+            throw new IllegalStateException("Čet sesija nije arhivirana.");
+        }
+
+        cetSesija.setArhivirano(false);
+        cetSesija.setDatumArhiviranjaCS(null);
+        cetSesija.setDatumAzuriranjaCS(LocalDateTime.now());
+        cetSesija = cetSesijaRepository.saveAndFlush(cetSesija);
+        return CetSesijaDetaljnoDto.fromCetSesija(cetSesija);
+    }
+
+    @Scheduled(cron = "0 0 0 * * *")
+    @Transactional(rollbackFor = Exception.class)
+    public void obrisiStareArhiviraneSesije() {
+        LocalDateTime granica = LocalDateTime.now().minusDays(30);
+        List<CetSesija> cetSesijeZaBrisanje = cetSesijaRepository.findByArhiviranoIsTrueAndDatumArhiviranjaCSBefore(granica);
+        cetSesijaRepository.deleteAll(cetSesijeZaBrisanje);
     }
 }

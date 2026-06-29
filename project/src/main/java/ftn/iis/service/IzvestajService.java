@@ -2,6 +2,7 @@ package ftn.iis.service;
 
 import com.lowagie.text.*;
 import com.lowagie.text.pdf.*;
+import ftn.iis.enums.*;
 import ftn.iis.model.Kazna;
 import ftn.iis.model.Knjiga;
 import ftn.iis.model.Pozajmica;
@@ -9,9 +10,6 @@ import ftn.iis.repository.KaznaRepository;
 import ftn.iis.repository.KnjigaRepository;
 import ftn.iis.repository.PozajmicaRepository;
 import ftn.iis.repository.PrimerakKnjigeRepository;
-import ftn.iis.enums.StatusNarudzbine;
-import ftn.iis.enums.StatusPredloga;
-import ftn.iis.enums.StatusSistemskePreporuke;
 import ftn.iis.model.*;
 import ftn.iis.repository.*;
 import org.springframework.stereotype.Service;
@@ -20,6 +18,7 @@ import java.awt.Color;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -39,6 +38,8 @@ public class IzvestajService {
     private final PredlogNabavkaRepository predlogRepository;
     private final FizickaKnjigaRepository fizickaKnjigaRepository;
     private final SistemskePreporukeRepository sistemskePreporukeRepository;
+    private final CetSesijaRepository cetSesijaRepository;
+    private final CetPorukaRepository cetPorukaRepository;
 
     private static final Color BROWN_DARK   = new Color(94,  68,  54);
     private static final Color BROWN_MED    = new Color(122, 92,  72);
@@ -71,7 +72,9 @@ public class IzvestajService {
                            BudzetPoZanruRepository budzetPoZanruRepository,
                            PredlogNabavkaRepository predlogRepository,
                            FizickaKnjigaRepository fizickaKnjigaRepository,
-                           SistemskePreporukeRepository sistemskePreporukeRepository) {
+                           SistemskePreporukeRepository sistemskePreporukeRepository,
+                           CetSesijaRepository cetSesijaRepository,
+                           CetPorukaRepository cetPorukaRepository) {
         this.knjigaRepository         = knjigaRepository;
         this.primerakKnjigeRepository = primerakKnjigeRepository;
         this.kaznaRepository          = kaznaRepository;                           
@@ -83,7 +86,8 @@ public class IzvestajService {
         this.predlogRepository = predlogRepository;
         this.fizickaKnjigaRepository = fizickaKnjigaRepository;
         this.sistemskePreporukeRepository = sistemskePreporukeRepository;
-
+        this.cetSesijaRepository = cetSesijaRepository;
+        this.cetPorukaRepository = cetPorukaRepository;
     }
 
 
@@ -858,7 +862,7 @@ public class IzvestajService {
 
 
     // ===================================================================================
-    //               POMOCNE FUNKCIJE
+    //               SRDJAN
     // ===================================================================================
 
 
@@ -1190,6 +1194,416 @@ public class IzvestajService {
         doc.close();
         return baos.toByteArray();
     }
+
+
+
+
+
+    // ===================================================================================
+    //               NENAD
+    // ===================================================================================
+
+
+
+
+
+    public byte[] generisiIzvestajKoriscenjaAIAsistenta(LocalDate datumOd, LocalDate datumDo)
+            throws DocumentException, IOException {
+
+        // ── 0. Podaci iz baze ──────────────────────────────────────────────────────
+        LocalDateTime odDT = datumOd.atStartOfDay();
+        LocalDateTime doDT = datumDo.atTime(23, 59, 59);
+
+        // Sve čet-sesije u periodu (po datumu kreiranja)
+        List<CetSesija> sveSesije = cetSesijaRepository
+                .findByDatumKreiranjaCSBetween(odDT, doDT);
+
+        // Sve poruke iz tih sesija
+        List<Long> idSesija = sveSesije.stream().map(CetSesija::getId).collect(Collectors.toList());
+        List<CetPoruka> svePoruke = idSesija.isEmpty()
+                ? Collections.emptyList()
+                : cetPorukaRepository.findByCetSesijaIdIn(idSesija);
+
+        // ── 1. Agregirani podaci ───────────────────────────────────────────────────
+        long ukupnoSesija   = sveSesije.size();
+        long ukupnoClanskeP = svePoruke.stream().filter(p -> p.getTipCP() == TipCP.CLAN).count();
+        long ukupnoAIPorukaL= svePoruke.stream().filter(p -> p.getTipCP() == TipCP.AI_ASISTENT).count();
+        long ukupnoPorukaL  = svePoruke.size();
+
+        double prosecnoPorukaPoSesiji = ukupnoSesija == 0 ? 0
+                : (double) ukupnoPorukaL / ukupnoSesija;
+
+        // Top-10 korisnika po broju sesija
+        Map<String, Long> sesijePoClanJmbg = sveSesije.stream()
+                .collect(Collectors.groupingBy(
+                        s -> s.getClan().getJmbg(), Collectors.counting()));
+        Map<String, String> jmbgToIme = sveSesije.stream()
+                .collect(Collectors.toMap(
+                        s -> s.getClan().getJmbg(),
+                        s -> s.getClan().getFirstName() + " " + s.getClan().getLastName(),
+                        (a, b) -> a));
+        // Za svakog korisnika – broj korisničkih poruka
+        Map<String, Long> porukePoClanJmbg = svePoruke.stream()
+                .filter(p -> p.getTipCP() == TipCP.CLAN)
+                .collect(Collectors.groupingBy(
+                        p -> p.getCetSesija().getClan().getJmbg(), Collectors.counting()));
+
+        List<Map.Entry<String, Long>> top10 = sesijePoClanJmbg.entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                .limit(10)
+                .collect(Collectors.toList());
+
+        // Ocene čet-poruka (raspoređene 1–5)
+        List<Integer> sveOcene = svePoruke.stream()
+                .flatMap(p -> p.getOcene().stream())
+                .map(o -> o.getOcenaCP())
+                .collect(Collectors.toList());
+        long ukupnoOcena = sveOcene.size();
+        Map<Integer, Long> ocenePoBroju = new TreeMap<>();
+        for (int i = 1; i <= 5; i++) {
+            final int ocena = i;
+            ocenePoBroju.put(ocena, sveOcene.stream().filter(o -> o == ocena).count());
+        }
+
+        // Slike uz poruke
+        long porukesSlikama = svePoruke.stream()
+                .filter(p -> p.getTipCP() == TipCP.CLAN && p.getSlikaBase64() != null && !p.getSlikaBase64().isBlank())
+                .count();
+
+        // Arhivirane sesije (sve vreme, ne samo period – to je "trenutno stanje")
+        long arhiviraneSesijeSvukupno = cetSesijaRepository.countByArhiviranoIsTrueAndDatumArhiviranjaCSBetween(odDT, doDT);
+        long sveSesijeIkad            = cetSesijaRepository.count();
+        double udelArhiviranih = sveSesijeIkad == 0 ? 0
+                : 100.0 * arhiviraneSesijeSvukupno / sveSesijeIkad;
+        // Arhivirane u periodu
+        long arhiviraneUPeriodu = sveSesije.stream()
+                .filter(s -> Boolean.TRUE.equals(s.getArhivirano())).count();
+
+        // Mesečni trend sesija u periodu
+        Map<YearMonth, Long> mesecniTrendSesija = new TreeMap<>(sveSesije.stream()
+                .collect(Collectors.groupingBy(
+                        s -> YearMonth.of(
+                                s.getDatumKreiranjaCS().getYear(),
+                                s.getDatumKreiranjaCS().getMonthValue()),
+                        Collectors.counting())));
+
+        // Broj jedinstvenih korisnika
+        long jedinstveniKorisnici = sveSesije.stream().map(s -> s.getClan().getJmbg()).distinct().count();
+
+        // Sesije po samom clanu ukupno
+        Map<String, Long> sesijePoClanJmbgUkupno = sveSesije.stream().collect(Collectors.groupingBy(s -> s.getClan().getJmbg(), Collectors.counting()));
+
+        // Raspodela po tipu agenta
+        Map<TipAgentaCS, Long> poTipuAgenta = sveSesije.stream().collect(Collectors.groupingBy(CetSesija::getTipAgentaCS, Collectors.counting()));
+
+        // Grananje sesija
+        long sesijaSaGranama = sveSesije.stream().filter(s -> s.getImaGrane()).count();
+        long graneSesija = sveSesije.stream().filter(s -> s.getRoditeljskaSesija() != null).count();
+
+        // ── 2. PDF dokument ────────────────────────────────────────────────────────
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Document doc = new Document(PageSize.A4, 45, 45, 55, 45);
+        PdfWriter writer = PdfWriter.getInstance(doc, baos);
+
+        // Footer sa brojem stranice
+        writer.setPageEvent(new PdfPageEventHelper() {
+            @Override
+            public void onEndPage(PdfWriter w, Document d) {
+                try {
+                    BaseFont bf = BaseFont.createFont(BaseFont.HELVETICA, "Cp1250", BaseFont.NOT_EMBEDDED);
+                    Font footer = new Font(bf, 8, Font.NORMAL, TEXT_MID_GREEN);
+                    PdfContentByte cb = w.getDirectContent();
+                    cb.saveState();
+                    cb.setColorFill(CARD_BG);
+                    cb.rectangle(d.left(), d.bottom() - 15, d.right() - d.left(), 1);
+                    cb.fill();
+                    ColumnText.showTextAligned(cb, Element.ALIGN_CENTER,
+                            new Phrase("Strana " + w.getPageNumber(), footer),
+                            (d.left() + d.right()) / 2, d.bottom() - 25, 0);
+                    cb.restoreState();
+                } catch (Exception ignored) {}
+            }
+        });
+
+        doc.open();
+
+        BaseFont bf     = BaseFont.createFont(BaseFont.HELVETICA,      "Cp1250", BaseFont.NOT_EMBEDDED);
+        BaseFont bfBold = BaseFont.createFont(BaseFont.HELVETICA_BOLD, "Cp1250", BaseFont.NOT_EMBEDDED);
+        BaseFont bfUnicode = BaseFont.createFont(IzvestajService.class.getResource("/fonts/DejaVuSans.ttf").toString(), BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+
+
+        Font fTitle    = new Font(bfBold, 20, Font.BOLD,   WHITE);
+        Font fSubtitle = new Font(bf,     10, Font.NORMAL, GREEN_LIGHT);
+        Font fSection  = new Font(bfBold, 13, Font.BOLD,   GREEN_DARK);
+        Font fTblHead  = new Font(bfBold,  9, Font.BOLD,   WHITE);
+        Font fTblCell  = new Font(bf,      9, Font.NORMAL, TEXT_DARK_GREEN);
+        Font fTblSmall = new Font(bf,      8, Font.NORMAL, TEXT_MID_GREEN);
+        Font fMetVal   = new Font(bfBold, 15, Font.BOLD,   GREEN_MED);
+        Font fMetLbl   = new Font(bf,      9, Font.NORMAL, TEXT_MID_GREEN);
+        Font fSubSec   = new Font(bfBold, 10, Font.BOLD,   TEXT_MID_GREEN);
+        Font fNote     = new Font(bf,      8, Font.ITALIC, TEXT_MID_GREEN);
+        Font fZvezdice = new Font(bfUnicode, 9, Font.NORMAL, TEXT_DARK_GREEN);
+
+        // ── Zaglavlje ─────────────────────────────────────────────────────────────
+        PdfPTable headerTable = new PdfPTable(1);
+        headerTable.setWidthPercentage(100);
+        headerTable.setSpacingAfter(20);
+        PdfPCell hCell = new PdfPCell();
+        hCell.setBackgroundColor(GREEN_DARK);
+        hCell.setPadding(22);
+        hCell.setBorder(Rectangle.NO_BORDER);
+        Paragraph t1 = new Paragraph("Izveštaj o korišćenju AI asistenta", fTitle);
+        t1.setAlignment(Element.ALIGN_CENTER);
+        Paragraph t2 = new Paragraph(
+                "Period: " + fmt(datumOd) + "  \u2014  " + fmt(datumDo) +
+                        "    |    Generisano: " + fmt(LocalDate.now()), fSubtitle);
+        t2.setAlignment(Element.ALIGN_CENTER);
+        t2.setSpacingBefore(5);
+        hCell.addElement(t1);
+        hCell.addElement(t2);
+        headerTable.addCell(hCell);
+        doc.add(headerTable);
+
+        // ══════════════════════════════════════════════════════════════════════════
+        // SEKCIJA 1 – Opsti pregled
+        // ══════════════════════════════════════════════════════════════════════════
+        doc.add(sectionHeader("1. Opšti pregled korišćenja", fSection, bfBold));
+
+        PdfPTable metrics1 = new PdfPTable(5);
+        metrics1.setWidthPercentage(100);
+        metrics1.setSpacingBefore(10);
+        metrics1.setSpacingAfter(16);
+        metrics1.setWidths(new float[]{1f, 1f, 1f, 1f, 1f});
+        metrics1.addCell(metricCell("" + ukupnoSesija,      "Čet sesija",            fMetVal, fMetLbl, bfBold));
+        metrics1.addCell(metricCell("" + jedinstveniKorisnici,"Jedinstvenih korisnika", fMetVal, fMetLbl, bfBold));
+        metrics1.addCell(metricCell("" + ukupnoClanskeP,    "Poruka korisnika",      fMetVal, fMetLbl, bfBold));
+        metrics1.addCell(metricCell("" + ukupnoAIPorukaL,   "Odgovora AI asistenta", fMetVal, fMetLbl, bfBold));
+        metrics1.addCell(metricCell(String.format("%.1f", prosecnoPorukaPoSesiji), "Prosečno poruka po sesiji", fMetVal, fMetLbl, bfBold));
+        doc.add(metrics1);
+
+        // Mesecni trend sesija
+        doc.add(subheading("Mesečni trend kreiranja sesija", fSubSec));
+        PdfPTable tblMes = new PdfPTable(3);
+        tblMes.setWidthPercentage(65);
+        tblMes.setHorizontalAlignment(Element.ALIGN_LEFT);
+        tblMes.setSpacingBefore(6);
+        tblMes.setSpacingAfter(20);
+        tblMes.setWidths(new float[]{2.5f, 1.5f, 1.5f});
+        addTableHeader(tblMes, fTblHead, GREEN_DARK, "Mesec", "Broj kreiranih sesija", "Promena");
+        int rowIdx = 1;
+        Long prevCount = null;
+        for (Map.Entry<YearMonth, Long> e : mesecniTrendSesija.entrySet()) {
+            Color bg = (rowIdx % 2 == 0) ? CARD_LIGHT : WHITE;
+            String label = MESECI[e.getKey().getMonthValue()] + " " + e.getKey().getYear();
+            String promena;
+            if (prevCount == null) {
+                promena = "-";
+            } else {
+                long diff = e.getValue() - prevCount;
+                promena = (diff >= 0 ? "+" : "") + diff;
+            }
+            addRow(tblMes, fTblCell, bg, Element.ALIGN_LEFT, label, "" + e.getValue(), promena);
+            prevCount = e.getValue();
+            rowIdx++;
+        }
+        if (mesecniTrendSesija.isEmpty())
+            addEmptyRow(tblMes, fTblSmall, 3, "Nema podataka za izabrani period");
+        doc.add(tblMes);
+
+        // ══════════════════════════════════════════════════════════════════════════
+        // SEKCIJA 2 – Top 10 korisnika
+        // ══════════════════════════════════════════════════════════════════════════
+        doc.add(sectionHeader("2. Top 10 korisnika po korišćenju AI asistenta", fSection, bfBold));
+        doc.add(subheading("Rangirano po ukupnom broju kreiranih čet sesija", fSubSec));
+
+        PdfPTable tblTop = new PdfPTable(5);
+        tblTop.setWidthPercentage(100);
+        tblTop.setSpacingBefore(6);
+        tblTop.setSpacingAfter(20);
+        tblTop.setWidths(new float[]{0.5f, 3f, 1.5f, 1.5f, 1.5f});
+        addTableHeader(tblTop, fTblHead, GREEN_DARK, "#", "Korisnik", "Broj sesija", "Broj poruka", "Prosečan broj poruka po sesiji");
+        int rank = 1;
+        for (Map.Entry<String, Long> e : top10) {
+            Color bg = (rank % 2 == 0) ? CARD_LIGHT : WHITE;
+            long sesijKorisnika = e.getValue();
+            long porKorisnika   = porukePoClanJmbg.getOrDefault(e.getKey(), 0L);
+            String prosek = sesijKorisnika == 0 ? "-"
+                    : String.format("%.1f", (double) porKorisnika / sesijKorisnika);
+            addRow(tblTop, fTblCell, bg, Element.ALIGN_CENTER,
+                    "" + rank,
+                    truncate(jmbgToIme.getOrDefault(e.getKey(), e.getKey()), 35),
+                    "" + sesijKorisnika,
+                    "" + porKorisnika,
+                    prosek);
+            rank++;
+        }
+        if (top10.isEmpty())
+            addEmptyRow(tblTop, fTblSmall, 5, "Nema podataka za izabrani period");
+        doc.add(tblTop);
+
+        // ══════════════════════════════════════════════════════════════════════════
+        // SEKCIJA 3 – Ocene cet poruka
+        // ══════════════════════════════════════════════════════════════════════════
+        doc.add(sectionHeader("3. Ocene odgovora AI asistenta", fSection, bfBold));
+
+        PdfPTable metrics3 = new PdfPTable(2);
+        metrics3.setWidthPercentage(50);
+        metrics3.setHorizontalAlignment(Element.ALIGN_LEFT);
+        metrics3.setSpacingBefore(10);
+        metrics3.setSpacingAfter(16);
+        metrics3.addCell(metricCell("" + ukupnoOcena, "Ukupno ocena", fMetVal, fMetLbl, bfBold));
+
+        double prosecnaOcena = sveOcene.isEmpty() ? 0 : sveOcene.stream().mapToInt(Integer::intValue).average().orElse(0);
+        metrics3.addCell(metricCell(sveOcene.isEmpty() ? "-" : String.format("%.2f / 5", prosecnaOcena), "Prosečna ocena", fMetVal, fMetLbl, bfBold));
+        doc.add(metrics3);
+
+        doc.add(subheading("Distribucija ocena (1 – 5 zvezdica)", fSubSec));
+        PdfPTable tblOcene = new PdfPTable(3);
+        tblOcene.setWidthPercentage(55);
+        tblOcene.setHorizontalAlignment(Element.ALIGN_LEFT);
+        tblOcene.setSpacingBefore(6);
+        tblOcene.setSpacingAfter(20);
+        tblOcene.setWidths(new float[]{1.5f, 1.5f, 1f});
+        addTableHeader(tblOcene, fTblHead, GREEN_DARK, "Ocena", "Broj ocena", "Udeo u ukupnom broju ocena");
+        rowIdx = 1;
+        for (Map.Entry<Integer, Long> e : ocenePoBroju.entrySet()) {
+            Color bg = (rowIdx % 2 == 0) ? CARD_LIGHT : WHITE;
+            String zvezdice = "★".repeat(e.getKey()) + "☆".repeat(5 - e.getKey());
+            String pct = ukupnoOcena > 0 ? String.format("%.1f%%", 100.0 * e.getValue() / ukupnoOcena) : "-";
+
+            // Ćelija sa zvezdicama koristi Unicode font
+            PdfPCell celZvezdice = new PdfPCell(new Phrase(zvezdice, fZvezdice));
+            celZvezdice.setBackgroundColor(bg);
+            celZvezdice.setHorizontalAlignment(Element.ALIGN_LEFT);
+            celZvezdice.setPaddingTop(5);
+            celZvezdice.setPaddingBottom(5);
+            celZvezdice.setPaddingLeft(6);
+            celZvezdice.setPaddingRight(6);
+            celZvezdice.setBorderColor(GREEN_LIGHT);
+            tblOcene.addCell(celZvezdice);
+
+            // Ostale dve ćelije normalno sa postojećim fontom
+            PdfPCell celBroj = new PdfPCell(new Phrase("" + e.getValue(), fTblCell));
+            celBroj.setBackgroundColor(bg);
+            celBroj.setHorizontalAlignment(Element.ALIGN_CENTER);
+            celBroj.setPaddingTop(5); celBroj.setPaddingBottom(5);
+            celBroj.setPaddingLeft(6); celBroj.setPaddingRight(6);
+            celBroj.setBorderColor(GREEN_LIGHT);
+            tblOcene.addCell(celBroj);
+
+            PdfPCell celPct = new PdfPCell(new Phrase(pct, fTblCell));
+            celPct.setBackgroundColor(bg);
+            celPct.setHorizontalAlignment(Element.ALIGN_CENTER);
+            celPct.setPaddingTop(5); celPct.setPaddingBottom(5);
+            celPct.setPaddingLeft(6); celPct.setPaddingRight(6);
+            celPct.setBorderColor(GREEN_LIGHT);
+            tblOcene.addCell(celPct);
+
+            rowIdx++;
+        }
+        doc.add(tblOcene);
+
+        // ══════════════════════════════════════════════════════════════════════════
+        // SEKCIJA 4 – Slike uz poruke
+        // ══════════════════════════════════════════════════════════════════════════
+        doc.add(sectionHeader("4. Korišćenje slika u razgovoru", fSection, bfBold));
+
+        String udeoSlika = ukupnoClanskeP > 0 ? String.format("%.1f%%", 100.0 * porukesSlikama / ukupnoClanskeP) : "-";
+
+        PdfPTable metrics4 = new PdfPTable(3);
+        metrics4.setWidthPercentage(75);
+        metrics4.setHorizontalAlignment(Element.ALIGN_LEFT);
+        metrics4.setSpacingBefore(10);
+        metrics4.setSpacingAfter(20);
+        metrics4.setWidths(new float[]{1f, 1f, 1f});
+        metrics4.addCell(metricCell("" + ukupnoClanskeP, "Ukupno poruka korisnika", fMetVal, fMetLbl, bfBold));
+        metrics4.addCell(metricCell("" + porukesSlikama, "Poruka sa slikom",        fMetVal, fMetLbl, bfBold));
+        metrics4.addCell(metricCell(udeoSlika, "Udeo poruka sa slikom",   fMetVal, fMetLbl, bfBold));
+        doc.add(metrics4);
+
+        Paragraph notaSlika = new Paragraph("* Slanje slika je podržano samo za agenta za knjige.", fNote);
+        notaSlika.setSpacingBefore(2);
+        notaSlika.setSpacingAfter(16);
+        doc.add(notaSlika);
+
+        // ══════════════════════════════════════════════════════════════════════════
+        // SEKCIJA 5 – Arhiviranje
+        // ══════════════════════════════════════════════════════════════════════════
+        doc.add(sectionHeader("5. Arhiviranje čet sesija", fSection, bfBold));
+
+        PdfPTable metrics5 = new PdfPTable(3);
+        metrics5.setWidthPercentage(100);
+        metrics5.setSpacingBefore(10);
+        metrics5.setSpacingAfter(16);
+        metrics5.setWidths(new float[]{1f, 1f, 1f});
+        metrics5.addCell(metricCell("" + arhiviraneSesijeSvukupno, "Arhivirano (ukupno)", fMetVal, fMetLbl, bfBold));
+        metrics5.addCell(metricCell("" + arhiviraneUPeriodu, "Arhivirano u periodu", fMetVal, fMetLbl, bfBold));
+        metrics5.addCell(metricCell(String.format("%.1f%%", udelArhiviranih), "Udeo arhiviranih sesija u odnosu na sve sesije", fMetVal, fMetLbl, bfBold));
+        doc.add(metrics5);
+
+        Paragraph notaArh = new Paragraph("* 'Arhivirano (ukupno)' i udeo odnose se na sve sesije u sistemu, a ne samo na one iz odabranog perioda.", fNote);
+        notaArh.setSpacingBefore(2);
+        notaArh.setSpacingAfter(20);
+        doc.add(notaArh);
+
+        // ══════════════════════════════════════════════════════════════════════════
+        // SEKCIJA 6 – Raspodela po tipu agenta
+        // ══════════════════════════════════════════════════════════════════════════
+        doc.add(sectionHeader("6. Raspodela sesija po tipu agenta", fSection, bfBold));
+
+        PdfPTable tblAgenti = new PdfPTable(3);
+        tblAgenti.setWidthPercentage(60);
+        tblAgenti.setHorizontalAlignment(Element.ALIGN_LEFT);
+        tblAgenti.setSpacingBefore(6);
+        tblAgenti.setSpacingAfter(20);
+        tblAgenti.setWidths(new float[]{3f, 1.5f, 1.5f});
+        addTableHeader(tblAgenti, fTblHead, GREEN_DARK, "Tip agenta", "Broj sesija", "Udeo");
+        rowIdx = 1;
+        for (Map.Entry<TipAgentaCS, Long> e : poTipuAgenta.entrySet()) {
+            Color bg = (rowIdx % 2 == 0) ? CARD_LIGHT : WHITE;
+            String naziv = e.getKey() == TipAgentaCS.AGENT_KNJIGE ? "Agent za knjige" : "Agent za recenzije";
+            String pct = ukupnoSesija > 0 ? String.format("%.1f%%", 100.0 * e.getValue() / ukupnoSesija) : "-";
+            addRow(tblAgenti, fTblSmall, bg, Element.ALIGN_LEFT, naziv, "" + e.getValue(), pct);
+            rowIdx++;
+        }
+        if (poTipuAgenta.isEmpty()) {
+            addEmptyRow(tblAgenti, fTblSmall, 3, "Nema podataka za izabrani period!");
+        }
+        doc.add(tblAgenti);
+
+        // ══════════════════════════════════════════════════════════════════════════
+        // SEKCIJA 7 – Grananje sesija
+        // ══════════════════════════════════════════════════════════════════════════
+        doc.add(sectionHeader("7. Grananje čet sesija", fSection, bfBold));
+        PdfPTable metrics7 = new PdfPTable(3);
+        metrics7.setWidthPercentage(75);
+        metrics7.setHorizontalAlignment(Element.ALIGN_LEFT);
+        metrics7.setSpacingBefore(10);
+        metrics7.setSpacingAfter(16);
+        metrics7.setWidths(new float[]{1f, 1f, 1f});
+        metrics7.addCell(metricCell("" + sesijaSaGranama, "Sesija sa granama",   fMetVal, fMetLbl, bfBold));
+        metrics7.addCell(metricCell("" + graneSesija,      "Sesija koje su grane", fMetVal, fMetLbl, bfBold));
+        String udeoGrananja = ukupnoSesija > 0 ? String.format("%.1f%%", 100.0 * graneSesija / ukupnoSesija) : "-";
+        metrics7.addCell(metricCell(udeoGrananja, "Udeo grana od svih sesija", fMetVal, fMetLbl, bfBold));
+        doc.add(metrics7);
+
+        Paragraph napomenaGrananje = new Paragraph("* Sesija sa granama je ona iz koje je korisnik modifikovao poruku i time kreirao novu verziju razgovora.", fNote);
+        napomenaGrananje.setSpacingBefore(2);
+        napomenaGrananje.setSpacingAfter(20);
+        doc.add(napomenaGrananje);
+
+        // ══════════════════════════════════════════════════════════════════════════
+        // Napomena na kraju
+        // ══════════════════════════════════════════════════════════════════════════
+        Paragraph napomena = new Paragraph("* Izvestaj obuhvata čet sesije kreirane u navedenom periodu. Statistike ocena i slika vezane su za poruke iz tih sesija.", fNote);
+        napomena.setSpacingBefore(20);
+        doc.add(napomena);
+
+        doc.close();
+        return baos.toByteArray();
+    }
+
+
 
     // ── Pomocne metode za PDF ────────────────────────────────────────────
 

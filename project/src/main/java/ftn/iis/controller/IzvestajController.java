@@ -4,6 +4,7 @@ import ftn.iis.service.IzvestajService;
 import ftn.iis.utils.JwtService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -119,5 +120,31 @@ public class IzvestajController {
             return ResponseEntity.internalServerError().body("Greska pri generisanju izvestaja: " + e.getMessage());
         }
 
+    }
+
+    @GetMapping("/ai-asistent")
+    public ResponseEntity<?> generisiIzvestajKoriscenjaAIAsistenta(@RequestHeader(value = "Authorization") String authHeader,
+                                                                   @RequestParam("datumOd") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate datumOd,
+                                                                   @RequestParam("datumDo") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate datumDo) {
+        try {
+            String token = authHeader.substring(BEARER_LEN);
+            String uloga = jwtService.extractRole(token);
+
+            if (!DOZVOLJENE_ULOGE.contains(uloga)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Nemate pravo pristupa izveštaju.");
+            }
+            if (datumOd.isAfter(datumDo)) {
+                return ResponseEntity.badRequest().body("Početni datum mora biti pre krajnjeg datuma prilikom generisanja izveštaja");
+            }
+
+            byte[] pdf = izvestajService.generisiIzvestajKoriscenjaAIAsistenta(datumOd, datumDo);
+            String fileName = "izvestaj-koriscenje-ai-asistenta-" + datumOd.format(DateTimeFormatter.ofPattern("ddMMyyyy")) + "-" + datumDo.format(DateTimeFormatter.ofPattern("ddMMyyyy")) + ".pdf";
+
+            return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"").contentType(MediaType.APPLICATION_PDF).body(pdf);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body("Greška pri generisanju izveštaja o korišćenju AI asistenta: " + e.getMessage());
+
+        }
     }
 }

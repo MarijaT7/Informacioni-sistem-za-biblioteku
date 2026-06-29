@@ -63,6 +63,34 @@
         </button>
       </div>
 
+      <!-- Izvestaj o AI agentu -->
+      <div class="izvestaj-kartica">
+        <div class="kartica-ikona">🤖</div>
+        <h2>Izveštaj o upotrebi AI agenta</h2>
+        <p class="kartica-opis">Upotreba agenta prikazana kroz statistike o čet sesijama i njihovim čet porukama.</p>
+
+        <div v-if="agentError" class="alert alert--error">{{ agentError }}</div>
+        <div v-if="agentUspeh" class="alert alert--uspeh">PDF je preuzet!</div>
+
+        <div class="forma">
+          <div class="form-group">
+            <label>Od datuma</label>
+            <input v-model="agentForma.od" type="date" />
+          </div>
+          <div class="form-group">
+            <label>Do datuma</label>
+            <input v-model="agentForma.do" type="date" />
+          </div>
+        </div>
+
+        <button
+          class="btn-primary"
+          @click="preuzmiAiAgenta"
+          :disabled="loadingAIAgent">
+          {{ loadingAIAgent ? 'Generisanje...' : '⬇ Preuzmi PDF' }}
+        </button>
+      </div>
+
     </div>
   </div>
 </template>
@@ -73,13 +101,20 @@ import { izvestajApi } from '../../services/api.js'
 
 const aktivnostiForma = ref({ od: '', do: '' })
 const nabavkaForma = ref({ od: '', do: '' })
+const agentForma = ref({od: '', do: ''})
 
 const loadingAktivnosti = ref(false)
 const loadingNabavka = ref(false)
+const loadingAIAgent = ref(false)
+
 const aktivnostiError = ref('')
 const nabavkaError = ref('')
+const agentError = ref('')
+
 const aktivnostiUspeh = ref(false)
 const nabavkaUspeh = ref(false)
+const agentUspeh = ref(false)
+
 
 async function preuzmiAktivnosti() {
   aktivnostiError.value = ''
@@ -133,6 +168,32 @@ async function preuzmiNabavku() {
   }
 }
 
+async function preuzmiAiAgenta() {
+  agentError.value = ''
+  agentUspeh.value = false
+
+  if (!agentForma.value.od || !agentForma.value.do) {
+    agentError.value = 'Oba datuma su obavezna.'
+    return
+  }
+  if (agentForma.value.od > agentForma.value.do) {
+    agentError.value = 'Datum "od" mora biti pre datuma "do".'
+    return
+  }
+
+  loadingAIAgent.value = true
+  try {
+    const res = await izvestajApi.generisiAIAgentIzvestaj(agentForma.value.od, agentForma.value.do)
+    preuzmiBlob(res.data, `izvestaj-ai-agent-${agentForma.value.od}-${agentForma.value.do}.pdf`)
+    agentUspeh.value = true
+    setTimeout(() => { agentUspeh.value = false }, 3000)
+  } catch (e) {
+    agentError.value = 'Greška pri generisanju izveštaja.'
+  } finally {
+    loadingAIAgent.value = false
+  }
+}
+
 function preuzmiBlob(blob, filename) {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
@@ -146,7 +207,7 @@ function preuzmiBlob(blob, filename) {
 </script>
 
 <style scoped>
-.izvestaji-wrapper { max-width: 900px; }
+.izvestaji-wrapper { max-width: 1350px; }
 
 .page-header { margin-bottom: 2rem; }
 .page-header h1 { margin: 0 0 0.25rem; font-size: 2rem; color: var(--text-h); }
@@ -154,7 +215,7 @@ function preuzmiBlob(blob, filename) {
 
 .izvestaji-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 1.5rem;
 }
 

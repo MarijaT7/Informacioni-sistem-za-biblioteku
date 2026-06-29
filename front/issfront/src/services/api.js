@@ -346,7 +346,8 @@ export const izvestajApi = {
       params: { od, do: datDo },
       responseType: 'blob'
     }),
-    nabavka: (od, datDo) => api.get('/izvestaj/nabavka', { params: { od, do: datDo }, responseType: 'blob' }),
+  nabavka: (od, datDo) => api.get('/izvestaj/nabavka', { params: { od, do: datDo }, responseType: 'blob' }),
+  generisiAIAgentIzvestaj: (od, datDo) => api.get('/izvestaj/ai-asistent', { params: { datumOd: od, datumDo: datDo}, responseType: 'blob' }),
 }
 
 // ── Komentari ─────────────────────────────────────────────────────────

@@ -96,7 +96,7 @@ async function preuzmiAktivnosti() {
 
   loadingAktivnosti.value = true
   try {
-    const res = await izvestajApi.aktivnosti(aktivnostiForma.value.od, aktivnostiForma.value.do)
+    const res = await izvestajApi.generiši(aktivnostiForma.value.od, aktivnostiForma.value.do)
     preuzmiBlob(res.data, `izvestaj-aktivnosti-${aktivnostiForma.value.od}.pdf`)
     aktivnostiUspeh.value = true
     setTimeout(() => { aktivnostiUspeh.value = false }, 3000)

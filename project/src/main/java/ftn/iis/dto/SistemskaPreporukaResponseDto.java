@@ -15,11 +15,14 @@ public class SistemskaPreporukaResponseDto {
     private LocalDateTime datumGenerisanja;
     private String predlog;
     private StatusSistemskePreporuke status;
+    private String zanrNaziv;
+    private Long zanrId;
+    private Double okvirnaCena;
 
     public SistemskaPreporukaResponseDto() {}
 
     public SistemskaPreporukaResponseDto(Long id, String naslov, Integer trenutniBrojPrimeraka, Integer brojPozajmica,
-                                         String predlog, String isbn, String autor) {
+                                         String predlog, String isbn, String autor, String zanrNaziv, Long zanrId, Double okvirnaCena) {
         this.id = id;
         this.isbn = isbn;
         this.naslov = naslov;
@@ -29,6 +32,9 @@ public class SistemskaPreporukaResponseDto {
         this.predlog = predlog;
         this.datumGenerisanja = LocalDateTime.now();
         this.status = StatusSistemskePreporuke.AKTIVNA;
+        this.zanrNaziv = zanrNaziv;
+        this.zanrId = zanrId;
+        this.okvirnaCena = okvirnaCena;
     }
 
     public Long getId() {
@@ -101,5 +107,29 @@ public class SistemskaPreporukaResponseDto {
 
     public void setStatus(StatusSistemskePreporuke status) {
         this.status = status;
+    }
+
+    public void setZanrNaziv(String zanrNaziv) {
+        this.zanrNaziv = zanrNaziv;
+    }
+
+    public String getZanrNaziv() {
+        return zanrNaziv;
+    }
+
+    public void setZanrId(Long zanrId) {
+        this.zanrId = zanrId;
+    }
+
+    public Long getZanrId() {
+        return zanrId;
+    }
+
+    public void setOkvirnaCena(Double okvirnaCena) {
+        this.okvirnaCena = okvirnaCena;
+    }
+
+    public Double getOkvirnaCena() {
+        return okvirnaCena;
     }
 }

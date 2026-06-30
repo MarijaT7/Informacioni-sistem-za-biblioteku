@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 _PFX_EXACT       = "vds:exact:"        # exact match keševi
 _PFX_SEMANTIC    = "vds:semantic:"     # odgovori vezani za semantički indeks
-_PFX_EMBED_INDEX = "vds:embed_index"   # lista svih keširanih embeddinga (za pretragu)
+_PFX_EMBED_INDEX = "vds:embed_index:"  # lista keširanih embeddinga po namespace-u (npr. vds:embed_index:BOOKS)
 
 
 class RedisCacheService:
@@ -84,7 +84,7 @@ class RedisCacheService:
 
     # 1. Exact match
 
-    def get_exact(self, query: str) -> dict | None:
+    def get_exact(self, query: str, namespace: str) -> dict | None:
         """
         Vraća keširan odgovor ako postoji tačan (normalizovan) hit.
 
@@ -93,7 +93,7 @@ class RedisCacheService:
         if not self.available:
             return None
         try:
-            key = _PFX_EXACT + self._hash(self._normalize(query))
+            key = _PFX_EXACT + namespace + ":" + self._hash(self._normalize(query))
             raw = self._client.get(key)
             if raw:
                 logger.debug("Exact cache HIT za: %.60s", query)
@@ -102,24 +102,24 @@ class RedisCacheService:
             logger.warning("Redis get_exact greška: %s", exc)
         return None
 
-    def set_exact(self, query: str, response: dict) -> None:
+    def set_exact(self, query: str, response: dict, namespace: str) -> None:
         """Upisuje odgovor u exact keš."""
         if not self.available:
             return
         try:
-            key = _PFX_EXACT + self._hash(self._normalize(query))
+            key = _PFX_EXACT + namespace + ":" + self._hash(self._normalize(query))
             self._client.setex(key, EXACT_CACHE_TTL, json.dumps(response))
         except Exception as exc:
             logger.warning("Redis set_exact greška: %s", exc)
 
     # 2. Semantic match
 
-    def get_semantic(self, query_embedding: list[float]) -> dict | None:
+    def get_semantic(self, query_embedding: list[float], namespace: str) -> dict | None:
         """
         Traži semantički sličan upit u kešu.
 
         Algoritam:
-          - Učita listu svih (embedding_key, embedding_vector) iz indeksa
+          - Učita listu svih (embedding_key, embedding_vector) iz indeksa za dati namespace
           - Za svaki izračuna kosinusnu sličnost sa query_embedding
           - Ako je sličnost >= SEMANTIC_THRESHOLD, vrati keširan odgovor
           - Vraća odgovor koji ima najvišu sličnost (ako ih ima više)
@@ -127,8 +127,9 @@ class RedisCacheService:
         if not self.available:
             return None
         try:
-            # Učitaj indeks: lista stringova "embed_key:json_vector"
-            index_raw = self._client.lrange(_PFX_EMBED_INDEX, 0, -1)
+            embed_index_key = _PFX_EMBED_INDEX + namespace
+            # Učitaj indeks: lista stringova "embed_key|json_vector"
+            index_raw = self._client.lrange(embed_index_key, 0, -1)
             if not index_raw:
                 return None
 
@@ -163,29 +164,31 @@ class RedisCacheService:
         query: str,
         query_embedding: list[float],
         response: dict,
+        namespace: str
     ) -> None:
         """
         Upisuje odgovor u semantički keš i dodaje embedding u indeks.
 
-        Ključ odgovora: vds:semantic:<sha256(normalized_query)>
-        Indeks:         vds:embed_index  (Redis lista)
+        Ključ odgovora: vds:semantic:<namespace>:<sha256(normalized_query)>
+        Indeks:         vds:embed_index:<namespace>  (Redis lista, odvojena po namespace-u)
         """
         if not self.available:
             return
         try:
             norm = self._normalize(query)
-            embed_key = _PFX_SEMANTIC + self._hash(norm)
+            embed_key = _PFX_SEMANTIC + namespace + ":" + self._hash(norm)
+            embed_index_key = _PFX_EMBED_INDEX + namespace
 
             # Upiši odgovor
             self._client.setex(embed_key, SEMANTIC_CACHE_TTL, json.dumps(response))
 
             # Dodaj u indeks (embedding + ključ u jednom stringu razdvojenom sa |)
             index_entry = embed_key + "|" + json.dumps(query_embedding)
-            self._client.lpush(_PFX_EMBED_INDEX, index_entry)
-            self._client.expire(_PFX_EMBED_INDEX, EMBED_INDEX_TTL)
+            self._client.lpush(embed_index_key, index_entry)
+            self._client.expire(embed_index_key, EMBED_INDEX_TTL)
 
             # Ograniči veličinu indeksa na 500 unosa da ne raste neograničeno
-            self._client.ltrim(_PFX_EMBED_INDEX, 0, 499)
+            self._client.ltrim(embed_index_key, 0, 499)
 
         except Exception as exc:
             logger.warning("Redis set_semantic greška: %s", exc)
@@ -210,11 +213,13 @@ class RedisCacheService:
             return {"available": False}
         try:
             info = self._client.info("memory")
-            index_size = self._client.llen(_PFX_EMBED_INDEX)
+            # Dinamički pronađi sve namespace indekse (npr. vds:embed_index:BOOKS)
+            index_keys = self._client.keys(_PFX_EMBED_INDEX + "*")
+            index_sizes = {k: self._client.llen(k) for k in index_keys}
             return {
                 "available": True,
                 "used_memory_human": info.get("used_memory_human"),
-                "semantic_index_size": index_size,
+                "semantic_index_sizes": index_sizes,
             }
         except Exception as exc:
             return {"available": False, "error": str(exc)}

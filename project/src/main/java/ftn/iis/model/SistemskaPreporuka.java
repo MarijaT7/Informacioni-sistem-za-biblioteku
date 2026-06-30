@@ -28,6 +28,9 @@ public class SistemskaPreporuka {
     @Enumerated(EnumType.STRING)
     private StatusSistemskePreporuke status;
 
+    @Column(name = "okvirna_cena")
+    private Double okvirnaCena = 0.00;
+
     public SistemskaPreporuka(){}
 
     public StatusSistemskePreporuke getStatus() {
@@ -84,4 +87,7 @@ public class SistemskaPreporuka {
     public String getPredlog() {
         return predlog;
     }
+
+    public Double getOkvirnaCena() { return okvirnaCena != null ? okvirnaCena : 0.0; }
+    public void setOkvirnaCena(Double okvirnaCena) { this.okvirnaCena = okvirnaCena; }
 }

@@ -2,15 +2,13 @@ package ftn.iis.service;
 
 import ftn.iis.dto.*;
 import ftn.iis.enums.StatusPredloga;
+import ftn.iis.enums.StatusSistemskePreporuke;
 import ftn.iis.enums.Uloge;
 import ftn.iis.exception.NonBiblotekarViewingSuggestionsException;
 import ftn.iis.exception.NonClanGivingSuggestions;
 import ftn.iis.exception.NonClanViewingSuggestions;
 import ftn.iis.exception.NonManagerViewingSuggestionsException;
-import ftn.iis.model.Genre;
-import ftn.iis.model.Notifikacija;
-import ftn.iis.model.PredlogZaNabavku;
-import ftn.iis.model.User;
+import ftn.iis.model.*;
 import ftn.iis.repository.GenreRepository;
 import ftn.iis.repository.NotifikacijaRepository;
 import ftn.iis.repository.PredlogNabavkaRepository;
@@ -30,15 +28,17 @@ public class PredlogNabavkeService {
     private final UserRepository userRepository;
     private final NotifikacijaRepository notifikacijaRepository;
     private final GenreRepository genreRepository;
+    private final BudzetService budzetService;
 
     public PredlogNabavkeService(PredlogNabavkaRepository predlogNabavkaRepository, JwtService jwtService,
                                  UserRepository userRepository, NotifikacijaRepository notifikacijaRepository,
-                                 GenreRepository genreRepository){
+                                 GenreRepository genreRepository,BudzetService budzetService){
         this.predlogNabavkaRepository = predlogNabavkaRepository;
         this.jwtService = jwtService;
         this.userRepository = userRepository;
         this.notifikacijaRepository = notifikacijaRepository;
         this.genreRepository= genreRepository;
+        this.budzetService = budzetService;
     }
 
     @Transactional
@@ -210,13 +210,53 @@ public class PredlogNabavkeService {
         }
 
         if(dto.getOdobren()){
+            // Pre nego sto stvarno dozvolim izmenu statusa, konsultujem se sa budzetom
+            if (!budzetService.imaDovoljnoSredstava(
+                    predlog.getZanr().getId(), predlog.getOkvirnaCena())) {
+                throw new RuntimeException("Nedovoljno sredstava u budžetu za žanr '"
+                        + predlog.getZanr().getName() + "'.");
+            }
+
             predlog.setStatus(StatusPredloga.ODOBRENO_MENADZER);
+            budzetService.rezervisi(predlog.getZanr().getId(), predlog.getOkvirnaCena());
         }
         else{
             predlog.setStatus(StatusPredloga.ODBIJENO_MENADZER);
         }
 
         predlogNabavkaRepository.save(predlog);
+    }
+
+
+    @Transactional
+    public List<KnjigaZaNarudzbinuDto> predloziZaNarudzbinu(String token){
+
+        String role = jwtService.extractRole(token);
+
+        if(!role.equalsIgnoreCase("MENADZER")){
+            throw new RuntimeException();
+        }
+
+        List<PredlogZaNabavku> predlozi = predlogNabavkaRepository.findAllByStatus(StatusPredloga.ODOBRENO_MENADZER);
+
+        List<KnjigaZaNarudzbinuDto> dto = new ArrayList<>();
+
+        for(PredlogZaNabavku p : predlozi){
+
+            KnjigaZaNarudzbinuDto k = new KnjigaZaNarudzbinuDto();
+
+            k.setIsbn(null);                      // ughhhhhhhhhhhhhhhh
+
+            k.setNaslov(p.getNaslov());
+            k.setAutor(p.getAutor());
+            k.setOkvirnaCena(p.getOkvirnaCena());
+            k.setPredlogId(p.getId());
+            k.setSistemska(false);
+
+            dto.add(k);
+        }
+
+        return dto;
     }
 
     // Pomocna funkcijica

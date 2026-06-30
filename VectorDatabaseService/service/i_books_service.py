@@ -4,6 +4,7 @@ Service interface for the books collection.
 
 from abc import ABC, abstractmethod
 
+from extraction.books_filter_extraction import BookSearchFilters
 from model.book import Book, BookCreate, BookSearchResult, BookUpdate
 
 
@@ -76,6 +77,17 @@ class IBooksService(ABC):
         ...
 
     @abstractmethod
+    def multi_filtered_semantic_search(
+        self,
+        query: str,
+        filters: BookSearchFilters,
+        top_k: int,
+    ) -> list[BookSearchResult]:
+        """Vector search over description_embedding with any combination of
+        language/author/publisher/page-range filters (all optional)."""
+        ...
+
+    @abstractmethod
     def iterator_semantic_search(
         self,
         query: str,
@@ -96,8 +108,14 @@ class IBooksService(ABC):
         image_base64: str | None,
         text_weight: float,
         top_k: int,
+        filters: BookSearchFilters | None = None,
     ) -> dict:
-        """Hybrid multimodal search over description + cover vectors with RRF."""
+        """Hybrid multimodal search over description + cover vectors with RRF.
+
+        `filters`, when provided and non-empty, restricts both recall legs
+        via Milvus filter_expr (language/author/publisher/page range). The
+        cover leg always additionally requires has_image == true.
+        """
         ...
 
     @abstractmethod

@@ -1,5 +1,6 @@
 package ftn.iis.dto;
 
+import ftn.iis.model.Genre;
 import ftn.iis.model.Knjiga;
 
 import java.util.List;
@@ -15,7 +16,7 @@ public class KnjigaDetaljiDto {
     private boolean audio;
     private boolean elektronska;
     private Integer brojStrana;
-    private List<String> zanrovi;
+    private Genre zanr;
 
     public KnjigaDetaljiDto() {
     }
@@ -40,9 +41,7 @@ public class KnjigaDetaljiDto {
         String katalog = knjiga.getKatalog() != null ? knjiga.getKatalog().getKatIme() : null;
         Integer brojStrana = knjiga.geteKnjiga() != null ? knjiga.geteKnjiga().getBrojStranaEK() : null;
 
-        List<String> zanrovi = knjiga.getZanrovi() != null
-                ? knjiga.getZanrovi().stream().map(ftn.iis.model.Genre::getName).collect(Collectors.toList())
-                : List.of();
+        Genre zanr = knjiga.getZanr();
 
         KnjigaDetaljiDto dto = new KnjigaDetaljiDto();
         dto.isbn = knjiga.getIsbn();
@@ -54,7 +53,7 @@ public class KnjigaDetaljiDto {
         dto.audio = audio;
         dto.elektronska = elektronska;
         dto.brojStrana = brojStrana;
-        dto.zanrovi = zanrovi;
+        dto.zanr = zanr;
         return dto;
     }
 

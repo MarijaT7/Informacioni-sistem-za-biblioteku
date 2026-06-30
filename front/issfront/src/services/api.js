@@ -174,6 +174,7 @@ export const predlogApi = {
   predloziNaCekanju: ()    => api.get('/predlozi/na-cekanju'),
   odobreniPredlozi: ()     => api.get('/predlozi/odobreni'),
   obradiPredlog:    (id, data) => api.patch(`/predlozi/obradi/${id}`, data),
+  zaNarudzbinu: ()         =>  api.get("/predlozi/za-narudzbinu"),
   obradiPredlogMenadzer(id, odobren) {
     return api.put(`/predlozi/${id}/obrada-menadzer`, {
         odobren
@@ -197,6 +198,11 @@ export const marcApi = {
 export const autokatalogApi = {
   katalogizuj: (data) => api.post('/knjiga/autokatalog', data),
 }
+export const kaznaApi = {
+  moje:  ()                          => api.get('/kazne/moje'),
+  plati: (idK, nacinPlacanja)        => api.post(`/kazne/${idK}/plati`, null, { params: { nacinPlacanja } }),
+}
+
 
 // ── Pretraga / Elastic (OCR + fulltext) ─────────────────────────────────
 export const searchApi = {
@@ -226,7 +232,8 @@ export const requestApi = {
 export const sistemskePreporukeApi = {
   pokreniAnalizu:  ()          => api.post('/sistemske-preporuke/pokreni-analizu'),
   getAktivne:      ()          => api.get('/sistemske-preporuke/aktivne'),
-  azurirajStatus:  (id, status) => api.patch(`/sistemske-preporuke/${id}/status`, null, { params: { status } }),
+  azurirajStatus:  (id, status, body)    => api.patch(`/sistemske-preporuke/${id}/status`, body, { params: { status }}),
+  zaNarudzbinu: ()               => api.get("/sistemske-preporuke/za-narudzbinu")
 }
 
 // ── AI Asistent: čet sesije ──────────────────────────────────────────
@@ -235,27 +242,62 @@ export const sistemskePreporukeApi = {
 export const cetSesijaApi = {
   sve:      ()                          => api.get('/cet-sesija/sve'),
   jedna:    (id)                        => api.get(`/cet-sesija/${id}`),
-  nova: (tipAgentaCS, sadrzajPoruke) => {
+  nova: (tipAgentaCS, sadrzajPoruke, slika) => {
     const formData = new FormData()
     const podaciBlob = new Blob(
       [JSON.stringify({ tipAgentaCS, sadrzajPoruke })],
       { type: 'application/json' }
     )
     formData.append('podaci', podaciBlob)
+    if (slika) {
+      formData.append('slika', slika)
+    }
     return api.post('/cet-sesija/nova', formData, {
-    headers: { 'Content-Type': undefined }
-  })
+      headers: { 'Content-Type': undefined }
+    })
   },
   obrisi:   (id)                        => api.delete(`/cet-sesija/${id}`),
+  arhiviraj: (id) => api.patch(`/cet-sesija/${id}/arhiviraj`),
+  vrati:     (id) => api.patch(`/cet-sesija/${id}/vrati`),
 }
 
 // ── AI Asistent: čet poruke ───────────────────────────────────────────
+// Poruke se šalju kao multipart/form-data sa poljem "podaci" (JSON string) i opcionim poljem "slika" (fajl, samo agent za knjige).
 export const cetPorukaApi = {
-  nova:        (idCetSesije, sadrzajPoruke) =>
-    api.post(`/cet-poruka/cet-sesija/${idCetSesije}`, { sadrzajPoruke }),
+  nova: (idCetSesije, sadrzajPoruke, slika) => {
+    const formData = new FormData()
+    const podaciBlob = new Blob(
+      [JSON.stringify({ sadrzajPoruke })],
+      { type: 'application/json' }
+    )
+    formData.append('podaci', podaciBlob)
+    if (slika) {
+      formData.append('slika', slika)
+    }
+    return api.post(`/cet-poruka/cet-sesija/${idCetSesije}`, formData, {
+      headers: { 'Content-Type': undefined }
+    })
+  },
   ocena:       (idCetPoruke)                => api.get(`/cet-poruka/${idCetPoruke}/ocena`),
   oceni:       (idCetPoruke, ocenaCP, komentarCP) =>
     api.post(`/cet-poruka/${idCetPoruke}/ocena`, { ocenaCP, komentarCP }),
+  // ukloniSliku: eksplicitan signal da se postojeća slika poruke obriše.
+  // slika: nova slika koja zamenjuje postojeću.
+  // Ako ni slika ni ukloniSliku nisu prisutni, postojeća slika ostaje.
+  azuriraj: (idCetPoruke, sadrzajPoruke, slika, ukloniSliku = false) => {
+    const formData = new FormData()
+    const podaciBlob = new Blob(
+      [JSON.stringify({ sadrzajPoruke, ukloniSliku })],
+      { type: 'application/json' }
+    )
+    formData.append('podaci', podaciBlob)
+    if (slika) {
+      formData.append('slika', slika)
+    }
+    return api.put(`/cet-poruka/${idCetPoruke}`, formData, {
+      headers: { 'Content-Type': undefined }
+    })
+  },
 }
 
 // ── AI Asistent: health check (poseban servis, port 8000) ────────────
@@ -264,6 +306,55 @@ export const chatHealthApi = {
   // Zaseban axios pozив bez baseURL/interceptora jer servis radi na
   // drugom portu (8000) i nije iza istog /api proxy-ja kao Spring backend.
   provera: () => axios.get(CHAT_HEALTH_URL),
+}
+
+// ── Budžet ────────────────────────────────────────────────────────────
+export const budzetApi = {
+  getSviBudzeti:  ()      => api.get('/budzet/sve-po-zanrovima'),
+  postaviBudzet:  (data)  => api.post('/budzet/postavi', data),
+  prerasporedi:   (data)  => api.post('/budzet/prerasporedi', data),
+}
+
+// ── Narudžbine ────────────────────────────────────────────────────────
+export const narudzbinApi = {
+  kreiraj:        (data)              => api.post('/narudzbine/kreiraj', data),
+  getSve:         ()                  => api.get('/narudzbine/sve'),
+  getJedna:       (id)      => api.get(`/narudzbine/${id}`),
+  dodajStavku:    (id, data)          => api.post(`/narudzbine/${id}/stavke`, data),
+  ukloniStavku:   (nId, sId)          => api.delete(`/narudzbine/${nId}/stavke/${sId}`),
+  potvrdi:        (id)                => api.patch(`/narudzbine/${id}/potvrdi`),
+  evidentirajIsporuku: (id, data)     => api.patch(`/narudzbine/${id}/isporuka`, data),
+}
+
+// -- Reklamacije ------------------------------------------------------------
+export const reklamacijaApi = {
+  kreiraj:   (narudzbinId, data) => api.post(`/reklamacije/narudzbina/${narudzbinId}`, data),
+  getSve:    ()                  => api.get('/reklamacije/sve'),
+  zatvori:   (id, data)          => api.patch(`/reklamacije/${id}/zatvori`, data),
+}
+
+
+//izvestaji
+export const izvestajApi = {
+  generiši: (od, datDo) =>
+    api.get('/izvestaj/aktivnosti', {
+      params: { od, do: datDo },
+      responseType: 'blob'
+    }),
+  generisiFond: (od, datDo) =>
+    api.get('/izvestaj/fond', {
+      params: { od, do: datDo },
+      responseType: 'blob'
+    }),
+  nabavka: (od, datDo) => api.get('/izvestaj/nabavka', { params: { od, do: datDo }, responseType: 'blob' }),
+  generisiAIAgentIzvestaj: (od, datDo) => api.get('/izvestaj/ai-asistent', { params: { datumOd: od, datumDo: datDo}, responseType: 'blob' }),
+}
+
+// ── Komentari ─────────────────────────────────────────────────────────
+export const komentarApi = {
+  dohvati: (isbn)                  => api.get(`/knjiga/${isbn}/komentari`),
+  dodaj:   (isbn, data)            => api.post(`/knjiga/${isbn}/komentari`, data),
+  lajkuj:  (isbn, komentarId)      => api.post(`/knjiga/${isbn}/komentari/${komentarId}/lajk`),
 }
 
 export default api

@@ -17,12 +17,14 @@ public class PozajmicaNotificationScheduler {
     private final PozajmicaRepository pozajmicaRepository;
     private final ObavestenjeRepository obavestenjeRepository;
     private final PozajmicaService pozajmicaService;
+    private final KaznaService kaznaService;
 
     public PozajmicaNotificationScheduler(PozajmicaRepository pozajmicaRepository,
-                                          ObavestenjeRepository obavestenjeRepository, PozajmicaService pozajmicaService) {
+                                          ObavestenjeRepository obavestenjeRepository, PozajmicaService pozajmicaService, KaznaService kaznaService) {
         this.pozajmicaRepository = pozajmicaRepository;
         this.obavestenjeRepository = obavestenjeRepository;
         this.pozajmicaService=pozajmicaService;
+        this.kaznaService= kaznaService;
     }
     @Scheduled(cron = "0 0 5 * * *")
     @Transactional
@@ -57,5 +59,13 @@ public class PozajmicaNotificationScheduler {
         pozajmicaService.expireDigitalLoans();
     }
 
+    @Scheduled(cron = "0 0 0 * * *")
+    @Transactional
+    public void processOverdue(){
+        List<Pozajmica> overdue= pozajmicaService.findAllOverdueActivePozajmice();
+        for(Pozajmica p: overdue){
+            kaznaService.kreirajIliAzurirajKaznaPrekoracenje(p);
+        }
+    }
 
 }

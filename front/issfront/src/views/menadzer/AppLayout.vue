@@ -26,6 +26,27 @@
           <span class="nav-icon">📈</span>
           <span class="nav-label">Sistemske preporuke</span>
         </RouterLink>
+
+        <RouterLink to="/menadzer/budzet" class="nav-item" active-class="nav-item--active">
+          <span class="nav-icon">💰</span>
+          <span class="nav-label">Budžet</span>
+        </RouterLink>
+
+        <RouterLink to="/menadzer/narudzbine" class="nav-item" active-class="nav-item--active">
+          <span class="nav-icon">📦</span>
+          <span class="nav-label">Narudžbine</span>
+        </RouterLink>
+      
+        <RouterLink to="/menadzer/reklamacije" class="nav-item" active-class="nav-item--active">
+          <span class="nav-icon">⚠️</span>
+          <span class="nav-label">Reklamacije</span>
+        </RouterLink>
+
+        <RouterLink to="/menadzer/izvestaj" class="nav-item" active-class="nav-item--active">
+          <span class="nav-icon">📄</span>
+          <span class="nav-label">Izvestaji</span>
+        </RouterLink>
+
       </nav>
 
       <button class="nav-item nav-item--logout" @click="handleLogout">

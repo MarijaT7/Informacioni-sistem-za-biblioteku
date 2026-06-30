@@ -22,8 +22,8 @@ public class Komentar {
     private LocalDateTime datumKreiranjaK;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "id_d", nullable = false)
-    private Diskusija diskusija;
+    @JoinColumn(name = "isbn", nullable = false)
+    private Knjiga knjiga;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "jmbg_clana", nullable = false)
@@ -47,11 +47,11 @@ public class Komentar {
     public Komentar() {
     }
 
-    public Komentar(Long id, String tekstK, LocalDateTime datumKreiranjaK, Diskusija diskusija, User clan, Komentar odgovorNa, List<Komentar> odgovori, List<User> lajkovali) {
+    public Komentar(Long id, String tekstK, LocalDateTime datumKreiranjaK, Knjiga knjiga, User clan, Komentar odgovorNa, List<Komentar> odgovori, List<User> lajkovali) {
         this.id = id;
         this.tekstK = tekstK;
         this.datumKreiranjaK = datumKreiranjaK;
-        this.diskusija = diskusija;
+        this.knjiga = knjiga;
         this.clan = clan;
         this.odgovorNa = odgovorNa;
         this.odgovori = odgovori;
@@ -82,12 +82,12 @@ public class Komentar {
         this.datumKreiranjaK = datumKreiranjaK;
     }
 
-    public Diskusija getDiskusija() {
-        return diskusija;
+    public Knjiga getKnjiga() {
+        return knjiga;
     }
 
-    public void setDiskusija(Diskusija diskusija) {
-        this.diskusija = diskusija;
+    public void setKnjiga(Knjiga knjiga) {
+        this.knjiga = knjiga;
     }
 
     public User getClan() {

@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stroage/auth.js'
-
 const routes = [
   { path: '/',              redirect: '/login' },
   { path: '/login',         component: () => import('../views/LoginView.vue')     },
@@ -18,6 +17,11 @@ const routes = [
     component: () => import('../views/UserProfile.vue'),
     meta: { requiresAuth: true }
   },
+  {
+      path: '/dugovanja',
+      component: () => import('../views/DugovanjaView.vue'),
+      meta: { requiresAuth: true }
+    },
   {
     path: '/knjige',
     component: () => import('../views/BooksView.vue'),
@@ -164,6 +168,12 @@ const routes = [
     { path: 'dobavljaci/:id/ugovor', component: () => import('../views/menadzer/DodajUgovorView.vue') },
     { path: 'predlozi',            component: () => import('../views/menadzer/OdobreniPredloziView.vue') },
     { path: 'sistemske-preporuke', component: () => import('../views/menadzer/SistemskePreporukeView.vue') },
+    { path: 'budzet', component: () => import('../views/menadzer/BudzetView.vue') },
+    { path: 'narudzbine',          component: () => import('../views/menadzer/NarudzbineView.vue') },
+    { path: 'narudzbine/nova',     component: () => import('../views/menadzer/KreirajNarudzbinuView.vue') },
+    { path: 'narudzbine/:id',      component: () => import('../views/menadzer/NarudzbinaDetaljiView.vue') },
+    { path: 'reklamacije',         component: () => import('../views/menadzer/ReklamacijeView.vue') },
+    { path: 'izvestaj',            component: () => import('../views/menadzer/IzvestajView.vue') },
  
   ]
 },
@@ -172,6 +182,24 @@ const routes = [
     name:   'fulltextsearch',
     component: () => import('../views/SearchPOC.vue')
 },
+{
+    path: '/izvestaj',
+    name: 'izvestaj',
+    component: () => import('../views/IzvestajView.vue'),
+    meta: { requiresAuth: true, roles: ['BIBLIOTEKAR', 'MENADZER', 'ADMINISTRATOR'] }
+  },
+  {
+    path: '/izvestaj-katalog',
+    name: 'izvestaj-katalog',
+    component: () => import('../views/IzvestajFondView.vue'),
+    meta: { requiresAuth: true, roles: ['BIBLIOTEKAR', 'MENADZER', 'ADMINISTRATOR'] }
+  },
+  {
+    path: '/izvestaj-ai-agent',
+    name: 'izvestaj-ai-agent',
+    component: () => import('../views/IzvestajAIAgent.vue'),
+    meta: { requiresAuth: true, roles: ['BIBLIOTEKAR', 'MENADZER', 'ADMINISTRATOR']}
+  }
 ]
 
 const router = createRouter({

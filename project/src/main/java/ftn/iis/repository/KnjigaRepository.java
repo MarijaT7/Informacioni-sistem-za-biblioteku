@@ -17,10 +17,21 @@ public interface KnjigaRepository extends JpaRepository<Knjiga, String> {
     @Query("SELECT k FROM Knjiga k LEFT JOIN FETCH k.fizickaKnjiga WHERE k.isbn = :isbn")
     Optional<Knjiga> findByIsbnWithFizicka(@Param("isbn") String isbn);
     List<Knjiga> findByNaslovContainingIgnoreCaseAndDeletedFalse(String naslov);
-    @Query("SELECT DISTINCT k FROM Knjiga k JOIN k.zanrovi z WHERE z.id IN :zanrIds AND k.deleted = false")
+    @Query("SELECT k\n" +
+            "FROM Knjiga k\n" +
+            "WHERE k.zanr.id IN :zanrIds\n" +
+            "AND k.deleted = false")
     List<Knjiga> findByZanroviIdInAndDeletedFalse(@Param("zanrIds") Set<Long> zanrIds);
 
-    @Query("SELECT DISTINCT k.autor FROM Knjiga k JOIN k.zanrovi z WHERE z.id IN :zanrIds AND k.autor IS NOT NULL AND k.deleted = false")
+    @Query("""
+    SELECT DISTINCT k.autor
+    FROM Knjiga k
+    WHERE k.zanr.id IN :zanrIds
+    AND k.autor IS NOT NULL
+    AND k.deleted = false
+    """)
     List<String> findAutoriByZanrIds(@Param("zanrIds") Set<Long> zanrIds);
 
+    @Query("SELECT k FROM Knjiga k LEFT JOIN FETCH k.zanr LEFT JOIN FETCH k.fizickaKnjiga WHERE k.deleted = false ORDER BY k.naslov")
+    List<Knjiga> findAllActiveWithZanrAndFizicka();
 }

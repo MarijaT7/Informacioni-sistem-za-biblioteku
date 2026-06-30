@@ -216,7 +216,9 @@ public class PredlogNabavkeService {
                 throw new RuntimeException("Nedovoljno sredstava u budžetu za žanr '"
                         + predlog.getZanr().getName() + "'.");
             }
+
             predlog.setStatus(StatusPredloga.ODOBRENO_MENADZER);
+            budzetService.rezervisi(predlog.getZanr().getId(), predlog.getOkvirnaCena());
         }
         else{
             predlog.setStatus(StatusPredloga.ODBIJENO_MENADZER);

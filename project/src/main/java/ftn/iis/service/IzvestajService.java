@@ -507,7 +507,7 @@ public class IzvestajService {
             poStatusu.put(status, poStatusu.get(status) + 1);
 
             // Kategorizacija po statusima
-            if (status == StatusNarudzbine.ISPORUCENA || status == StatusNarudzbine.REKLAMIRANA) {
+            if (status == StatusNarudzbine.ISPORUCENA || status == StatusNarudzbine.REKLAMIRANA || status == StatusNarudzbine.POTVRDJENA) {
                 ukupnoPotrošeno += cena;
             }
 
@@ -555,7 +555,7 @@ public class IzvestajService {
                     String.format("%.1f%%", 100.0 * count / narudzbine.size());
             Color bg = (rowIdx % 2 == 0) ? CARD_LIGHT : WHITE;
             addRow(tblStatus, fTblCell, bg, Element.ALIGN_LEFT,
-                    labelStatusa(status.name()), "" + count, pct);
+                    labelStatusaNarudzbine(status.name()), "" + count, pct);
             rowIdx++;
         }
         if (narudzbine.isEmpty()) addEmptyRow(tblStatus, fTblSmall, 3, "Nema narudzbina u periodu");
@@ -843,12 +843,12 @@ public class IzvestajService {
 
     }
 
-    private String labelStatusa(String status) {
+    private String labelStatusaNarudzbine(String status) {
         return switch (status) {
             case "KREIRANA"    -> "Kreirana";
             case "ISPORUCENA"  -> "Isporucena";
             case "REKLAMIRANA" -> "Reklamirana";
-            case "OTKAZANA"    -> "Otkazana";
+            case "POTVRDJENA"    -> "Potvrdjena";
             default -> status;
         };
     }

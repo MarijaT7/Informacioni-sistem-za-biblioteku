@@ -95,7 +95,8 @@ async function generisi() {
     const url  = URL.createObjectURL(blob)
     const a    = document.createElement('a')
     a.href     = url
-    a.download = `izvestaj-aktivnosti-${od.value}-${datDo.value}.pdf`
+
+    a.download = `izvestaj-ai-agent-${od.value}-${datDo.value}.pdf`
     a.click()
     URL.revokeObjectURL(url)
 

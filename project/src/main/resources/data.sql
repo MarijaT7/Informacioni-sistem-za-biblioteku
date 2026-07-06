@@ -888,3 +888,179 @@ VALUES ('9788617150007', 6, 2, 'Knjiga beleži nagli porast pozajmica — prepor
 
 INSERT INTO sistemska_preporuka (isbn, broj_pozajmica, trenutni_broj_primeraka, predlog, datum_generisanja, status)
 VALUES ('9788617150001', 9, 4, 'Povećana potražnja — razmotrite nabavku dodatnih primeraka.', '2026-06-15 00:00:00', 'AKTIVNA');
+
+
+
+-- =============================================================================================================================================================
+-- =============================================================================================================================================================
+-- =============================================================================================================================================================
+-- =============================================================================================================================================================
+-- =============================================================================================================================================================
+
+--                                              Marijini dodatni zadaci iz sbp-a
+
+
+-- =============================================================================================================================================================
+--                                                      Zadatak 1
+
+-- Pomocna funkcija koja nalazi zanr za svaku stavku narudzbine
+-- Ako je:
+--  1. postojeca knjiga    -> knjiga.zanrId
+--  2. sistemska preporuka -> fizickaKnjiga.knjiga.zanrId
+--  3. predlog korisnika   -> predlog_za_nabavku.zanrId
+
+CREATE OR REPLACE FUNCTION fn_odredi_zanr_stavke(
+    p_isbn        VARCHAR,
+    p_predlog_id  BIGINT,
+    p_preporuka_id BIGINT
+) RETURNS BIGINT AS $$                   -- oovo $$ je Postgresov nacin da definisu pocetak i kraj funkcije
+
+DECLARE
+v_zanr_id BIGINT;
+
+BEGIN
+    IF p_isbn IS NOT NULL THEN
+        SELECT k.zanr_id
+        INTO v_zanr_id
+        FROM knjiga k
+        WHERE k.isbn = p_isbn;
+
+    ELSIF p_predlog_id IS NOT NULL THEN
+        SELECT p.zanr_id
+        INTO v_zanr_id
+        FROM predlog_za_nabavku p
+        WHERE p.id = p_predlog_id;
+
+    ELSIF p_preporuka_id IS NOT NULL THEN
+        SELECT k.zanr_id INTO v_zanr_id
+        FROM sistemska_preporuka sp
+        JOIN knjiga k ON k.isbn = sp.isbn
+        WHERE sp.id = p_preporuka_id;
+    END IF;
+    RETURN v_zanr_id; -- moze ostati NULL - stavka se tada ne knjizi na budzet
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- Triger 1 -> njegov posao je da rezervise sredsva i odbije dodavanje stavke ako nema dovoljno novca za taj neki zanr !
+
+
+CREATE OR REPLACE FUNCTION trg_fn_stavka_pre_insert()
+       RETURNS TRIGGER AS $$
+
+DECLARE
+    v_zanr_id   BIGINT;
+    v_dostupno  DOUBLE PRECISION;
+    v_naziv_zanra VARCHAR;
+
+BEGIN
+    v_zanr_id := fn_odredi_zanr_stavke(NEW.isbn, NEW.predlog_id, NEW.preporuka_id);
+
+    -- ako ne mogu da odredimo zanr, ne blokiram unos
+    IF v_zanr_id IS NULL THEN
+        RETURN NEW;
+    END IF;
+
+    SELECT (bpz.ukupan_budzet - bpz.potroseno - COALESCE(bpz.rezervisano,0)), z.zanr_name
+    INTO v_dostupno, v_naziv_zanra
+    FROM budzet_po_zanru bpz JOIN zanr z ON z.zanr_id = bpz.zanr_id
+    WHERE bpz.zanr_id = v_zanr_id
+    FOR UPDATE;                                                                 -- koristim kako bih zakljucala ovaj red dok se moja transakcija ne izvrsi do kraja
+                                                                                --izbegava se anomalija azuriranja "lost update"
+
+    IF NOT FOUND THEN
+            RAISE EXCEPTION 'Za žanr id=% nije definisan budžet - narudžbina se ne može evidentirati.', v_zanr_id;
+    END IF;
+
+    IF v_dostupno < NEW.ukupna_cena_stavke THEN
+        RAISE EXCEPTION 'Nedovoljno raspoloživih sredstava u budžetu za žanr "%": dostupno % RSD, potrebno % RSD.', v_naziv_zanra, ROUND(v_dostupno::numeric,2), ROUND(NEW.ukupna_cena_stavke::numeric,2);
+    END IF;
+
+    UPDATE budzet_po_zanru
+    SET rezervisano = COALESCE(rezervisano,0) + NEW.ukupna_cena_stavke
+    WHERE zanr_id = v_zanr_id;
+
+    RETURN NEW;
+
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_stavka_pre_insert ON stavka_narudzbine;
+CREATE TRIGGER trg_stavka_pre_insert
+    BEFORE INSERT ON stavka_narudzbine
+    FOR EACH ROW
+    EXECUTE FUNCTION trg_fn_stavka_pre_insert();
+
+
+-- Triger 2 -> ako je narudzbina i dalje u statusu kreirana moguce je brisati stavke iz kao korpe, pri tom se oslobadjaju sredstva iz budzeta za taj zanr kome pripada obrisana stavka
+
+CREATE OR REPLACE FUNCTION trg_fn_stavka_posle_delete()
+       RETURNS TRIGGER AS $$
+
+DECLARE
+    v_zanr_id BIGINT;
+    v_status  VARCHAR;
+
+BEGIN
+    SELECT status
+    INTO v_status
+    FROM narudzbina
+    WHERE id = OLD.narudzbina_id;
+
+    IF v_status = 'KREIRANA' THEN
+        v_zanr_id := fn_odredi_zanr_stavke(OLD.isbn, OLD.predlog_id, OLD.preporuka_id);
+        IF v_zanr_id IS NOT NULL THEN
+            UPDATE budzet_po_zanru
+            SET rezervisano = GREATEST(0, COALESCE(rezervisano,0) - OLD.ukupna_cena_stavke)
+            WHERE zanr_id = v_zanr_id;
+        END IF;
+    END IF;
+RETURN OLD;                         --old -> red kakav je bio pre promene
+
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_stavka_posle_delete ON stavka_narudzbine;
+CREATE TRIGGER trg_stavka_posle_delete
+    AFTER DELETE ON stavka_narudzbine
+    FOR EACH ROW
+    EXECUTE FUNCTION trg_fn_stavka_posle_delete();
+
+
+-- Triger 3 -> Kada narudzbina predje iz stanja KREIRANA u POTVRDJENAA/ISPORUCENA
+CREATE OR REPLACE FUNCTION trg_fn_narudzbina_status_change()
+       RETURNS TRIGGER AS $$
+
+DECLARE
+r RECORD;
+    v_zanr_id BIGINT;
+
+BEGIN
+    IF NEW.status IS DISTINCT FROM OLD.status
+       AND OLD.status = 'KREIRANA'
+       AND NEW.status IN ('ISPORUCENA', 'POTVRDJENA') THEN
+        FOR r IN SELECT * FROM stavka_narudzbine WHERE narudzbina_id = NEW.id LOOP
+            v_zanr_id := fn_odredi_zanr_stavke(r.isbn, r.predlog_id, r.preporuka_id);
+            IF v_zanr_id IS NOT NULL THEN
+                UPDATE budzet_po_zanru
+                SET rezervisano = GREATEST(0, COALESCE(rezervisano,0) - r.ukupna_cena_stavke),
+                    potroseno   = potroseno + r.ukupna_cena_stavke
+                WHERE zanr_id = v_zanr_id;
+            END IF;
+        END LOOP;
+    END IF;
+RETURN NEW;                     --new je red kakav treba da bude upisan
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_narudzbina_status_change ON narudzbina;
+CREATE TRIGGER trg_narudzbina_status_change
+    BEFORE UPDATE ON narudzbina
+    FOR EACH ROW
+    EXECUTE FUNCTION trg_fn_narudzbina_status_change();
+
+
+
+-- =============================================================================================================================================================
+--                                                      Zadatak 2
+

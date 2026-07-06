@@ -1063,4 +1063,137 @@ CREATE TRIGGER trg_narudzbina_status_change
 
 -- =============================================================================================================================================================
 --                                                      Zadatak 2
+--                                        Izvestajna funkcija za nabavke po mesecima
 
+-- Ideja je da upotrebom kursora prolayim kroz svaki od 12 meseci izabrane godine i za svaki mesec prikupim podatke o broju narudzbina,
+-- ukupnoj vrednosti narudzbi, broju isporuka, broju isporuka na vreme i isporuka koje kasne, prosecno kasnjenje u danima, broju reklamacija i broju
+-- resenih reklamacija. Na kraju se akumuliraju podaci za godisnji sumarni red.
+
+CREATE OR REPLACE FUNCTION fn_izvestaj_nabavke_po_mesecima(
+    p_godina        INTEGER,
+    p_dobavljac_id  BIGINT DEFAULT NULL             -- ako je NULL, izvestaj je za sve dobavljace
+)
+    RETURNS TABLE (
+        mesec                     INTEGER,          -- 1-12, a 0 = "UKUPNO/PROSEK ZA GODINU"
+        naziv_meseca              VARCHAR,
+        broj_narudzbina           INTEGER,
+        ukupna_vrednost_narudzbi  NUMERIC,
+        broj_isporuka             INTEGER,
+        broj_isporuka_na_vreme    INTEGER,
+        broj_isporuka_kasni       INTEGER,
+        prosecno_kasnjenje_dana   NUMERIC,
+        broj_reklamacija          INTEGER,
+        broj_resenih_reklamacija  NUMERIC
+    ) AS $$
+
+DECLARE
+    -- kursor koji vrti sve mesece (1..12) zadate godine
+    mesec_cursor CURSOR FOR
+        SELECT gm AS br_meseca, TO_CHAR(TO_DATE(gm::text,'MM'), 'TMMonth') AS naziv
+        FROM generate_series(1,12) AS gm;
+
+    v_mesec_rec       RECORD;
+    v_broj_narudzbina INTEGER;
+    v_ukupna_vrednost NUMERIC;
+    v_broj_isporuka   INTEGER;
+    v_na_vreme        INTEGER;
+    v_kasni           INTEGER;
+    v_prosek_kasnjenja NUMERIC;
+    v_broj_reklamacija INTEGER;
+    v_resene_reklamacije INTEGER;
+
+    -- akumulatori za godisnji sumarni red
+    sum_narudzbina INTEGER := 0;
+    sum_vrednost   NUMERIC := 0;
+    sum_isporuka   INTEGER := 0;
+    sum_na_vreme   INTEGER := 0;
+    sum_kasni      INTEGER := 0;
+    sum_kasnjenje_dana NUMERIC := 0;                    -- suma dana kasnjenja (za prosek na kraju)
+    sum_reklamacija INTEGER := 0;
+    sum_resene      INTEGER := 0;
+
+BEGIN
+    OPEN mesec_cursor;
+    LOOP
+        FETCH mesec_cursor INTO v_mesec_rec;
+                EXIT WHEN NOT FOUND;
+
+        -- broj narudzbina kreiranih u datom mesecu i njihova ukupna vrednost
+        SELECT COUNT(*), COALESCE(SUM(n.ukupna_cena),0)
+        INTO v_broj_narudzbina, v_ukupna_vrednost
+        FROM narudzbina n
+        WHERE EXTRACT(YEAR FROM n.datum_kreiranja) = p_godina
+                AND EXTRACT(MONTH FROM n.datum_kreiranja) = v_mesec_rec.br_meseca
+                AND (p_dobavljac_id IS NULL OR n.dobavljac_id = p_dobavljac_id);
+
+        -- isporuke realizovane u datom mesecu: na vreme vs sa yakasnjenjem + prosecno kasnjenje
+        SELECT COUNT(*),
+               COUNT(*) FILTER (WHERE n.datum_stvarne_isporuke <= n.datum_ocekivane_isporuke),
+               COUNT(*) FILTER (WHERE n.datum_stvarne_isporuke  > n.datum_ocekivane_isporuke),
+               COALESCE(AVG(GREATEST(0, n.datum_stvarne_isporuke - n.datum_ocekivane_isporuke))
+               FILTER (WHERE n.datum_stvarne_isporuke > n.datum_ocekivane_isporuke), 0)
+        INTO v_broj_isporuka, v_na_vreme, v_kasni, v_prosek_kasnjenja
+        FROM narudzbina n
+        WHERE n.datum_stvarne_isporuke IS NOT NULL
+          AND EXTRACT(YEAR FROM n.datum_stvarne_isporuke) = p_godina
+          AND EXTRACT(MONTH FROM n.datum_stvarne_isporuke) = v_mesec_rec.br_meseca
+          AND (p_dobavljac_id IS NULL OR n.dobavljac_id = p_dobavljac_id);
+
+        -- reklamacije podnete u datom mesecu (i koliko je od njih resenih)
+        SELECT COUNT(*), COUNT(*) FILTER (WHERE r.status = 'RESENA')
+        INTO v_broj_reklamacija, v_resene_reklamacije
+        FROM reklamacija r
+                 JOIN narudzbina n ON n.id = r.narudzbina_id
+        WHERE EXTRACT(YEAR FROM r.datum_podnosenja) = p_godina
+          AND EXTRACT(MONTH FROM r.datum_podnosenja) = v_mesec_rec.br_meseca
+          AND (p_dobavljac_id IS NULL OR n.dobavljac_id = p_dobavljac_id);
+
+        -- akumulacija za godisnji red
+        sum_narudzbina := sum_narudzbina + v_broj_narudzbina;
+        sum_vrednost    := sum_vrednost + v_ukupna_vrednost;
+        sum_isporuka    := sum_isporuka + v_broj_isporuka;
+        sum_na_vreme    := sum_na_vreme + v_na_vreme;
+        sum_kasni       := sum_kasni + v_kasni;
+        sum_kasnjenje_dana := sum_kasnjenje_dana + (v_prosek_kasnjenja * v_kasni); -- vracamo u "sumu dana" da prosek na kraju bude tacan
+        sum_reklamacija := sum_reklamacija + v_broj_reklamacija;
+        sum_resene      := sum_resene + v_resene_reklamacije;
+
+        mesec := v_mesec_rec.br_meseca;
+        naziv_meseca := INITCAP(v_mesec_rec.naziv);
+        broj_narudzbina := v_broj_narudzbina;
+        ukupna_vrednost_narudzbi := ROUND(v_ukupna_vrednost, 2);
+        broj_isporuka := v_broj_isporuka;
+        broj_isporuka_na_vreme := v_na_vreme;
+        broj_isporuka_kasni := v_kasni;
+        prosecno_kasnjenje_dana := ROUND(v_prosek_kasnjenja, 2);
+        broj_reklamacija := v_broj_reklamacija;
+        broj_resenih_reklamacija := v_resene_reklamacije;
+
+        RETURN NEXT;
+    END LOOP;
+    CLOSE mesec_cursor;
+
+    -- sumarni/prosecni red za celu godinu (mesec = 0)
+    mesec := 0;
+    naziv_meseca := 'UKUPNO/PROSEK ZA GODINU';
+    broj_narudzbina := sum_narudzbina;
+    ukupna_vrednost_narudzbi := ROUND(sum_vrednost, 2);
+    broj_isporuka := sum_isporuka;
+    broj_isporuka_na_vreme := sum_na_vreme;
+    broj_isporuka_kasni := sum_kasni;
+    prosecno_kasnjenje_dana := CASE WHEN sum_kasni > 0
+                                     THEN ROUND(sum_kasnjenje_dana / sum_kasni, 2)
+                                     ELSE 0 END;
+    broj_reklamacija := sum_reklamacija;
+    broj_resenih_reklamacija := sum_resene;
+
+    RETURN NEXT;
+END;
+
+$$ LANGUAGE plpgsql;
+
+
+
+-- =============================================================================================================================================================
+--                                                      Zadatak 3
+--                                        Analiza i optimizacija upita pomocu indeksa

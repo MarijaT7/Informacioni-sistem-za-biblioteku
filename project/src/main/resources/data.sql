@@ -913,7 +913,7 @@ CREATE OR REPLACE FUNCTION fn_odredi_zanr_stavke(
     p_isbn        VARCHAR,
     p_predlog_id  BIGINT,
     p_preporuka_id BIGINT
-) RETURNS BIGINT AS $$                   -- oovo $$ je Postgresov nacin da definisu pocetak i kraj funkcije
+) RETURNS BIGINT AS $$
 
 DECLARE
 v_zanr_id BIGINT;
@@ -1197,3 +1197,96 @@ $$ LANGUAGE plpgsql;
 -- =============================================================================================================================================================
 --                                                      Zadatak 3
 --                                        Analiza i optimizacija upita pomocu indeksa
+
+
+
+-- Upit glasi: Pronaći dobavljače i ukupnu vrednost isporučene robe (u poslednjih N dana) za dati žanr, sortirano po vrednosti opadajuće.
+-- TAKAV UPIT bez indeksa:
+
+-- SELECT d.id, d.naziv, SUM(sn.ukupna_cena_stavke) AS ukupna_vrednost
+-- FROM dobavljac d
+-- JOIN narudzbina n ON n.dobavljac_id = d.id
+-- JOIN stavka_narudzbine sn ON sn.narudzbina_id = n.id
+-- JOIN knjiga k ON k.isbn = sn.isbn
+-- WHERE k.zanr_id = ?
+--      AND n.status = 'ISPORUCENA'
+--      AND n.datum_stvarne_isporuke >= CURRENT_DATE - INTERVAL '90 days'
+-- GROUP BY d.id, d.naziv
+-- ORDER BY ukupna_vrednost DESC;
+--
+--
+-- Problem je sto ne postoji nijedan indeks koji odgovara WHERE/JOIN uslovima,
+-- pa optimizator mora da pročita cele tabele (Seq Scan) i tek onda
+-- filtrira/spaja redove.
+
+
+-- 1) INDEKSI
+
+CREATE INDEX IF NOT EXISTS idx_narudzbina_status_datum_isporuke
+    ON narudzbina (status, datum_stvarne_isporuke)
+    WHERE status IN ('ISPORUCENA', 'POTVRDJENA');
+
+
+CREATE INDEX IF NOT EXISTS idx_narudzbina_dobavljac_id
+    ON narudzbina (dobavljac_id);
+CREATE INDEX IF NOT EXISTS idx_stavka_narudzbina_id
+    ON stavka_narudzbine (narudzbina_id);
+
+
+CREATE INDEX IF NOT EXISTS idx_knjiga_zanr_id
+    ON knjiga (zanr_id);
+
+
+CREATE INDEX IF NOT EXISTS idx_stavka_narudzbina_isbn_covering
+    ON stavka_narudzbine (narudzbina_id) INCLUDE (isbn, ukupna_cena_stavke);
+
+ANALYZE narudzbina;
+ANALYZE stavka_narudzbine;
+ANALYZE knjiga;
+ANALYZE dobavljac;
+
+
+-- 2) RESTRUKTUIRANI UPITTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+
+-- Razlike u odnosu na originalni upzt:
+--  - filtriranje po žanru se radi ranije, u posebnom CTE-u nad manjom
+--    tabelom (knjiga), umesto da se zanr_id proverava tek nakon što se
+--    spoje sve stavke i narudžbine
+--  - JOIN redosled prati selektivnost filtera (prvo status/datum na
+--    narudžbini, zatim žanr na stavkama) što planeru daje bolje granice
+--    za korišćenje novih indeksa;
+--  - eksplicitno gradimo predikat i za n.status IN ('ISPORUCENA') da
+--    odgovara parcijalnom indeksu.
+
+CREATE OR REPLACE FUNCTION fn_top_dobavljaci_po_zanru(
+    p_zanr_id   BIGINT,
+    p_broj_dana INTEGER DEFAULT 90
+)
+RETURNS TABLE (dobavljac_id BIGINT, naziv VARCHAR, ukupna_vrednost NUMERIC)
+AS $$
+
+BEGIN
+    RETURN QUERY
+        WITH knjige_zanra AS (
+            SELECT k.isbn
+            FROM knjiga k
+            WHERE k.zanr_id = p_zanr_id
+        ),
+
+        isporucene_narudzbine AS (
+            SELECT n.id, n.dobavljac_id
+            FROM narudzbina n
+            WHERE n.status = 'ISPORUCENA'
+                AND n.datum_stvarne_isporuke >= CURRENT_DATE - (p_broj_dana || ' days')::interval
+        )
+    SELECT d.id, d.naziv, SUM(sn.ukupna_cena_stavke) AS ukupna_vrednost
+    FROM isporucene_narudzbine n
+             JOIN stavka_narudzbine sn ON sn.narudzbina_id = n.id
+             JOIN knjige_zanra kz ON kz.isbn = sn.isbn
+             JOIN dobavljac d ON d.id = n.dobavljac_id
+    GROUP BY d.id, d.naziv
+    ORDER BY ukupna_vrednost DESC;
+
+END;
+$$ LANGUAGE plpgsql STABLE;
+

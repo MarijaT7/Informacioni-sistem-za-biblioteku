@@ -17,7 +17,7 @@
         {{ komentar.lajkovaoTrenutniKorisnik ? '❤️' : '🤍' }} {{ komentar.brojLajkova }}
       </button>
       <button
-        v-if="dubina < 5"
+        v-if="dubina < 7"
         class="btn-odgovor-link"
         type="button"
         @click="$emit('odgovori', komentar)"

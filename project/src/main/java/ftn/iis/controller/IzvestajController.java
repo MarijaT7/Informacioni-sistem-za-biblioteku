@@ -1,5 +1,7 @@
 package ftn.iis.controller;
 
+import ftn.iis.dto.AktivnostiIzvestajResponseDto;
+import ftn.iis.service.IzvestajAktivnostiService;
 import ftn.iis.service.IzvestajService;
 import ftn.iis.utils.JwtService;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -21,10 +23,12 @@ public class IzvestajController {
     private static final int BEARER_LEN = 7;
 
     private final IzvestajService izvestajService;
+    private final IzvestajAktivnostiService izvestajAktivnostiService;
     private final JwtService jwtService;
 
-    public IzvestajController(IzvestajService izvestajService, JwtService jwtService) {
+    public IzvestajController(IzvestajService izvestajService, IzvestajAktivnostiService izvestajAktivnostiService, JwtService jwtService) {
         this.izvestajService = izvestajService;
+        this.izvestajAktivnostiService = izvestajAktivnostiService;
         this.jwtService = jwtService;
     }
 
@@ -145,6 +149,25 @@ public class IzvestajController {
             e.printStackTrace();
             return ResponseEntity.internalServerError().body("Greška pri generisanju izveštaja o korišćenju AI asistenta: " + e.getMessage());
 
+        }
+    }
+
+    @GetMapping("/aktivnosti-po-mesecima")
+    public ResponseEntity<?> generisiIzvestajAktivnostiPoMesecima(@RequestHeader("Authorization") String authHeader,
+                                                                  @RequestParam("godina") int godina) {
+        try {
+            String token = authHeader.substring(BEARER_LEN);
+            String uloga = jwtService.extractRole(token);
+
+            if (!DOZVOLJENE_ULOGE.contains(uloga)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Nemate pravo pristupa izveštaju.");
+            }
+
+            AktivnostiIzvestajResponseDto izvestaj = izvestajAktivnostiService.generisiIzvestajAktivnosti(godina);
+            return ResponseEntity.ok(izvestaj);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body("Greška pri generisanju izveštaja o aktivnostima po mesecima: " + e.getMessage());
         }
     }
 }

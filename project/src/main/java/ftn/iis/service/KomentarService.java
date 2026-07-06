@@ -8,6 +8,8 @@ import ftn.iis.model.User;
 import ftn.iis.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ftn.iis.exception.MaksimalnaDubinaKomentaraException;
+import org.springframework.dao.DataAccessException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -52,8 +54,28 @@ public class KomentarService {
             komentar.setOdgovorNa(roditelj);
         }
 
-        Komentar sacuvan = komentarRepository.save(komentar);
-        return KomentarResponseDto.fromKomentar(sacuvan, jmbgClana);
+        try {
+            Komentar sacuvan = komentarRepository.save(komentar);
+            return KomentarResponseDto.fromKomentar(sacuvan, jmbgClana);
+        } catch (DataAccessException ex) {
+            if (ProveraPremasivanjeMaksimalneDubine(ex)) {
+                throw new MaksimalnaDubinaKomentaraException();
+            }
+            throw ex;
+        }
+    }
+
+    private static final String OZNAKA_MAKSIMALNE_DUZINE_KOMENTARA = "MAX_DUBINA_PREMASENA";
+
+    private boolean ProveraPremasivanjeMaksimalneDubine(Throwable ex) {
+        Throwable trenutni = ex;
+        while (trenutni != null) {
+            if (trenutni.getMessage() != null && trenutni.getMessage().contains(OZNAKA_MAKSIMALNE_DUZINE_KOMENTARA)) {
+                return true;
+            }
+            trenutni = trenutni.getCause();
+        }
+        return false;
     }
 
     @Transactional

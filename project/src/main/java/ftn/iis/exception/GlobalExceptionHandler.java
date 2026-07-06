@@ -148,4 +148,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
     }
 
+    @ExceptionHandler(MaksimalnaDubinaKomentaraException.class)
+    public ResponseEntity<String> handleMaksimalnaDubinaKomentaraException(MaksimalnaDubinaKomentaraException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(ZanrNotFoundException.class)
+    public ResponseEntity<String> handleZanrNotFoundException(ZanrNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
 }

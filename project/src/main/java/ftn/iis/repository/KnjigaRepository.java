@@ -1,5 +1,6 @@
 package ftn.iis.repository;
 
+import ftn.iis.dto.NajcitanijaKnjigaProjection;
 import ftn.iis.model.Knjiga;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -34,4 +35,16 @@ public interface KnjigaRepository extends JpaRepository<Knjiga, String> {
 
     @Query("SELECT k FROM Knjiga k LEFT JOIN FETCH k.zanr LEFT JOIN FETCH k.fizickaKnjiga WHERE k.deleted = false ORDER BY k.naslov")
     List<Knjiga> findAllActiveWithZanrAndFizicka();
+
+    @Query(value = """
+            SELECT k.isbn AS isbn, k.naslov AS naslov, COUNT(c.jmbg_clana) AS brojCitanja
+            FROM knjiga k
+            JOIN citanje_eknjige c ON c.isbn_eknjige = k.isbn
+            WHERE k.zanr_id = :zanrId
+              AND k.deleted = false
+              AND c.datum_poslednjeg_pristupa_ck >= CURRENT_DATE - INTERVAL '150 days'
+            GROUP BY k.isbn, k.naslov
+            ORDER BY brojCitanja DESC
+            """, nativeQuery = true)
+    List<NajcitanijaKnjigaProjection> findNajcitanijeKnjigePoZanru(@Param("zanrId") Long zanrId);
 }

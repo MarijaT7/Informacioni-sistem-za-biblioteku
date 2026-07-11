@@ -134,7 +134,7 @@ $$ LANGUAGE plpgsql;
 
 -- Kraj zadatka 2
 
--- nesto - Zadatak 3 - Nenad
+-- Indeksi - optimizacija upita - Zadatak 3 - Nenad
 
 -- =====================================================================
 -- V1: Indeksi za optimizaciju upita "najcitanije knjige po zanru
@@ -156,42 +156,12 @@ $$ LANGUAGE plpgsql;
 -- indeksima ispod planer prelazi na Index/Bitmap Index Scan.
 -- =====================================================================
 
--- ---------------------------------------------------------------------
--- 1. Indeks nad knjiga.zanr_id
---
---    Koristi se u WHERE k.zanr_id = :zanrId. Bez ovog indeksa planer
---    mora da procita celu tabelu knjiga da bi nasao knjige zadatog zanra.
--- ---------------------------------------------------------------------
 CREATE INDEX IF NOT EXISTS idx_knjiga_zanr_id
     ON knjiga (zanr_id);
 
--- ---------------------------------------------------------------------
--- 2. Kompozitni indeks nad citanje_eknjige (isbn_eknjige, datum_poslednjeg_pristupa_ck)
---
---    Ovo je najvazniji indeks za ovaj upit. Redosled kolona nije slucajan:
---    - isbn_eknjige je prva kolona jer se koristi u JOIN uslovu
---      (c.isbn_eknjige = k.isbn) i ima visoku selektivnost (mnogo
---      razlicitih ISBN vrednosti).
---    - datum_poslednjeg_pristupa_ck je druga kolona jer se filtrira
---      sa >= (range predikat), sto Postgres moze efikasno da iskoristi
---      kao "nastavak" indeksa nakon sto pozicionira isbn_eknjige.
---
---    Ovaj indeks pokriva i JOIN i WHERE deo upita u jednom prolazu kroz
---    B-tree, sto je bolje nego dva odvojena indeksa nad svakom kolonom.
--- ---------------------------------------------------------------------
 CREATE INDEX IF NOT EXISTS idx_citanje_isbn_datum_pristupa
     ON citanje_eknjige (isbn_eknjige, datum_poslednjeg_pristupa_ck);
 
--- ---------------------------------------------------------------------
--- 3. Samostalni indeks nad datum_poslednjeg_pristupa_ck
---
---    Koristan za upite koji filtriraju SAMO po datumu pristupa bez
---    JOIN-a na isbn (npr. izvestaji o aktivnosti citanja u odredjenom
---    periodu, bez obzira na knjigu). Nije strogo neophodan za nas
---    konkretan upit (kompozitni indeks iz koraka 2 ga vec pokriva u
---    kombinaciji sa JOIN-om), ali se dodaje jer se ista kolona koristi
---    i u drugim upitima repozitorijuma (findActiveByJmbg, findExpiredActive).
--- ---------------------------------------------------------------------
 CREATE INDEX IF NOT EXISTS idx_citanje_datum_pristupa
     ON citanje_eknjige (datum_poslednjeg_pristupa_ck);
 

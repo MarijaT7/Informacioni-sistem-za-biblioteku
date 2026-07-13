@@ -9,14 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-/**
- * Servis za izvestaj "najcitanije knjige po zanru u poslednjih 30 dana".
- *
- * Ovaj izvestaj koristi optimizovani upit iz KnjigaRepository#findNajcitanijeKnjigePoZanru,
- * koji se oslanja na indekse definisane u Flyway migraciji
- * V1__add_indexes_for_najcitanije_knjige_upit.sql (idx_knjiga_zanr_id,
- * idx_citanje_isbn_datum_pristupa).
- */
 @Service
 public class NajcitanijeKnjigeReportService {
 

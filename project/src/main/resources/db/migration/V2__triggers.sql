@@ -137,8 +137,8 @@ $$ LANGUAGE plpgsql;
 -- Indeksi - optimizacija upita - Zadatak 3 - Nenad
 
 -- =====================================================================
--- V1: Indeksi za optimizaciju upita "najcitanije knjige po zanru
--- u poslednjih 30 dana"
+-- Indeksi za optimizaciju upita "najcitanije knjige po zanru
+-- u poslednjih 180 dana"
 --
 -- Upit koji se optimizuje (KnjigaRepository.findNajcitanijeKnjigePoZanru):
 --
@@ -146,14 +146,14 @@ $$ LANGUAGE plpgsql;
 --   FROM knjiga k
 --   JOIN citanje_eknjige c ON c.isbn_eknjige = k.isbn
 --   WHERE k.zanr_id = :zanrId
---     AND c.datum_poslednjeg_pristupa_ck >= CURRENT_DATE - INTERVAL '30 days'
+--     AND c.datum_poslednjeg_pristupa_ck >= CURRENT_DATE - INTERVAL '180 days'
 --   GROUP BY k.isbn, k.naslov
 --   ORDER BY broj_citanja DESC;
 --
--- Plan izvrsavanja PRE ovih indeksa (nad opterecenom tabelom generisanom
--- skriptom generate_test_data.sql, ~85.000 redova u citanje_eknjige,
--- ~5.000 redova u knjiga) je koristio Seq Scan nad obe tabele. Sa
--- indeksima ispod planer prelazi na Index/Bitmap Index Scan.
+-- Plan izvrsavanja PRE ovih indeksa (nad tabelom pokrenuti
+-- skriptu generate_test_data.sql, oko 85.000 redova u citanje_eknjige,
+-- i oko 5.000 redova u knjiga) je koristio Seq Scan nad obe tabele. Sa
+-- indeksima ispod, planer prelazi na Index/Bitmap Index Scan.
 -- =====================================================================
 
 CREATE INDEX IF NOT EXISTS idx_knjiga_zanr_id

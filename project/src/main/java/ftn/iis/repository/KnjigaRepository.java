@@ -42,7 +42,7 @@ public interface KnjigaRepository extends JpaRepository<Knjiga, String> {
             JOIN citanje_eknjige c ON c.isbn_eknjige = k.isbn
             WHERE k.zanr_id = :zanrId
               AND k.deleted = false
-              AND c.datum_poslednjeg_pristupa_ck >= CURRENT_DATE - INTERVAL '150 days'
+              AND c.datum_poslednjeg_pristupa_ck >= CURRENT_DATE - INTERVAL '180 days'
             GROUP BY k.isbn, k.naslov
             ORDER BY brojCitanja DESC
             """, nativeQuery = true)
